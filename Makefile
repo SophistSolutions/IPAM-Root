@@ -47,6 +47,9 @@ endif
 
 STROIKA_CONFIG_PARAMS_COMMON=
 
+# Don't support MFC, we dont use anyhow (speeds builds)
+STROIKA_CONFIG_PARAMS_COMMON+=	--ATLMFC no
+
 STROIKA_CONFIG_PARAMS_DEBUG=--apply-default-debug-flags
 STROIKA_CONFIG_PARAMS_RELEASE=--apply-default-release-flags
 ifneq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
