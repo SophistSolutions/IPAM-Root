@@ -1,0 +1,19 @@
+Making top level directory: ../IPAM
+Making ../IPAM/ThirdPartyComponents/Stroika
+Initializing git repository and adding Stroika submodule
+hint: Using 'master' as the name for the initial branch. This default branch name
+hint: is subject to change. To configure the initial branch name to use in all
+hint: of your new repositories, which will suppress this warning, call:
+hint: 
+hint: 	git config --global init.defaultBranch <name>
+hint: 
+hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+hint: 'development'. The just-created branch can be renamed via this command:
+hint: 
+hint: 	git branch -m <name>
+Initialized empty Git repository in /c/Sandbox/IPAM/IPAM/.git/
+Cloning into '/c/Sandbox/IPAM/IPAM/ThirdPartyComponents/Stroika/StroikaRoot'...
+warning: in the working copy of '.gitmodules', LF will be replaced by CRLF the next time Git touches it
+Already on 'v2.1-Release'
+Your branch is up to date with 'origin/v2.1-Release'.
+Making ../IPAM/{Workspaces, .vscode, IPAM} etc...

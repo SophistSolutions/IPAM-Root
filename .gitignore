@@ -1,0 +1,17 @@
+Builds
+IntermediateFiles
+ConfigurationFiles
+.project
+.config.json
+cproject
+.externalToolBuilders
+*.sdf
+*.opensdf
+*.opendb
+*.suo
+*.VC.db
+*.vs
+*.user
+.DS_Store
+MiscOldNotes/
+xcuserdata/
