@@ -1,0 +1,7 @@
+<map id="Exiv2::Internal::TiffDataEntryBase" name="Exiv2::Internal::TiffDataEntryBase">
+<area shape="rect" id="node1" title="Interface for a standard TIFF IFD entry consisting of a value which is a set of offsets to a data are..." alt="" coords="96,155,251,196"/>
+<area shape="rect" id="node4" href="$classExiv2_1_1Internal_1_1TiffDataEntry.html" title="A standard TIFF IFD entry consisting of a value which is an offset to a data area and the data area...." alt="" coords="5,244,160,285"/>
+<area shape="rect" id="node5" href="$classExiv2_1_1Internal_1_1TiffImageEntry.html" title="A standard TIFF IFD entry consisting of a value which is an array of offsets to image data areas...." alt="" coords="184,244,347,285"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1Internal_1_1TiffEntryBase.html" title="This abstract base class provides the common functionality of an IFD directory entry and defines an e..." alt="" coords="79,80,267,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1Internal_1_1TiffComponent.html" title="Interface class for components of a TIFF directory hierarchy (Composite pattern). Both TIFF directori..." alt="" coords="77,5,270,32"/>
+</map>

@@ -1,0 +1,4 @@
+<map id="Exiv2::Internal::TiffFinder" name="Exiv2::Internal::TiffFinder">
+<area shape="rect" id="node1" title="Search the composite for a component with tag and group. Return a pointer to the component or 0,..." alt="" coords="6,80,169,107"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1Internal_1_1TiffVisitor.html" title="Abstract base class defining the interface for TIFF composite visitors (Visitor pattern)" alt="" coords="5,5,169,32"/>
+</map>

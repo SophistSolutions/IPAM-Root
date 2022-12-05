@@ -1,0 +1,4 @@
+<map id="Exiv2::Internal::TiffEncoder" name="Exiv2::Internal::TiffEncoder">
+<area shape="rect" id="node1" title="TIFF composite visitor to encode metadata from an image to the TIFF tree. The metadata containers and..." alt="" coords="5,80,180,107"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1Internal_1_1TiffVisitor.html" title="Abstract base class defining the interface for TIFF composite visitors (Visitor pattern)" alt="" coords="11,5,175,32"/>
+</map>

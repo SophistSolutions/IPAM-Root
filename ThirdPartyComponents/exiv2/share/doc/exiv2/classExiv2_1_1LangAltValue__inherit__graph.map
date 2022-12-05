@@ -1,0 +1,5 @@
+<map id="Exiv2::LangAltValue" name="Exiv2::LangAltValue">
+<area shape="rect" id="node1" title="Value type for XMP language alternative properties." alt="" coords="5,155,144,181"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1XmpValue.html" title="Base class for all Exiv2 values used to store XMP property values." alt="" coords="15,80,134,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1Value.html" title="Common interface for all types of values used with metadata." alt="" coords="27,5,122,32"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="Exiv2::Internal::TiffMnEntry" name="Exiv2::Internal::TiffMnEntry">
+<area shape="rect" id="node1" title="This class is the basis for Makernote support in TIFF. It contains a pointer to a concrete Makernote...." alt="" coords="14,155,190,181"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1Internal_1_1TiffEntryBase.html" title="This abstract base class provides the common functionality of an IFD directory entry and defines an e..." alt="" coords="8,80,196,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1Internal_1_1TiffComponent.html" title="Interface class for components of a TIFF directory hierarchy (Composite pattern). Both TIFF directori..." alt="" coords="5,5,199,32"/>
+</map>

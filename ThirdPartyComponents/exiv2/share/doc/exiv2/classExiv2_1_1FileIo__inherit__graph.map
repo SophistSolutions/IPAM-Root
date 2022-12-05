@@ -1,0 +1,5 @@
+<map id="Exiv2::FileIo" name="Exiv2::FileIo">
+<area shape="rect" id="node1" title="Provides binary file IO by implementing the BasicIo interface." alt="" coords="12,80,104,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1XPathIo.html" title="Provides binary IO for the data from stdin and data uri path." alt="" coords="5,155,111,181"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1BasicIo.html" title="An interface for simple binary IO." alt="" coords="6,5,110,32"/>
+</map>

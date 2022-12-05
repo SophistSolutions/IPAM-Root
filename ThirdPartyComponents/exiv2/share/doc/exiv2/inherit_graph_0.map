@@ -1,0 +1,8 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classExiv2_1_1BasicIo.html" title="An interface for simple binary IO." alt="" coords="5,56,109,83"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1FileIo.html" title="Provides binary file IO by implementing the BasicIo interface." alt="" coords="169,5,261,32"/>
+<area shape="rect" id="node4" href="$classExiv2_1_1MemIo.html" title="Provides binary IO on blocks of memory by implementing the BasicIo interface. A copy&#45;on&#45;write impleme..." alt="" coords="165,56,265,83"/>
+<area shape="rect" id="node5" href="$classExiv2_1_1RemoteIo.html" title="Provides remote binary file IO by implementing the BasicIo interface. This is an abstract class...." alt="" coords="157,107,273,133"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1XPathIo.html" title="Provides binary IO for the data from stdin and data uri path." alt="" coords="321,5,427,32"/>
+<area shape="rect" id="node6" href="$classExiv2_1_1HttpIo.html" title="Provides the http read/write access for the RemoteIo." alt="" coords="327,107,421,133"/>
+</map>

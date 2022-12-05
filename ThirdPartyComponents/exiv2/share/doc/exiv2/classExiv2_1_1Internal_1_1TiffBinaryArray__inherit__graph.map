@@ -1,0 +1,5 @@
+<map id="Exiv2::Internal::TiffBinaryArray" name="Exiv2::Internal::TiffBinaryArray">
+<area shape="rect" id="node1" title="Composite to model an array of different tags. The tag types as well as other aspects of the array ar..." alt="" coords="20,155,184,196"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1Internal_1_1TiffEntryBase.html" title="This abstract base class provides the common functionality of an IFD directory entry and defines an e..." alt="" coords="8,80,196,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1Internal_1_1TiffComponent.html" title="Interface class for components of a TIFF directory hierarchy (Composite pattern). Both TIFF directori..." alt="" coords="5,5,199,32"/>
+</map>

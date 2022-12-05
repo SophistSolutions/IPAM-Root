@@ -1,0 +1,25 @@
+<map id="Exiv2::Image" name="Exiv2::Image">
+<area shape="rect" id="node1" title="Abstract base class defining the interface for an image. This is the top&#45;level interface to the Exiv2..." alt="" coords="5,461,101,488"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1BmffImage.html" title="Class to access BMFF images." alt="" coords="166,5,289,32"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1BmpImage.html" title="Class to access Windows bitmaps. This is just a stub &#45; we only read width and height." alt="" coords="166,56,289,83"/>
+<area shape="rect" id="node4" href="$classExiv2_1_1Cr2Image.html" title="Class to access raw Canon CR2 images. Exif metadata is supported directly, IPTC is read from the Exif..." alt="" coords="169,107,285,133"/>
+<area shape="rect" id="node5" href="$classExiv2_1_1CrwImage.html" title="Class to access raw Canon CRW images. Only Exif metadata and a comment are supported...." alt="" coords="168,157,287,184"/>
+<area shape="rect" id="node6" href="$classExiv2_1_1EpsImage.html" title="Class to access EPS images." alt="" coords="168,208,287,235"/>
+<area shape="rect" id="node7" href="$classExiv2_1_1GifImage.html" title="Class to access raw GIF images. Exif/IPTC metadata are supported directly." alt="" coords="171,259,283,285"/>
+<area shape="rect" id="node8" href="$classExiv2_1_1Jp2Image.html" title="Class to access JPEG&#45;2000 images." alt="" coords="169,309,285,336"/>
+<area shape="rect" id="node9" href="$classExiv2_1_1JpegBase.html" title="Abstract helper base class to access JPEG images." alt="" coords="168,360,287,387"/>
+<area shape="rect" id="node12" href="$classExiv2_1_1MrwImage.html" title="Class to access raw Minolta MRW images. Exif metadata is supported directly, IPTC is read from the Ex..." alt="" coords="167,411,287,437"/>
+<area shape="rect" id="node13" href="$classExiv2_1_1PgfImage.html" title="Class to access PGF images. Exif and IPTC metadata are supported directly." alt="" coords="170,461,285,488"/>
+<area shape="rect" id="node14" href="$classExiv2_1_1PngImage.html" title="Class to access PNG images. Exif and IPTC metadata are supported directly." alt="" coords="168,512,287,539"/>
+<area shape="rect" id="node15" href="$classExiv2_1_1PsdImage.html" title="Class to access raw Photoshop images." alt="" coords="168,563,287,589"/>
+<area shape="rect" id="node16" href="$classExiv2_1_1QuickTimeVideo.html" title="Class to access QuickTime video files." alt="" coords="149,613,305,640"/>
+<area shape="rect" id="node17" href="$classExiv2_1_1RafImage.html" title="Class to access raw Fujifilm RAF images. Exif metadata is supported directly, IPTC is read from the E..." alt="" coords="170,664,285,691"/>
+<area shape="rect" id="node18" href="$classExiv2_1_1Rw2Image.html" title="Class to access raw Panasonic RW2 images. Exif metadata is supported directly, IPTC and XMP are read ..." alt="" coords="167,715,288,741"/>
+<area shape="rect" id="node19" href="$classExiv2_1_1TgaImage.html" title="Class to access raw TARGA images. This is just a stub &#45; we only read width and height." alt="" coords="169,765,286,792"/>
+<area shape="rect" id="node20" href="$classExiv2_1_1TiffImage.html" title="Class to access TIFF images. Exif metadata is supported directly, IPTC is read from the Exif data,..." alt="" coords="171,816,283,843"/>
+<area shape="rect" id="node22" href="$classExiv2_1_1WebPImage.html" title="Class to access WEBP video files." alt="" coords="161,867,293,893"/>
+<area shape="rect" id="node23" href="$classExiv2_1_1XmpSidecar.html" title="Class to access XMP sidecar files. They contain only XMP metadata." alt="" coords="162,917,293,944"/>
+<area shape="rect" id="node10" href="$classExiv2_1_1ExvImage.html" title="Helper class to access Exiv2 files." alt="" coords="356,335,473,361"/>
+<area shape="rect" id="node11" href="$classExiv2_1_1JpegImage.html" title="Class to access JPEG images." alt="" coords="353,385,476,412"/>
+<area shape="rect" id="node21" href="$classExiv2_1_1OrfImage.html" title="Class to access raw Olympus ORF images. Exif metadata is supported directly, IPTC is read from the Ex..." alt="" coords="358,816,471,843"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="Exiv2::BasicIo" name="Exiv2::BasicIo">
+<area shape="rect" id="node1" title="An interface for simple binary IO." alt="" coords="126,5,230,32"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1FileIo.html" title="Provides binary file IO by implementing the BasicIo interface." alt="" coords="12,80,104,107"/>
+<area shape="rect" id="node4" href="$classExiv2_1_1MemIo.html" title="Provides binary IO on blocks of memory by implementing the BasicIo interface. A copy&#45;on&#45;write impleme..." alt="" coords="128,80,228,107"/>
+<area shape="rect" id="node5" href="$classExiv2_1_1RemoteIo.html" title="Provides remote binary file IO by implementing the BasicIo interface. This is an abstract class...." alt="" coords="252,80,368,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1XPathIo.html" title="Provides binary IO for the data from stdin and data uri path." alt="" coords="5,155,111,181"/>
+<area shape="rect" id="node6" href="$classExiv2_1_1HttpIo.html" title="Provides the http read/write access for the RemoteIo." alt="" coords="263,155,357,181"/>
+</map>

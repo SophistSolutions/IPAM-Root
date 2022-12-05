@@ -1,0 +1,4 @@
+<map id="Exiv2::Xmpdatum" name="Exiv2::Xmpdatum">
+<area shape="rect" id="node1" title="Information related to an XMP property. An XMP metadatum consists of an XmpKey and a Value and provid..." alt="" coords="7,80,130,107"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1Metadatum.html" title="Abstract base class defining the interface to access information related to one metadata tag." alt="" coords="5,5,132,32"/>
+</map>

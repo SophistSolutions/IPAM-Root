@@ -1,0 +1,7 @@
+<map id="Exiv2::StringValueBase" name="Exiv2::StringValueBase">
+<area shape="rect" id="node1" title="Abstract base class for a string based Value type." alt="" coords="149,80,307,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1AsciiValue.html" title="Value for an Ascii string type." alt="" coords="5,155,128,181"/>
+<area shape="rect" id="node4" href="$classExiv2_1_1CommentValue.html" title="Value for an Exif comment." alt="" coords="153,155,303,181"/>
+<area shape="rect" id="node5" href="$classExiv2_1_1StringValue.html" title="Value for string type." alt="" coords="328,155,456,181"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1Value.html" title="Common interface for all types of values used with metadata." alt="" coords="181,5,275,32"/>
+</map>

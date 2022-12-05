@@ -1,0 +1,8 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classExiv2_1_1Internal_1_1TiffVisitor.html" title="Abstract base class defining the interface for TIFF composite visitors (Visitor pattern)" alt="" coords="5,107,169,133"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1Internal_1_1TiffCopier.html" title="Copy all image tags from the source tree (the tree that is traversed) to a target tree,..." alt="" coords="223,5,387,32"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1Internal_1_1TiffDecoder.html" title="TIFF composite visitor to decode metadata from the TIFF tree and add it to an Image,..." alt="" coords="217,56,392,83"/>
+<area shape="rect" id="node4" href="$classExiv2_1_1Internal_1_1TiffEncoder.html" title="TIFF composite visitor to encode metadata from an image to the TIFF tree. The metadata containers and..." alt="" coords="217,107,392,133"/>
+<area shape="rect" id="node5" href="$classExiv2_1_1Internal_1_1TiffFinder.html" title="Search the composite for a component with tag and group. Return a pointer to the component or 0,..." alt="" coords="223,157,386,184"/>
+<area shape="rect" id="node6" href="$classExiv2_1_1Internal_1_1TiffReader.html" title="TIFF composite visitor to read the TIFF structure from a block of memory and build the composite from..." alt="" coords="221,208,389,235"/>
+</map>

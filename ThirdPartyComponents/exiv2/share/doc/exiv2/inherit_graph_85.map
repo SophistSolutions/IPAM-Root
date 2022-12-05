@@ -1,0 +1,6 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="node1" href="$classExiv2_1_1Metadatum.html" title="Abstract base class defining the interface to access information related to one metadata tag." alt="" coords="5,56,132,83"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1Exifdatum.html" title="An Exif metadatum, consisting of an ExifKey and a Value and methods to manipulate these." alt="" coords="182,5,301,32"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1Iptcdatum.html" title="An IPTC metadatum (&quot;dataset&quot;), consisting of an IptcKey and a Value and methods to manipulate these." alt="" coords="182,56,301,83"/>
+<area shape="rect" id="node4" href="$classExiv2_1_1Xmpdatum.html" title="Information related to an XMP property. An XMP metadatum consists of an XmpKey and a Value and provid..." alt="" coords="180,107,303,133"/>
+</map>

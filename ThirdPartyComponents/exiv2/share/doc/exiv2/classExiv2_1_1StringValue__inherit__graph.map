@@ -1,0 +1,5 @@
+<map id="Exiv2::StringValue" name="Exiv2::StringValue">
+<area shape="rect" id="node1" title="Value for string type." alt="" coords="21,155,149,181"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1StringValueBase.html" title="Abstract base class for a string based Value type." alt="" coords="5,80,164,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1Value.html" title="Common interface for all types of values used with metadata." alt="" coords="37,5,132,32"/>
+</map>

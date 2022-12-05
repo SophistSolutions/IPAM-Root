@@ -1,0 +1,5 @@
+<map id="Exiv2::ExvImage" name="Exiv2::ExvImage">
+<area shape="rect" id="node1" title="Helper class to access Exiv2 files." alt="" coords="6,155,123,181"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1JpegBase.html" title="Abstract helper base class to access JPEG images." alt="" coords="5,80,124,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1Image.html" title="Abstract base class defining the interface for an image. This is the top&#45;level interface to the Exiv2..." alt="" coords="17,5,113,32"/>
+</map>

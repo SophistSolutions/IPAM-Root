@@ -1,0 +1,5 @@
+<map id="Exiv2::OrfImage" name="Exiv2::OrfImage">
+<area shape="rect" id="node1" title="Class to access raw Olympus ORF images. Exif metadata is supported directly, IPTC is read from the Ex..." alt="" coords="5,155,119,181"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1TiffImage.html" title="Class to access TIFF images. Exif metadata is supported directly, IPTC is read from the Exif data,..." alt="" coords="6,80,118,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1Image.html" title="Abstract base class defining the interface for an image. This is the top&#45;level interface to the Exiv2..." alt="" coords="14,5,110,32"/>
+</map>

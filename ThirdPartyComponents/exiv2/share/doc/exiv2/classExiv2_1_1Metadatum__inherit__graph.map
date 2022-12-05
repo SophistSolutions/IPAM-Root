@@ -1,0 +1,6 @@
+<map id="Exiv2::Metadatum" name="Exiv2::Metadatum">
+<area shape="rect" id="node1" title="Abstract base class defining the interface to access information related to one metadata tag." alt="" coords="144,5,271,32"/>
+<area shape="rect" id="node2" href="$classExiv2_1_1Exifdatum.html" title="An Exif metadatum, consisting of an ExifKey and a Value and methods to manipulate these." alt="" coords="5,80,124,107"/>
+<area shape="rect" id="node3" href="$classExiv2_1_1Iptcdatum.html" title="An IPTC metadatum (&quot;dataset&quot;), consisting of an IptcKey and a Value and methods to manipulate these." alt="" coords="148,80,267,107"/>
+<area shape="rect" id="node4" href="$classExiv2_1_1Xmpdatum.html" title="Information related to an XMP property. An XMP metadatum consists of an XmpKey and a Value and provid..." alt="" coords="291,80,414,107"/>
+</map>
