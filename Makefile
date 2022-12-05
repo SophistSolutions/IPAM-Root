@@ -36,6 +36,7 @@ else
 	@$(MAKE) --directory=ThirdPartyComponents --no-print-directory all MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 	@$(StroikaRoot)/ScriptsLib/CheckValidConfiguration $(CONFIGURATION)
 	@$(MAKE) --directory=IPAM --no-print-directory MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all
+	@$(MAKE) --directory=PS1 --no-print-directory MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all
 endif
 
 
@@ -49,6 +50,16 @@ STROIKA_CONFIG_PARAMS_COMMON=
 
 # Don't support MFC, we dont use anyhow (speeds builds)
 STROIKA_CONFIG_PARAMS_COMMON+=	--ATLMFC no
+
+
+### @todo FIX - PROBABLY WRONG STRATEGY - FIX ELSEWHERE IN BUILD PROCESS SO ONLY appropriate
+### COMPONENTS PULL THIS INTO PATH
+ifneq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
+STROIKA_CONFIG_PARAMS_COMMON+=	--append-includes-path $(TOP_ROOT)ThirdPartyComponents/exiv2/include/
+STROIKA_CONFIG_PARAMS_COMMON+=	--append-libs-path $(TOP_ROOT)ThirdPartyComponents/exiv2/lib/
+STROIKA_CONFIG_PARAMS_COMMON+=	--append-lib-dependencies exiv2.lib
+endif
+
 
 STROIKA_CONFIG_PARAMS_DEBUG=--apply-default-debug-flags
 STROIKA_CONFIG_PARAMS_RELEASE=--apply-default-release-flags
@@ -132,6 +143,8 @@ else
 	@$(StroikaRoot)ScriptsLib/CheckValidConfiguration $(CONFIGURATION)
 	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "IPAM $(call FUNCTION_CAPITALIZE_WORD,$@) {$(CONFIGURATION)}:"
 	@$(MAKE) --directory IPAM --no-print-directory $@ MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
+	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "PS1 $(call FUNCTION_CAPITALIZE_WORD,$@) {$(CONFIGURATION)}:"
+	@$(MAKE) --directory PS1 --no-print-directory $@ MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 	@$(MAKE) --directory ThirdPartyComponents --no-print-directory $@ MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 endif
 
@@ -158,3 +171,4 @@ endif
 
 format-code:
 	@$(MAKE) --directory=IPAM --no-print-directory format-code
+	@$(MAKE) --directory=PS1 --no-print-directory format-code
