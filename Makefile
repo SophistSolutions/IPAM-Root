@@ -37,6 +37,7 @@ else
 	@$(StroikaRoot)/ScriptsLib/CheckValidConfiguration $(CONFIGURATION)
 	@$(MAKE) --directory=IPAM --no-print-directory MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all
 	@$(MAKE) --directory=PS1 --no-print-directory MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all
+	@$(MAKE) --directory=PS2 --no-print-directory MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all
 endif
 
 
@@ -145,6 +146,8 @@ else
 	@$(MAKE) --directory IPAM --no-print-directory $@ MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "PS1 $(call FUNCTION_CAPITALIZE_WORD,$@) {$(CONFIGURATION)}:"
 	@$(MAKE) --directory PS1 --no-print-directory $@ MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
+	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "PS2 $(call FUNCTION_CAPITALIZE_WORD,$@) {$(CONFIGURATION)}:"
+	@$(MAKE) --directory PS2 --no-print-directory $@ MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 	@$(MAKE) --directory ThirdPartyComponents --no-print-directory $@ MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 endif
 
@@ -172,3 +175,4 @@ endif
 format-code:
 	@$(MAKE) --directory=IPAM --no-print-directory format-code
 	@$(MAKE) --directory=PS1 --no-print-directory format-code
+	@$(MAKE) --directory=PS2 --no-print-directory format-code
