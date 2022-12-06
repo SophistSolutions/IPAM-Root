@@ -43,20 +43,20 @@ FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/heads/$(BASENAME).zip
 
 
 PRODUCED_OUTPUT_ARTIFACTS=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)include/exiv2/dom/DOM.hpp
+	$(PER_CONFIGURATION_BUILDS_DIR)include/exiv2/value.hpp
 
 ifeq (Unix,$(ProjectPlatformSubdir))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexiv2s-c.a
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexiv2.a
 endif
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 ifeq (Debug,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/exiv2s-c_3D.lib
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/exiv2.lib
 endif
 ifeq (Release,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/exiv2s-c_3.lib
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/exiv2.lib
 endif
 endif
 
@@ -218,15 +218,32 @@ CXXFLAGS:=$(filter-out -RTCs%, $(CXXFLAGS))
 endif
 
 
+#           ] (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\cr2image.cpp)
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\futils.cpp(341,7): error C2679: binary '=': no operator found which takes a right-hand operand of type 'TCHAR [260]' (or there is no acceptable conversion) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\exiv2lib.vcxproj]
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+CFLAGS:=$(filter-out -DUNICODE, $(CFLAGS))
+CXXFLAGS:=$(filter-out -DUNICODE, $(CXXFLAGS))
+CFLAGS:=$(filter-out -D_UNICODE, $(CFLAGS))
+CXXFLAGS:=$(filter-out -D_UNICODE, $(CXXFLAGS))
+endif
+
 
 CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=no
 
 CMAKE_ARGS+= -DBUILD_SHARED_LIBS=no
 
 
-# CMAKE_ARGS+= -DPC_EXPAT_INCLUDE_DIRS=c:/Sandbox/IPAM/DevRoot/Builds/Debug/ThirdPartyComponents/include/
-# CMAKE_ARGS+= -DPC_EXPAT_LIBRARY_DIRS=c:/Sandbox/IPAM/DevRoot/Builds/Debug/ThirdPartyComponents/lib/
+### Should not be needed but finding stuff in wrong place - mingw - instead...
+###  SB mingw only hack at least
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 
+X_=$(call FUNCTION_CONVERT_FILES_TO_COMPILER_NATIVE,$(PER_CONFIGURATION_BUILDS_DIR))
+CMAKE_ARGS+= -DPC_EXPAT_INCLUDE_DIRS=$(X_)/include/
+CMAKE_ARGS+= -DPC_EXPAT_LIBRARY_DIRS=$(X_)/lib/
+CMAKE_ARGS+= -DZLIB_INCLUDE_DIR=$(X_)/include/
+CMAKE_ARGS+= -DZLIB_LIBRARY_DIR=$(X_)/lib/
+CMAKE_ARGS+= -DZLIB_LIBRARY_RELEASE=$(X_)/lib/zlib.lib
+endif
 
 
 
@@ -239,7 +256,6 @@ ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 CFLAGS += /DWIN32
 CXXFLAGS += /DWIN32
 endif
-
 
 
 #
