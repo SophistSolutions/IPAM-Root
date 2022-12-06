@@ -235,6 +235,9 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 
 CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=OFF
 
+# https://github.com/Exiv2/exiv2#BMFF
+CMAKE_ARGS+= -DEXIV2_ENABLE_BMFF=ON
+
 CMAKE_ARGS+= -DBUILD_SHARED_LIBS=OFF
 
 ### Should not be needed but finding stuff in wrong place - mingw - instead...
