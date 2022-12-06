@@ -1,8 +1,10 @@
 # About this project
 
-This project is created by the Stroika Skel utility.
+IPAM - Interplanetary Album Manager - is a set of tools to organize and categorize content on the
+IPFS - Interplanetary Filesystem.
 
-This is folder is a standalone project, which aggregates its dependencies (like Stroika).
+The original motivation behind IPAM was to allow seemless sharing and organizing of photo albums,
+but without giving up ownership/control to a third party (like Facebook or Google).
 
 ## Building
 
@@ -15,12 +17,3 @@ or for a quicker build
 ~~~
 make CONFIGURATION=Debug all -j10
 ~~~
-
-## IDES
-
-Stroika's Skel utility directly supports Visual Studio.Net 2019, and 2022, as well as Visual Studio Code.
-
-To get the full benefit of these project files, you may need do to an initial build of Stroika
-for each configuration you wish to use from a project file (see above).
-
-
