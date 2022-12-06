@@ -1,0 +1,6 @@
+diff -r ORIGs/cmake/compilerFlags.cmake CURRENT/cmake/compilerFlags.cmake
+136c136,137
+<     set (CMAKE_CXX_FLAGS_DEBUG "/MDd /Zi /Ob0 /Ox /Zo")
+---
+> #DONT DO THIS - CUZ FORCES /MDd and so cannot build with STATIC_LIB version!!!--LGP 2022-12-06
+> #    set (CMAKE_CXX_FLAGS_DEBUG "/MDd /Zi /Ob0 /Ox /Zo")
