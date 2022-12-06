@@ -141,7 +141,7 @@ endif
 
 
 $(ZIPPEDFILE):
-	if [ !-e ../Origs-Cache ] ; then mkdir ../Origs-Cache; fi
+	if [ ! -e ../Origs-Cache ] ; then mkdir ../Origs-Cache; fi
 	@MAKE_INDENT_LEVEL=$(MAKE_INDENT_LEVEL) $(StroikaRoot)ScriptsLib/WebGet $(ZIPPEDFILE) $(FETCHURLS)
 
 
