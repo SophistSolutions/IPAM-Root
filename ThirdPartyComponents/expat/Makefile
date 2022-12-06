@@ -55,7 +55,7 @@ PRODUCED_OUTPUT_ARTIFACTS+=	\
 endif
 ifeq (Release,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpatd.lib
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat.lib
 endif
 endif
 
