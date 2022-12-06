@@ -43,20 +43,20 @@ FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/heads/$(BASENAME).zip
 
 
 PRODUCED_OUTPUT_ARTIFACTS=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)include/xercesc/dom/DOM.hpp
+	$(PER_CONFIGURATION_BUILDS_DIR)include/exiv2/value.hpp
 
 ifeq (Unix,$(ProjectPlatformSubdir))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libxerces-c.a
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexiv2.a
 endif
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 ifeq (Debug,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/xerces-c_3D.lib
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/exiv2.lib
 endif
 ifeq (Release,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/xerces-c_3.lib
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/exiv2.lib
 endif
 endif
 
@@ -203,8 +203,48 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 # CMAKE_ARGS+= -Dtranscoder=gnuiconv
 # endif
 
+## DIDNT HELP
+#CMAKE_ARGS+= -DCMAKE_SYSTEM_PREFIX_PATH=$(CMAKE_PER_TARGET_BUILD_DIR)
+
+
+#   Checking Build System
+#   Building Custom Rule C:/Sandbox/IPAM/DevRoot/IntermediateFiles/Debug/ThirdPartyComponents/Exiv2/xmpsdk/CMakeLists.txt
+# cl : command line  error D8016: '/Ox' and '/RTCs' command-line options are incompatible [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\exiv2-xmp.vcxproj]
+#   Building Custom Rule C:/Sandbox/IPAM/DevRoot/IntermediateFiles/Debug/ThirdPartyComponents/Exiv2/src/CMakeLists.txt
+# cl : command line  error D8016: '/Ox' and '/RTCs' command-line options are incompatible [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\exiv2lib_int.vcxproj]
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+CFLAGS:=$(filter-out -RTCs%, $(CFLAGS))
+CXXFLAGS:=$(filter-out -RTCs%, $(CXXFLAGS))
+endif
+
+
+#           ] (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\cr2image.cpp)
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\futils.cpp(341,7): error C2679: binary '=': no operator found which takes a right-hand operand of type 'TCHAR [260]' (or there is no acceptable conversion) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\exiv2lib.vcxproj]
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+CFLAGS:=$(filter-out -DUNICODE, $(CFLAGS))
+CXXFLAGS:=$(filter-out -DUNICODE, $(CXXFLAGS))
+CFLAGS:=$(filter-out -D_UNICODE, $(CFLAGS))
+CXXFLAGS:=$(filter-out -D_UNICODE, $(CXXFLAGS))
+endif
+
+
 CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=no
-CMAKE_ARGS+= -DEXPAT_LIBRARY=no
+
+CMAKE_ARGS+= -DBUILD_SHARED_LIBS=no
+
+
+### Should not be needed but finding stuff in wrong place - mingw - instead...
+###  SB mingw only hack at least
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+
+X_=$(call FUNCTION_CONVERT_FILES_TO_COMPILER_NATIVE,$(PER_CONFIGURATION_BUILDS_DIR))
+CMAKE_ARGS+= -DPC_EXPAT_INCLUDE_DIRS=$(X_)/include/
+CMAKE_ARGS+= -DPC_EXPAT_LIBRARY_DIRS=$(X_)/lib/
+CMAKE_ARGS+= -DZLIB_INCLUDE_DIR=$(X_)/include/
+CMAKE_ARGS+= -DZLIB_LIBRARY_DIR=$(X_)/lib/
+CMAKE_ARGS+= -DZLIB_LIBRARY_RELEASE=$(X_)/lib/zlib.lib
+endif
+
 
 
 ##
@@ -216,7 +256,6 @@ ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 CFLAGS += /DWIN32
 CXXFLAGS += /DWIN32
 endif
-
 
 
 #
@@ -268,8 +307,8 @@ doBuilds_:
 ifeq (Unix,$(ProjectPlatformSubdir))
 else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 	@#We get warnings about a missing pdb file when linking otherwise...(not sure why since symbol info sb in the .lib)
-	@$(ECHO) "cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/xerces-c.dir/$(CMAKE_CONFIGURATION)/xerces*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :" >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
-	@cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/xerces-c.dir/$(CMAKE_CONFIGURATION)/xerces*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :
+	@$(ECHO) "cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/exiv2s-c.dir/$(CMAKE_CONFIGURATION)/exiv2s*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :" >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
+	@cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/exiv2s-c.dir/$(CMAKE_CONFIGURATION)/exiv2s*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :
 endif
 
 
