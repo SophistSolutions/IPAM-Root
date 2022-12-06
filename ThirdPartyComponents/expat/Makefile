@@ -186,6 +186,13 @@ export CL+=/MP
 endif
 endif
 
+
+# On Visual Studio, they default to having this off, but we want to generate the pkgconfig file in hopes
+# it helps with the build of exiv2 --LGP 2022-12-06
+CMAKE_ARGS+= -DEXPAT_BUILD_PKGCONFIG=on
+
+
+
 ifeq ($(DETECTED_HOST_OS),MSYS)
 # Only needed to prevent failure with -j flag
 TOOLSET_CMD_ENV_SETS_+= MAKEFLAGS= MFLAGS= CL= 
