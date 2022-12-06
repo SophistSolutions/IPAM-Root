@@ -4,25 +4,17 @@
 #include "Stroika/Frameworks/StroikaPreComp.h"
 
 #include "Stroika/Foundation/Characters/ToString.h"
-#include "Stroika/Foundation/Debug/Trace.h"
-#include "Stroika/Foundation/DataExchange/ObjectVariantMapper.h"
-#include "Stroika/Foundation/DataExchange/StructFieldMetaInfo.h"
-#include "Stroika/Foundation/Streams/iostream/OutputStreamFromStdOStream.h"
-#include "Stroika/Foundation/DataExchange/Variant/JSON/Reader.h"
-#include "Stroika/Foundation/DataExchange/Variant/JSON/Writer.h"
 #include "Stroika/Foundation/Containers/Mapping.h"
 #include "Stroika/Foundation/Containers/SortedMultiSet.h"
+#include "Stroika/Foundation/DataExchange/ObjectVariantMapper.h"
+#include "Stroika/Foundation/DataExchange/StructFieldMetaInfo.h"
+#include "Stroika/Foundation/DataExchange/Variant/JSON/Writer.h"
+#include "Stroika/Foundation/Debug/TimingTrace.h"
+#include "Stroika/Foundation/Debug/Trace.h"
+#include "Stroika/Foundation/IO/FileSystem/FileOutputStream.h"
 
 #include "DocumentMetadata.h"
 #include "Geolocation.h"
-
-using namespace std;
-#include <iostream>
-#include <filesystem>
-#include <cstring>
-#include <iomanip>
-#include <cassert>
-#include <fstream>
 
 using namespace std::filesystem;
 
@@ -30,8 +22,8 @@ using namespace Stroika::Foundation;
 using Characters::String;
 
 
-const String kSourceFile = L"c:\\ssw\\mdResults\\DocumentMetaData.json";
-const char* kTagInfoOutputFile = "c:\\ssw\\mdResults\\DocumentMetaDataTagInfo.json";
+const path kDocumentMetaDataFile    = L"c:\\ssw\\mdResults\\DocumentMetaData.json";
+const path kTagInfoOutputFile       = L"c:\\ssw\\mdResults\\DocumentMetaDataTagInfo.json";
 
 using namespace Metadata;
 
@@ -66,14 +58,17 @@ namespace {
             Containers::Mapping<String, TagInfo*> fullTagInfo_ptr;
 
            {
-                DbgTrace (L"about to read metadata");
+               DbgTrace (L"about to read metadata");
                Containers::Mapping<String, DocumentMetadata> pt1;
-               DocumentMetadata::ReadFromJSONFile (&pt1, kSourceFile);
+               {
+                   Debug::TimingTrace ttrc;
+                   DocumentMetadata::ReadFromJSONFile (&pt1, kDocumentMetaDataFile);
+               }
                DbgTrace (L"found %d photos metadata", pt1.Keys ().length ());
 
                for (auto pi : pt1) {
                    String key = pi.fKey;
-                   DbgTrace (L"processing %s", key.c_str ());
+                  // DbgTrace (L"processing %s", key.c_str ());
 
                    // guarantee they are added to our tag list
                    for (String t : pi.fValue.tags) {
@@ -96,49 +91,53 @@ namespace {
                      //  DbgTrace (L"  finished tag %s, photo count = %d, sibling count = %d", it->c_str (), fullTagInfo.LookupValue (*it)->photosContaining.Count (), fullTagInfo.LookupValue (*it)->siblingTagsCount.Count ());
                    }
                }
-               DbgTrace (L"*** Final Tally***");
-               for (auto ti : fullTagInfo_ptr) {
-                   DbgTrace (L"tag %s, photo count = %d, sibling count = %d", ti.fKey.c_str (), ti.fValue->photosContaining.Count (), ti.fValue->siblingTagsCount.Count ()); 
-               }
            }
-           if (true) {
-                // sorted multiset doesn't currently do what I want (sorts by key, not value)
-               // so do the sorting by hand
-               struct TagInfo_Serialize {
-                   Containers::Set<String>      photosContaining;
-                   Containers::SortedCollection<TagInfoHelper> siblingTagsCount;
-               };
+           struct TagInfo_Serialize {
+               Containers::Set<String>                     photosContaining;
+               Containers::SortedCollection<TagInfoHelper> siblingTagsCount;
+           };
 
-               Containers::Mapping<String, TagInfo_Serialize> fullTagInfo;
-               for (auto it = fullTagInfo_ptr.begin (); it != fullTagInfo_ptr.end (); ++it) {
-                   TagInfo_Serialize ti;
-                   ti.photosContaining = it->fValue->photosContaining;
-                   for (auto it1 : it->fValue->siblingTagsCount) {
-                       ti.siblingTagsCount.Add (TagInfoHelper (it1.fValue, it1.fCount));
-                   }
+            Containers::Mapping<String, TagInfo_Serialize> fullTagInfo;
+            {
+               DbgTrace (L"processing tag info");
+               Debug::TimingTrace ttrc;
+               
+               // sorted multiset doesn't currently do what I want (sorts by key, not value)
+                // so do the sorting by hand
 
-                   fullTagInfo.Add (it->fKey, ti);
-               }
+                for (auto it = fullTagInfo_ptr.begin (); it != fullTagInfo_ptr.end (); ++it) {
+                    TagInfo_Serialize ti;
+                    ti.photosContaining = it->fValue->photosContaining;
+                    for (auto it1 : it->fValue->siblingTagsCount) {
+                        ti.siblingTagsCount.Add (TagInfoHelper (it1.fValue, it1.fCount));
+                    }
+
+                    fullTagInfo.Add (it->fKey, ti);
+                }
+            }
+
+
+            {
+                DbgTrace (L"writing processed tag info to %s", kTagInfoOutputFile.c_str ());
+                Debug::TimingTrace ttrc;
+
                 using DataExchange::ObjectVariantMapper;
                 using DataExchange::StructFieldMetaInfo;
-               ObjectVariantMapper tagInfoMapper;
-               tagInfoMapper.AddCommonType<Containers::Set<String>> ();
-               tagInfoMapper.AddClass<TagInfoHelper> ({
-                   ObjectVariantMapper::StructFieldInfo{L"key", StructFieldMetaInfo{&TagInfoHelper::key}},
-                   ObjectVariantMapper::StructFieldInfo{L"value", StructFieldMetaInfo{&TagInfoHelper::value}},
-               });
-               tagInfoMapper.AddCommonType<Containers::SortedCollection<TagInfoHelper>> ();
-               tagInfoMapper.AddClass<TagInfo_Serialize> ({
-                   ObjectVariantMapper::StructFieldInfo{L"photosContaining", StructFieldMetaInfo{&TagInfo_Serialize::photosContaining}},
-                   ObjectVariantMapper::StructFieldInfo{L"siblingTagsCount", StructFieldMetaInfo{&TagInfo_Serialize::siblingTagsCount}},
-               });
-               tagInfoMapper.AddCommonType<Containers::Mapping<String, TagInfo_Serialize>> ();
+                ObjectVariantMapper tagInfoMapper;
+                tagInfoMapper.AddCommonType<Containers::Set<String>> ();
+                tagInfoMapper.AddClass<TagInfoHelper> ({
+                    ObjectVariantMapper::StructFieldInfo{L"key", StructFieldMetaInfo{&TagInfoHelper::key}},
+                    ObjectVariantMapper::StructFieldInfo{L"value", StructFieldMetaInfo{&TagInfoHelper::value}},
+                });
+                tagInfoMapper.AddCommonType<Containers::SortedCollection<TagInfoHelper>> ();
+                tagInfoMapper.AddClass<TagInfo_Serialize> ({
+                    ObjectVariantMapper::StructFieldInfo{L"photosContaining", StructFieldMetaInfo{&TagInfo_Serialize::photosContaining}},
+                    ObjectVariantMapper::StructFieldInfo{L"siblingTagsCount", StructFieldMetaInfo{&TagInfo_Serialize::siblingTagsCount}},
+                });
+                tagInfoMapper.AddCommonType<Containers::Mapping<String, TagInfo_Serialize>> ();
 
-
-
-               auto processedTagfile = std::wofstream (kTagInfoOutputFile);
-               DataExchange::Variant::JSON::Writer{}.Write (tagInfoMapper.FromObject (fullTagInfo), processedTagfile);         
-           }
+                DataExchange::Variant::JSON::Writer{}.Write (tagInfoMapper.FromObject (fullTagInfo), IO::FileSystem::FileOutputStream::New (kTagInfoOutputFile));
+            }
         }
        catch (...) {
            DbgTrace (L"got exception=%s", Characters::ToString (current_exception ()).c_str ());

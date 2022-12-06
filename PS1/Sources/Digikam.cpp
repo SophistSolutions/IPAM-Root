@@ -45,7 +45,7 @@ namespace digikam {
     using namespace Stroika::Foundation::Database;
     using namespace Stroika::Foundation::Database::SQL;
 
-    Containers::Mapping<String, DocumentMetadata> ScrapeDigikamDB (const char* dbPath)
+    Containers::Mapping<String, DocumentMetadata> ScrapeDigikamDB (const wchar_t* dbPath)
     {
         Containers::Mapping<String, DocumentMetadata> scrapedMetadata;
         try {

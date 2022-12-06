@@ -10,5 +10,5 @@
 
 
 namespace digikam {
-    extern Containers::Mapping<String, Metadata::DocumentMetadata> ScrapeDigikamDB (const char* dbPath);
+    extern Containers::Mapping<String, Metadata::DocumentMetadata> ScrapeDigikamDB (const wchar_t* dbPath);
 }

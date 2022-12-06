@@ -6,7 +6,6 @@
 #include "Stroika/Foundation/Containers/Set.h"
 #include "Stroika/Foundation/DataExchange/ObjectVariantMapper.h"
 
-
 using namespace Stroika::Foundation;
 using Characters::String;
 
@@ -16,51 +15,50 @@ using Characters::String;
 */
 namespace Metadata {
     class DocumentMetadata {
-        public:
-            struct Comment {
-                Comment (String comment_, optional<String> author_);
-                Comment (String comment_);
-                Comment ();
+    public:
+        struct Comment {
+            Comment (String comment_, optional<String> author_);
+            Comment (String comment_);
+            Comment ();
 
-                nonvirtual bool  operator== (const Comment& rhs) const;
-                nonvirtual bool  operator!= (const Comment& rhs) const;
-                nonvirtual bool  operator>= (const Comment& rhs) const;
-                nonvirtual bool  operator> (const Comment& rhs) const;
-                nonvirtual bool  operator<= (const Comment& rhs) const;
-                nonvirtual bool  operator<(const Comment& rhs) const;
+            nonvirtual bool operator== (const Comment& rhs) const;
+            nonvirtual bool operator!= (const Comment& rhs) const;
+            nonvirtual bool operator>= (const Comment& rhs) const;
+            nonvirtual bool operator> (const Comment& rhs) const;
+            nonvirtual bool operator<= (const Comment& rhs) const;
+            nonvirtual bool operator<(const Comment& rhs) const;
 
-                nonvirtual String ToString () const;
-                static String     ToString (Containers::Sequence<Comment>);
+            nonvirtual String ToString () const;
+            static String     ToString (Containers::Sequence<Comment>);
 
-                String           comment;
-                optional<String> author;
-            };
+            String           comment;
+            optional<String> author;
+        };
 
-        public:
-            DocumentMetadata ();
+    public:
+        DocumentMetadata ();
 
-        public:
-            Containers::Set<String> tags;
-            optional<String>        date; 
-            optional<String>        location;   
-            /*
+    public:
+        Containers::Set<String> tags;
+        optional<String>        date;
+        optional<String>        location;
+        /*
             * Metadata (and digikam) only support a single comment. We instead want a collection of them, as it is natural for
             * everyone to share a collection of comments with different authors for the same document. We will probably
             * have to write out own UI to support adding additional comments (and adding comments to non-photos which don't have metadata)
             */
-            optional<Containers::Sequence<Comment>> comment;
-            optional<String>        title;
-            optional<double>        rating; // 0->1.0, mapped to/from various software rating styles
-            optional<String>        album; // for file system, owning directory path from root
+        optional<Containers::Sequence<Comment>> comment;
+        optional<String>                        title;
+        optional<double>                        rating; // 0->1.0, mapped to/from various software rating styles
+        optional<String>                        album;  // for file system, owning directory path from root
 
-        public:
-            static void SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper);
-            static void WriteToFileAsJSON (Containers::Mapping<String, DocumentMetadata> mds, String filePath);
-            static void ReadFromJSONFile (Containers::Mapping<String, DocumentMetadata>* mds, String filePath);
+    public:
+        static void SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper);
+        static void WriteToFileAsJSON (Containers::Mapping<String, DocumentMetadata> mds, const std::filesystem::path filePath);
+        static void ReadFromJSONFile (Containers::Mapping<String, DocumentMetadata>* mds, const std::filesystem::path filePath);
     };
 
-
-/*
+    /*
  ********************************************************************************
  ***************************** Implementation Details ***************************
  ********************************************************************************
@@ -70,53 +68,53 @@ namespace Metadata {
     }
 
     inline DocumentMetadata::Comment::Comment (String comment_, optional<String> author_)
-    : comment (comment_)
-    , author (author_)
-{
-}
-
-inline DocumentMetadata::Comment::Comment (String comment_)
-    : comment (comment_)
-{
-}
-
-inline bool DocumentMetadata::Comment::operator== (const Comment& rhs) const
-{
-    return comment == rhs.comment and author == rhs.author;
-}
-inline bool DocumentMetadata::Comment::operator!= (const Comment& rhs) const
-{
-    return comment != rhs.comment or author != rhs.author;
-}
-inline bool DocumentMetadata::Comment::operator>= (const Comment& rhs) const
-{
-    if (comment == rhs.comment) {
-        return author >= rhs.author;
+        : comment (comment_)
+        , author (author_)
+    {
     }
-    return comment >= rhs.comment;
-}
-inline bool DocumentMetadata::Comment::operator> (const Comment& rhs) const
-{
-    if (comment == rhs.comment) {
-        return author > rhs.author;
-    }
-    return comment > rhs.comment;
-}
 
-inline bool DocumentMetadata::Comment::operator<= (const Comment& rhs) const
-{
-    if (comment == rhs.comment) {
-        return author <= rhs.author;
+    inline DocumentMetadata::Comment::Comment (String comment_)
+        : comment (comment_)
+    {
     }
-    return comment <= rhs.comment;
-}
 
-inline bool DocumentMetadata::Comment::operator<(const Comment& rhs) const
-{
-    if (comment == rhs.comment) {
-        return author < rhs.author;
+    inline bool DocumentMetadata::Comment::operator== (const Comment& rhs) const
+    {
+        return comment == rhs.comment and author == rhs.author;
     }
-    return comment < rhs.comment;
-}
+    inline bool DocumentMetadata::Comment::operator!= (const Comment& rhs) const
+    {
+        return comment != rhs.comment or author != rhs.author;
+    }
+    inline bool DocumentMetadata::Comment::operator>= (const Comment& rhs) const
+    {
+        if (comment == rhs.comment) {
+            return author >= rhs.author;
+        }
+        return comment >= rhs.comment;
+    }
+    inline bool DocumentMetadata::Comment::operator> (const Comment& rhs) const
+    {
+        if (comment == rhs.comment) {
+            return author > rhs.author;
+        }
+        return comment > rhs.comment;
+    }
+
+    inline bool DocumentMetadata::Comment::operator<= (const Comment& rhs) const
+    {
+        if (comment == rhs.comment) {
+            return author <= rhs.author;
+        }
+        return comment <= rhs.comment;
+    }
+
+    inline bool DocumentMetadata::Comment::operator<(const Comment& rhs) const
+    {
+        if (comment == rhs.comment) {
+            return author < rhs.author;
+        }
+        return comment < rhs.comment;
+    }
 
 } // namespace

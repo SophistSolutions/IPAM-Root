@@ -5,10 +5,13 @@
 #include <filesystem>
 #include <fstream>
 
+#include "Stroika/Foundation/Debug/TimingTrace.h"
 #include "Stroika/Foundation/Debug/Trace.h"
 #include "Stroika/Foundation/DataExchange/ObjectVariantMapper.h"
 #include "Stroika/Foundation/DataExchange/StructFieldMetaInfo.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Reader.h"
+#include "Stroika/Foundation/DataExchange/Variant/JSON/Writer.h"
+#include "Stroika/Foundation/IO/FileSystem/FileOutputStream.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
 #include "Digikam.h"
@@ -18,26 +21,22 @@
 using  Metadata::DocumentMetadata;
 
 
-#include <chrono>
-using namespace std::chrono;
-
-
 namespace {
     const bool  kTallyExtensions  = false;
     const bool  kScrapeFileSystem = false;
-    const bool  kScrapeDigikamDB  = true;
+    const bool  kScrapeDigikamDB  = false;
     const bool  kCreateMasterFile = true;
 
     //const char* kSourceDirectory  = "P:/1900-1909";
     const char* kSourceDirectory = "P:/";
     const char* kOutputDirectory = "c:/ssw/mdResults/";
     const char* kSampleExtractionFilesDirectory = kOutputDirectory;
-    const char* kDigikamDatabase = "c:/Digikam/digikam4.db";
+    const wchar_t* kDigikamDatabase = L"c:/Digikam/digikam4.db";
 
-    const String kDigikamScrapeFileName = L"DigikamScrape.json";
-    const String kFileScrapeFileName    = L"FileScrape.json";
-    const String kMergedTagsFileName    = L"DocumentMetaData.json";
-
+    const string kDigikamScrapeFileName     = "DigikamScrape.json";
+    const string kFileScrapeFileName        = "FileScrape.json";
+    const string kMergedTagsFileName        = "DocumentMetaData.json";
+    const string kExtensionTallyFileName   = "ExtenstionTally.json";
 }
 
 
@@ -48,57 +47,74 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {
     Debug::TraceContextBumper ctx{ Stroika_Foundation_Debug_OptionalizeTraceArgs(L"main", L"argv=%s", Characters::ToString(vector<const char*>{argv, argv + argc}).c_str()) };
 
+    path digikamScrapeFilePath = (string (kOutputDirectory) + kDigikamScrapeFileName);
+    path fileScrapeFilePath    = (string (kOutputDirectory) + kFileScrapeFileName);
+
     Containers::Mapping<String, DocumentMetadata> mergedMetaData;
 
     Containers::Mapping<String, DocumentMetadata> fileScrape;
     if (kScrapeFileSystem) {
-        fileScrape = Metadata::ImageMetadataExtractor().ExtractAll(kSourceDirectory);
-        DocumentMetadata::WriteToFileAsJSON(
-            fileScrape,
-            String::FromNarrowSDKString (kOutputDirectory) + kFileScrapeFileName);
+        {
+            DbgTrace (L"scraping file system directory at %s", kSourceDirectory);
+            Debug::TimingTrace ttrc;
+            fileScrape = Metadata::ImageMetadataExtractor ().ExtractAll (kSourceDirectory);
+        }
+        {
+            DbgTrace (L"writing file system scrape to %s", fileScrapeFilePath.c_str ());
+            Debug::TimingTrace ttrc;
+            DocumentMetadata::WriteToFileAsJSON (fileScrape, fileScrapeFilePath);
+        }
         mergedMetaData = fileScrape;
     }
 
     if (kTallyExtensions) {
-        Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor().TallyExtensions(kSourceDirectory, kSampleExtractionFilesDirectory);
+        DbgTrace (L"tallying extenstions for directory = %s", kSourceDirectory);
+        Debug::TimingTrace           ttrc;
+
+        Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (kSourceDirectory, kSampleExtractionFilesDirectory);
+
+        DataExchange::ObjectVariantMapper mapper;
+        mapper.AddCommonType<Containers::MultiSet<String>> ();
+        path extenstionTallyPath = (string (kOutputDirectory) + kExtensionTallyFileName);
+
+        DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (extTally), IO::FileSystem::FileOutputStream::New (extenstionTallyPath));
+        /*
         DbgTrace(L"****************************");
         for (const auto& i : extTally) {
             DbgTrace(L"%s : %d", i.fValue.c_str(), i.fCount);
         }
+        */
     }
+
     Containers::Mapping<String, DocumentMetadata> dbScrape;
     if (kScrapeDigikamDB) {
-        auto start = high_resolution_clock::now ();
-        dbScrape   = digikam::ScrapeDigikamDB (kDigikamDatabase);
-        Metadata::DocumentMetadata::WriteToFileAsJSON(
-            dbScrape,
-            String::FromNarrowSDKString(kOutputDirectory) + kDigikamScrapeFileName);
-        auto stop = high_resolution_clock::now();
-        auto duration = duration_cast<milliseconds>(stop - start);
-        DbgTrace(L"scraping digikam and writing json took %ld milliseconds", duration);
+        {
+            DbgTrace (L"scraping digikam database at %s", kDigikamDatabase);
+            Debug::TimingTrace ttrc;
+            dbScrape = digikam::ScrapeDigikamDB (kDigikamDatabase);
+        }
+        {
+            DbgTrace (L"writing digikam scrape to %s", digikamScrapeFilePath.c_str ());
+            Debug::TimingTrace ttrc;
+            Metadata::DocumentMetadata::WriteToFileAsJSON (dbScrape, digikamScrapeFilePath);   
+        }
     }
 
     if (kCreateMasterFile) {
         if (not kScrapeFileSystem) {
             // read in an old copy
             DbgTrace (L"about to read file system metadata");
-            auto start = high_resolution_clock::now ();
-            DocumentMetadata::ReadFromJSONFile (&fileScrape, (String::FromNarrowSDKString (kOutputDirectory) + kFileScrapeFileName).c_str ());
-            auto stop     = high_resolution_clock::now ();
-            auto duration = duration_cast<milliseconds> (stop - start);
-            DbgTrace (L"reading file system  json took %ld milliseconds", duration);
+            Debug::TimingTrace ttrc;
+            DocumentMetadata::ReadFromJSONFile (&fileScrape, fileScrapeFilePath);
         }
         if (not kScrapeDigikamDB) {
             // read in an old copy
-            DbgTrace(L"about to read digikam metadata");
-            auto start = high_resolution_clock::now ();
-            DocumentMetadata::ReadFromJSONFile (&dbScrape, (String::FromNarrowSDKString (kOutputDirectory) + kDigikamScrapeFileName).c_str ());
-            auto stop     = high_resolution_clock::now ();
-            auto duration = duration_cast<milliseconds> (stop - start);
-            DbgTrace (L"reading digikam json took %ld milliseconds", duration);
+            DbgTrace (L"about to read digikam metadata from %s", digikamScrapeFilePath.c_str ());
+            Debug::TimingTrace ttrc;
+            DocumentMetadata::ReadFromJSONFile (&dbScrape, digikamScrapeFilePath);
         }
-        DbgTrace (L"merging file and database sources, files length = %d, db length = %d", fileScrape.Keys ().length (), dbScrape.Keys ().length ());
 
+        DbgTrace (L"merging file and database sources, files length = %d, db length = %d", fileScrape.Keys ().length (), dbScrape.Keys ().length ());
         Containers::Mapping<String, DocumentMetadata> masterList;
         for (const auto& it : fileScrape) {
             DocumentMetadata dmd = it.fValue;
@@ -175,6 +191,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 
         }
         if ((strcmp (kSourceDirectory,"P:/") == 0) and true) {
+            DbgTrace (L"adding digikam only info to master list");
+            Debug::TimingTrace ttrc;
             for (const auto& it : dbScrape) {
                 DocumentMetadata digikamDmd = it.fValue;
                 DocumentMetadata dmd;
@@ -185,10 +203,13 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
             }
         }
 
+        {
+            auto outputPath = filesystem::path (string (kOutputDirectory) + kMergedTagsFileName);
+            DbgTrace (L"writing processed tag info to %s", outputPath.c_str ());
+            Debug::TimingTrace ttrc;
+            DocumentMetadata::WriteToFileAsJSON (fileScrape, filesystem::path (string (kOutputDirectory) + kMergedTagsFileName));
+        }
 
-        DocumentMetadata::WriteToFileAsJSON (
-            fileScrape,
-            String::FromNarrowSDKString (kOutputDirectory) + kMergedTagsFileName);
     }
 
     return EXIT_SUCCESS;

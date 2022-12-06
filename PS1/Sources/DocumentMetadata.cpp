@@ -1,5 +1,5 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Characters/ToString.h"
@@ -9,17 +9,13 @@
 #include "Stroika/Foundation/DataExchange/StructFieldMetaInfo.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Reader.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Writer.h"
-#include "Stroika/Foundation/Debug/Trace.h"
-#include "Stroika/Foundation/Streams/iostream/OutputStreamFromStdOStream.h"
-
+#include "Stroika/Foundation/IO/FileSystem/FileInputStream.h"
+#include "Stroika/Foundation/IO/FileSystem/FileOutputStream.h"
 
 #include "DocumentMetadata.h"
 
-
 using namespace Stroika::Foundation;
 using Characters::String;
-
-
 
 namespace Metadata {
     String DocumentMetadata::Comment::ToString () const
@@ -44,7 +40,6 @@ namespace Metadata {
         return sb.str ();
     }
 
-
     DocumentMetadata::DocumentMetadata ()
     {
     }
@@ -60,7 +55,7 @@ namespace Metadata {
             ObjectVariantMapper::StructFieldInfo{L"author", StructFieldMetaInfo{&DocumentMetadata::Comment::author}},
         });
         mapper.AddCommonType<Containers::Sequence<DocumentMetadata::Comment>> ();
-        mapper.AddCommonType <optional<Containers::Sequence<DocumentMetadata::Comment>>> ();
+        mapper.AddCommonType<optional<Containers::Sequence<DocumentMetadata::Comment>>> ();
 
         mapper.AddClass<DocumentMetadata> ({
             ObjectVariantMapper::StructFieldInfo{L"tags", StructFieldMetaInfo{&DocumentMetadata::tags}},
@@ -73,29 +68,25 @@ namespace Metadata {
         });
     }
 
-    void DocumentMetadata::WriteToFileAsJSON (Containers::Mapping<String, DocumentMetadata> mds, String filePath)
+    void DocumentMetadata::WriteToFileAsJSON (Containers::Mapping<String, DocumentMetadata> mds, const std::filesystem::path filePath)
     {
         using DataExchange::ObjectVariantMapper;
 
         ObjectVariantMapper mapper;
         DocumentMetadata::SupportVariantMapping (mapper);
         mapper.AddCommonType<Containers::Mapping<String, DocumentMetadata>> ();
-       
-        auto tagFile = std::wofstream (filePath.c_str ());
-        DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (mds), tagFile);
+
+        DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (mds), IO::FileSystem::FileOutputStream::New (filePath));
     }
 
-    void DocumentMetadata::ReadFromJSONFile (Containers::Mapping<String, DocumentMetadata>* mds, String filePath)
+    void DocumentMetadata::ReadFromJSONFile (Containers::Mapping<String, DocumentMetadata>* mds, const std::filesystem::path filePath)
     {
         using DataExchange::ObjectVariantMapper;
 
         ObjectVariantMapper mapper;
         DocumentMetadata::SupportVariantMapping (mapper);
         mapper.AddCommonType<Containers::Mapping<String, DocumentMetadata>> ();
-        std::wifstream             fileScrapeInput = std::wifstream (filePath.c_str ());
-        DataExchange::VariantValue xxx             = DataExchange::Variant::JSON::Reader{}.Read (fileScrapeInput);
+        DataExchange::VariantValue xxx = DataExchange::Variant::JSON::Reader{}.Read (IO::FileSystem::FileInputStream::New (filePath));
         mapper.ToObject (xxx, mds);
     }
 }
-
-
