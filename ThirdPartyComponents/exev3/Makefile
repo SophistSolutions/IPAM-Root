@@ -43,20 +43,20 @@ FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/heads/$(BASENAME).zip
 
 
 PRODUCED_OUTPUT_ARTIFACTS=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)include/xercesc/dom/DOM.hpp
+	$(PER_CONFIGURATION_BUILDS_DIR)include/exiv2/dom/DOM.hpp
 
 ifeq (Unix,$(ProjectPlatformSubdir))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libxerces-c.a
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexiv2s-c.a
 endif
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 ifeq (Debug,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/xerces-c_3D.lib
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/exiv2s-c_3D.lib
 endif
 ifeq (Release,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/xerces-c_3.lib
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/exiv2s-c_3.lib
 endif
 endif
 
@@ -203,8 +203,15 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 # CMAKE_ARGS+= -Dtranscoder=gnuiconv
 # endif
 
+## DIDNT HELP
+#CMAKE_ARGS+= -DCMAKE_SYSTEM_PREFIX_PATH=$(CMAKE_PER_TARGET_BUILD_DIR)
+
 CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=no
-CMAKE_ARGS+= -DEXPAT_LIBRARY=no
+
+# CMAKE_ARGS+= -DPC_EXPAT_INCLUDE_DIRS=c:/Sandbox/IPAM/DevRoot/Builds/Debug/ThirdPartyComponents/include/
+# CMAKE_ARGS+= -DPC_EXPAT_LIBRARY_DIRS=c:/Sandbox/IPAM/DevRoot/Builds/Debug/ThirdPartyComponents/lib/
+
+
 
 
 ##
@@ -268,8 +275,8 @@ doBuilds_:
 ifeq (Unix,$(ProjectPlatformSubdir))
 else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 	@#We get warnings about a missing pdb file when linking otherwise...(not sure why since symbol info sb in the .lib)
-	@$(ECHO) "cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/xerces-c.dir/$(CMAKE_CONFIGURATION)/xerces*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :" >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
-	@cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/xerces-c.dir/$(CMAKE_CONFIGURATION)/xerces*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :
+	@$(ECHO) "cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/exiv2s-c.dir/$(CMAKE_CONFIGURATION)/exiv2s*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :" >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
+	@cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/exiv2s-c.dir/$(CMAKE_CONFIGURATION)/exiv2s*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :
 endif
 
 
