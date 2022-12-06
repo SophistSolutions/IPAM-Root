@@ -232,10 +232,9 @@ CXXFLAGS:=$(filter-out -D_UNICODE, $(CXXFLAGS))
 endif
 
 
-CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=no
+CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=OFF
 
-CMAKE_ARGS+= -DBUILD_SHARED_LIBS=no
-
+CMAKE_ARGS+= -DBUILD_SHARED_LIBS=OFF
 
 ### Should not be needed but finding stuff in wrong place - mingw - instead...
 ###  SB mingw only hack at least
