@@ -46,7 +46,7 @@ PRODUCED_OUTPUT_ARTIFACTS=	\
 
 ifeq (Unix,$(ProjectPlatformSubdir))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpatd.a
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat.so
 endif
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 ifeq (Debug,$(CMAKE_CONFIGURATION))
@@ -176,14 +176,14 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 JOBSERVER_INFO=$(filter -j --jobserver-fds=% --jobserver-auth=%, $(shell echo $${MFLAGS}))
 
 ifneq ($(JOBSERVER_INFO),)
-ifeq (Unix,$(ProjectPlatformSubdir))
-# Trick to make gnu make JOBSERVER work with cmake - pass args to trampoline with environment variables; doesn't work on darwin(debug? lowpri)
-export MAKE
-CMAKE_ARGS+= -DCMAKE_MAKE_PROGRAM="$(shell realpath MAKE-Trampoline)"
-else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-# closest we can easily get to approximating support for job-server
-export CL+=/MP
-endif
+# ifeq (Unix,$(ProjectPlatformSubdir))
+# # Trick to make gnu make JOBSERVER work with cmake - pass args to trampoline with environment variables; doesn't work on darwin(debug? lowpri)
+# export MAKE
+# CMAKE_ARGS+= -DCMAKE_MAKE_PROGRAM="$(shell realpath MAKE-Trampoline)"
+# else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+# # closest we can easily get to approximating support for job-server
+# export CL+=/MP
+# endif
 endif
 
 
