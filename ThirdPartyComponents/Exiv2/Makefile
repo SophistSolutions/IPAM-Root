@@ -189,6 +189,7 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 	if [ "$@" != "ORIGs" ] ; then \
 		$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Exiv2 ${VERSION} - Patching ... ";\
 		patch -p0 $@/cmake/compilerFlags.cmake Patches/Patch-KillCompilerFlagChangeBreakingStaticLibsWindoze.Patch >> $@/PATCHING.OUT;\
+		patch -p0 $@/src/futils.cpp Patches/BeCompatibleWithUNICODEAPIDefines.Patch >> $@/PATCHING.OUT;\
 	fi
 
 
@@ -224,12 +225,12 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 
 #           ] (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\cr2image.cpp)
 # C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\futils.cpp(341,7): error C2679: binary '=': no operator found which takes a right-hand operand of type 'TCHAR [260]' (or there is no acceptable conversion) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\exiv2lib.vcxproj]
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-CFLAGS:=$(filter-out -DUNICODE, $(CFLAGS))
-CXXFLAGS:=$(filter-out -DUNICODE, $(CXXFLAGS))
-CFLAGS:=$(filter-out -D_UNICODE, $(CFLAGS))
-CXXFLAGS:=$(filter-out -D_UNICODE, $(CXXFLAGS))
-endif
+# ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+# CFLAGS:=$(filter-out -DUNICODE, $(CFLAGS))
+# CXXFLAGS:=$(filter-out -DUNICODE, $(CXXFLAGS))
+# CFLAGS:=$(filter-out -D_UNICODE, $(CFLAGS))
+# CXXFLAGS:=$(filter-out -D_UNICODE, $(CXXFLAGS))
+# endif
 
 
 CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=OFF

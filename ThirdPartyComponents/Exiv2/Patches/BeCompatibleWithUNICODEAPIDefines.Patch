@@ -1,0 +1,7 @@
+diff -r ORIGs/src/futils.cpp CURRENT/src/futils.cpp
+339,340c339,340
+<     TCHAR filename[MAX_PATH];
+<     if (GetModuleFileNameEx(processHandle, nullptr, filename, MAX_PATH) != 0) {
+---
+>     char filename[MAX_PATH];
+>     if (GetModuleFileNameExA(processHandle, nullptr, filename, MAX_PATH) != 0) {
