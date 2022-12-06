@@ -9,6 +9,7 @@
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Characters/ToString.h"
 #include "Stroika/Foundation/Debug/Trace.h"
+#include "Stroika/Foundation/IO/FileSystem/PathName.h"
 #include "Stroika/Foundation/Time/Date.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
@@ -357,7 +358,7 @@ namespace Metadata {
     {
         Containers::Mapping<String, DocumentMetadata> imageMetaData;
 
-        size_t topDirLength = String (topDir.c_str ()).size ();
+        size_t topDirLength = IO::FileSystem::FromPath (topDir).size ();
         try {
             for (recursive_directory_iterator end, dirEntry (topDir); dirEntry != end; ++dirEntry) {
                 const path& p    = dirEntry->path ();
@@ -373,8 +374,8 @@ namespace Metadata {
                 if (is_regular_file (p)) {
                     try {
                         DocumentMetadata ms = Extract (p);
-                        ms.album            = String (path (p).remove_filename ().c_str ()).SubString (topDirLength).SubString (0, -1).ReplaceAll (L"\\", L"/");
-                        imageMetaData.Add (String (p.c_str ()).ReplaceAll (L"\\", L"/"), ms);
+                        ms.album            = IO::FileSystem::FromPath (path (p).remove_filename ()).SubString (topDirLength).SubString (0, -1).ReplaceAll (L"\\", L"/");
+                        imageMetaData.Add (IO::FileSystem::FromPath (p).ReplaceAll (L"\\", L"/"), ms);
                     }
                     catch (...) {
                         DbgTrace (L"failed to find metadata for  %s", p.c_str ());                   

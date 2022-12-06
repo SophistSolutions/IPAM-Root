@@ -11,6 +11,7 @@
 #include "Stroika/Foundation/Database/SQL/SQLite.h"
 #include "Stroika/Foundation/Database/SQL/Statement.h"
 #include "Stroika/Foundation/Debug/Trace.h"
+#include "Stroika/Foundation/IO/FileSystem/PathName.h"
 #include "Stroika/Foundation/Streams/iostream/OutputStreamFromStdOStream.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
@@ -91,12 +92,12 @@ namespace digikam {
                 int    album = std::get<1> (ii).As<int> ();
                 String name  = std::get<2> (ii).As<String> ();
 
-                if (album != NULL) {
+                if (album != 0) {
                     String imagePath = albumPaths[album] + L"/" + name;
                     //DbgTrace (L"got: %d, %d, %s, %s", id, album, name.c_str (), imagePath.c_str ());
                     imageIDToImagePath.Add (id, imagePath);
                     DocumentMetadata ms;
-                    ms.album = (String (std::filesystem::path (imagePath.c_str ()).remove_filename ().c_str ())).SubString (rootPathLength).SubString (0, -1);
+                    ms.album = (IO::FileSystem::FromPath (std::filesystem::path (imagePath.c_str ()).remove_filename ())).SubString (rootPathLength).SubString (0, -1);
                     scrapedMetadata.Add (imagePath, ms);
                 };
             }
