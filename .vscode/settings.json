@@ -37,7 +37,8 @@
     "condition_variable": "cpp",
     "exception": "cpp",
     "ostream": "cpp",
-    "cassert": "cpp"
+    "cassert": "cpp",
+    "filesystem": "cpp"
   },
   "files.watcherExclude": {
     "Builds/**": true,
