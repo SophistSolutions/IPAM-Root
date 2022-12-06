@@ -186,6 +186,10 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 	unzip -q $(ZIPPEDFILE) -d FRED
 	mv FRED/exiv2-main/* $@
 	rm -rf FRED
+	if [ "$@" != "ORIGs" ] ; then \
+		$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Exiv2 ${VERSION} - Patching ... ";\
+		patch -p0 $@/cmake/compilerFlags.cmake Patches/Patch-KillCompilerFlagChangeBreakingStaticLibsWindoze.Patch >> $@/PATCHING.OUT;\
+	fi
 
 
 
