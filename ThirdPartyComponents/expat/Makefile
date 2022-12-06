@@ -19,9 +19,7 @@ endif
 .PHONY:	all clean clobber check doBuilds_
 
 VERSION=2_5_0
-BASENAME=main
 ZIPPEDFILE=../Origs-Cache/R_$(VERSION).zip
-EXTRACTED_DIRNAME=$(BASENAME)
 
 
 PER_CONFIGURATION_BUILDS_DIR:=$(shell realpath --canonicalize-missing ../../Builds/$(CONFIGURATION)/ThirdPartyComponents/)/
@@ -30,7 +28,6 @@ PER_CONFIGURATION_BUILDS_DIR:=$(shell realpath --canonicalize-missing ../../Buil
 PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_:=$(shell realpath --canonicalize-missing ../../IntermediateFiles/$(CONFIGURATION)/ThirdPartyComponents/expat)
 
 OUTPUT_WORKDIR_PRETTYNAME="$(shell $(StroikaRoot)ScriptsLib/SubstituteBackVariables "$(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/")"
-#OUTPUT_WORKDIR_PRETTYNAME="{StroikaRoot}Inter.../Thir.../Xerces/"
 
 
 #
@@ -43,20 +40,22 @@ FETCHURLS+=https://github.com/libexpat/libexpat/archive/refs/tags/R_$(VERSION).z
 
 
 PRODUCED_OUTPUT_ARTIFACTS=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)include/xercesc/dom/DOM.hpp
+	$(PER_CONFIGURATION_BUILDS_DIR)include/expat.h \
+	$(PER_CONFIGURATION_BUILDS_DIR)include/expat_config.h \
+	$(PER_CONFIGURATION_BUILDS_DIR)include/expat_external.h
 
 ifeq (Unix,$(ProjectPlatformSubdir))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libxerces-c.a
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpatd.a
 endif
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 ifeq (Debug,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/xerces-c_3D.lib
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpatd.lib
 endif
 ifeq (Release,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/xerces-c_3.lib
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpatd.lib
 endif
 endif
 
@@ -64,30 +63,6 @@ ifneq ($(CONFIGURATION),)
 CMAKE_CURRENT_SOURCE_DIR:=$(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/expat
 CMAKE_CURRENT_SOURCE_DIR:=$(shell realpath --canonicalize-missing $(CMAKE_CURRENT_SOURCE_DIR) )
 CMAKE_CURRENT_SOURCE_DIR:=$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(CMAKE_CURRENT_SOURCE_DIR))
-endif
-
-ifeq (true,$(HasMakefileBugWorkaround_lto_skipping_undefined_incompatible))
-### not sure why???
-#Building Stroika Tools {clang++-6-release-libstdc++}:
-#         Compiling {StroikaRoot}Tools/Sources/Stroika/Frameworks/WebServer/HTMLViewCompiler/HTMLViewCompiler.cpp ...
-#      Linking  $StroikaRoot/Builds/clang++-6-release-libstdc++/HTMLViewCompiler...
-#/usr/bin/ld: skipping incompatible /Sandbox/Stroika-Dev/Builds/clang++-6-release-libstdc++/ThirdPartyComponents/lib//libxerces-c.so when searching for -lxerces-c
-CFLAGS:=$(filter-out -flto, $(CFLAGS))
-CXXFLAGS:=$(filter-out -flto, $(CXXFLAGS))
-else ifeq (Unix,$(ProjectPlatformSubdir))
-## similar bug with g++ - but just warnings here (all regtests pass without this change)
-##/home/lewis/Sandbox/Stroika-Build-Dir-Ubuntu1804_x86_64/Builds/g++-optimized/ThirdPartyComponents/include/xercesc/util/BinInputStream.hpp:29:22: warning: type 'struct BinInputStream' violates the C++ One Definition Rule [-Wodr]
-CFLAGS:=$(filter-out -flto, $(CFLAGS))
-CXXFLAGS:=$(filter-out -flto, $(CXXFLAGS))
-endif
-
-
-ifeq (Unix,$(ProjectPlatformSubdir))
-#@todo fixup - bug workaround - configure autodetects -posix and se we have to add it in here. Must find
-# some way we can ADD these params to CFLAGS without REPLACING
-# -- without this hack - we get link error building Xerces
-CFLAGS+= -pthread
-CXXFLAGS+= -pthread
 endif
 
 
@@ -104,17 +79,8 @@ CXXFLAGS:=$(call STRIP_INCLUDE_COMPILER_FLAGS,$(CXXFLAGS))
 endif
 
 
-# Avoid having warnings leak from here to linking code when Xerces is used --LGP 2022-01-18
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-ifneq ($(findstring -GL,$(CXXFLAGS)),)
-CXXFLAGS+= -wd4702 
-endif
-endif
-
-
-
 all:
-	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Stroika/ThirdPartyComponents/xerces $(VERSION) Build {$(CONFIGURATION)}:"
+	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Stroika/ThirdPartyComponents/expat $(VERSION) Build {$(CONFIGURATION)}:"
 ifeq ($(CONFIGURATION),)
 	@for i in `$(StroikaRoot)GetConfigurations` ; do\
 		$(MAKE) --no-print-directory all CONFIGURATION=$$i;\
@@ -146,7 +112,6 @@ endif
 
 
 clean:
-	@rm -rf $(EXTRACTED_DIRNAME) 
 ifeq ($(CONFIGURATION),)
 	@rm -rf $(StroikaRoot)IntermediateFiles/*/ThirdPartyComponents/expat
 else
@@ -190,32 +155,9 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 
 
 
-
-###NOTE - because we set network:BOOL:OFF - Xerces doesn't depend on CURL (but we could make it so if we wanted, but then update dependencies
-### in ThirdPartyLibs/Makefile
-# CMAKE_ARGS+= -Dnetwork:BOOL=OFF
-# ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-# CMAKE_ARGS+= -Dtranscoder=windows
-# else ifeq ($(DETECTED_HOST_OS),Darwin)
-# #AVOID Undefined symbols for architecture x86_64:  "_CFRelease", etc.... Avoid library dependency
-# CMAKE_ARGS+= -Dtranscoder=iconv
-# else
-# CMAKE_ARGS+= -Dtranscoder=gnuiconv
-# endif
-
-CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=no
-CMAKE_ARGS+= -DEXPAT_LIBRARY=no
-
-
-##
-### Avoid compile error in time_t XMLDateTime::getEpoch(bool duration) const
-### not sure why this is needed?
-###  -- LGP 2019-09-26
-##
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-CFLAGS += /DWIN32
-CXXFLAGS += /DWIN32
-endif
+# SEE https://github.com/libexpat/libexpat/tree/master/expat for what we may want to set....
+# CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=no
+# CMAKE_ARGS+= -DEXPAT_LIBRARY=no
 
 
 
@@ -258,11 +200,11 @@ doBuilds_:
 	@echo CXXFLAGS='$(CXXFLAGS)' >>  $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt
 	@echo 'cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) ; $(TOOLSET_CMD_ENV_SETS_)cmake -G "$(CMAKE_USE_GENERATOR)" $(CMAKE_ARGS) $(CMAKE_CURRENT_SOURCE_DIR)' >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt 2>&1
 	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) ; $(TOOLSET_CMD_ENV_SETS_)cmake -G "$(CMAKE_USE_GENERATOR)" $(CMAKE_ARGS) $(CMAKE_CURRENT_SOURCE_DIR) >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt 2>&1
-	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) `$(StroikaRoot)ScriptsLib/SubstituteBackVariables "Exiv2 ${VERSION} - Compiling (See $(OUTPUT_WORKDIR_PRETTYNAME)BUILD-OUT.txt)"` "... "
+	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) `$(StroikaRoot)ScriptsLib/SubstituteBackVariables "expat ${VERSION} - Compiling (See $(OUTPUT_WORKDIR_PRETTYNAME)BUILD-OUT.txt)"` "... "
 	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(ECHO) $(TOOLSET_CMD_ENV_SETS_)"cmake --build . --config $(CMAKE_CONFIGURATION)" > $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/BUILD-OUT.txt 2>&1
 	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(TOOLSET_CMD_ENV_SETS_)cmake --build . --config $(CMAKE_CONFIGURATION) >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/BUILD-OUT.txt 2>&1
-	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) `$(StroikaRoot)ScriptsLib/SubstituteBackVariables "Exiv2 ${VERSION} - Copying builds (See $(OUTPUT_WORKDIR_PRETTYNAME)INSTALL.OUT)"` "... "
-	@#NB: Set MAKEFLAGS= to silence warnings about -j jobserver when run with -j N (probaly bug with Exiv2 3.2 cmake makefile but didnt dig cuz not important)
+	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) `$(StroikaRoot)ScriptsLib/SubstituteBackVariables "expat ${VERSION} - Copying builds (See $(OUTPUT_WORKDIR_PRETTYNAME)INSTALL.OUT)"` "... "
+	@#NB: Set MAKEFLAGS= to silence warnings about -j jobserver when run with -j N (probaly bug with expat 3.2 cmake makefile but didnt dig cuz not important)
 	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(ECHO) $(TOOLSET_CMD_ENV_SETS_)"cmake --build . --config $(CMAKE_CONFIGURATION) --target install" > $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
 	@MAKEFLAGS= && cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(TOOLSET_CMD_ENV_SETS_)cmake --build . --config $(CMAKE_CONFIGURATION) --target install >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
 ifeq (Unix,$(ProjectPlatformSubdir))
@@ -271,7 +213,6 @@ else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdi
 	@$(ECHO) "cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/xerces-c.dir/$(CMAKE_CONFIGURATION)/xerces*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :" >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
 	@cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/xerces-c.dir/$(CMAKE_CONFIGURATION)/xerces*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :
 endif
-
 
 
 check-prerequisite-tools:
