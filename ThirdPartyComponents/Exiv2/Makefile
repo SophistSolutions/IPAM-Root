@@ -216,10 +216,10 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 # cl : command line  error D8016: '/Ox' and '/RTCs' command-line options are incompatible [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\exiv2-xmp.vcxproj]
 #   Building Custom Rule C:/Sandbox/IPAM/DevRoot/IntermediateFiles/Debug/ThirdPartyComponents/Exiv2/src/CMakeLists.txt
 # cl : command line  error D8016: '/Ox' and '/RTCs' command-line options are incompatible [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\exiv2lib_int.vcxproj]
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-CFLAGS:=$(filter-out -RTCs%, $(CFLAGS))
-CXXFLAGS:=$(filter-out -RTCs%, $(CXXFLAGS))
-endif
+# ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+# CFLAGS:=$(filter-out -RTCs%, $(CFLAGS))
+# CXXFLAGS:=$(filter-out -RTCs%, $(CXXFLAGS))
+# endif
 
 
 #           ] (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\cr2image.cpp)
