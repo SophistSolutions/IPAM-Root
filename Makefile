@@ -56,9 +56,10 @@ STROIKA_CONFIG_PARAMS_COMMON+=	--ATLMFC no
 ### @todo FIX - PROBABLY WRONG STRATEGY - FIX ELSEWHERE IN BUILD PROCESS SO ONLY appropriate
 ### COMPONENTS PULL THIS INTO PATH
 ifneq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
-STROIKA_CONFIG_PARAMS_COMMON+=	--append-includes-path $(TOP_ROOT)ThirdPartyComponents/exiv2/include/
-STROIKA_CONFIG_PARAMS_COMMON+=	--append-libs-path $(TOP_ROOT)ThirdPartyComponents/exiv2/lib/
+# STROIKA_CONFIG_PARAMS_COMMON+=	--append-includes-path $(TOP_ROOT)ThirdPartyComponents/exiv2/include/
+# STROIKA_CONFIG_PARAMS_COMMON+=	--append-libs-path $(TOP_ROOT)ThirdPartyComponents/exiv2/lib/
 STROIKA_CONFIG_PARAMS_COMMON+=	--append-lib-dependencies exiv2.lib
+STROIKA_CONFIG_PARAMS_COMMON+=	--append-lib-dependencies expat.lib
 endif
 
 
