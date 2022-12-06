@@ -14,11 +14,12 @@ include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/PS1/)"
 
-# ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 # CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)ThirdPartyComponents/exiv2/includes/)"
 # LIBS_PATH_DIRECTIVES += -LIBPATH:"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)ThirdPartyComponents/exiv2/)"
 # LIB_DEPENDENCIES += exiv2.lib exiv2-xmp.lib
-# endif
+LIB_DEPENDENCIES += psapi.lib
+endif
 
 
 TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/PS1/
