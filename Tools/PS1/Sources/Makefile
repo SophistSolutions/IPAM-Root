@@ -22,6 +22,12 @@ else
 LIB_DEPENDENCIES += -lexiv2 -lexpat -lz
 endif
 
+# From https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4286?view=msvc-170
+#		Sounds like fix needed in exiv2.lib
+# LINK : warning LNK4286: symbol 'XML_Parse' defined in 'libexpat.lib(xmlparse.obj)' is imported by 'exiv2.lib(xmp.obj)'
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+EXTRA_SUFFIX_LINKER_ARGS+= -ignore:4286 
+endif
 
 TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS1/
 TARGETEXE				=	$(TARGETEXEDir)PS1${EXE_SUFFIX}

@@ -70,9 +70,15 @@ endif
 
 # Avoid having warnings leak from here to linking code when Exiv is used (linktime codegen) --LGP 2022-01-18
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-ifneq ($(findstring -GL,$(CXXFLAGS)),)
-CXXFLAGS+= -wd4702 
-endif
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Release\ThirdPartyComponents\Exiv2\src\basicio.cpp(746) : warning C4706: assignment within conditional expression
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Release\ThirdPartyComponents\Exiv2\src\basicio.cpp(321) : warning C4706: assignment within conditional expression
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Release\ThirdPartyComponents\Exiv2\src\xmp.cpp(389) : warning C4702: unreachable code
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Release\ThirdPartyComponents\Exiv2\src\pgfimage.cpp(207) : warning C4706: assignment within conditional expression
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Release\ThirdPartyComponents\Exiv2\src\basicio.cpp(406) : warning C4701: potentially uninitialized local variable 'buf2' used
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Release\ThirdPartyComponents\Exiv2\src\jpgimage.cpp(917) : warning C4706: assignment within conditional expression
+CXXFLAGS+= -wd4701
+CXXFLAGS+= -wd4702
+CXXFLAGS+= -wd4706
 endif
 
 
