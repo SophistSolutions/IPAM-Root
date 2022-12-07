@@ -23,7 +23,8 @@ endif
 #
 #		NOTE - main not a real release number - so this isn't safe. Floating version
 #		But they dont appear to have done a release since fixing the auto_ptr stuff
-VERSION=main
+#VERSION=main
+VERSION=3dd881fb122835605ba011413ec86c121101d131
 #VERSION=0.27.5
 ZIPPEDFILE=../Origs-Cache/Exiv2_$(VERSION).zip
 
@@ -44,6 +45,7 @@ OUTPUT_WORKDIR_PRETTYNAME="$(shell $(StroikaRoot)ScriptsLib/SubstituteBackVariab
 FETCHURLS=
 FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/tags/v$(VERSION).zip
 FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/heads/$(VERSION).zip
+FETCHURLS+=https://github.com/Exiv2/exiv2/archive/$(VERSION).zip
 
 
 
