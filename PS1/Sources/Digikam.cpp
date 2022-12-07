@@ -49,7 +49,7 @@ namespace digikam {
             // step one: build imageID map to image path (so can access in masterListOfTags and because is our primary key)
             // album paths are done by reference so first need to build map of those
             // I *think* only one AlbumRoot is supported -- if not will have to rework this somewhat (keep track of rootPathLength separately for each)
-            size_t rootPathLength = -1;
+            ptrdiff_t rootPathLength = -1;
 
             Containers::Mapping<int, String> albumRoots;
             for (const auto& ari : conn.mkStatement (L"Select id,identifier,specificPath from AlbumRoots;").GetAllRows (0, 1, 2)) {

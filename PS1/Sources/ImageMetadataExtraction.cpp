@@ -16,7 +16,9 @@
 #include "Geolocation.h"
 #include "ImageMetadataExtraction.h"
 
+DISABLE_COMPILER_MSC_WARNING_START (4127)
 #include "exiv2/exiv2.hpp"
+DISABLE_COMPILER_MSC_WARNING_END (4127)
 
 using namespace std::filesystem;
 
