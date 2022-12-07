@@ -138,7 +138,7 @@ endif
 
 
 $(ZIPPEDFILE):
-	if [ !-e ../Origs-Cache ] ; then mkdir ../Origs-Cache; fi
+	if [ ! -e ../Origs-Cache ] ; then mkdir ../Origs-Cache; fi
 	@MAKE_INDENT_LEVEL=$(MAKE_INDENT_LEVEL) $(StroikaRoot)ScriptsLib/WebGet $(ZIPPEDFILE) $(FETCHURLS)
 
 
@@ -150,7 +150,7 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 	@mv FRED/exiv2-$(VERSION)/* $@
 	@rm -rf FRED
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-ifeq ($(VERSION),main)
+ifeq ($(VERSION),3dd881fb122835605ba011413ec86c121101d131)
 	if [ "$@" != "ORIGs" ] ; then \
 		$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Exiv2 ${VERSION} - Patching ($@/PATCHING.OUT)... ";\
 		patch -p0 $@/src/futils.cpp Patches/BeCompatibleWithUNICODEAPIDefines.Patch >> $@/PATCHING.OUT;\
