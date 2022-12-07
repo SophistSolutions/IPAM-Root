@@ -63,12 +63,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Sources\DocumentMetadata.cpp" />
-    <ClCompile Include="..\..\Sources\Geolocation.cpp" />
     <ClCompile Include="..\..\Sources\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Sources\DocumentMetadata.h" />
-    <ClInclude Include="..\..\Sources\Geolocation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

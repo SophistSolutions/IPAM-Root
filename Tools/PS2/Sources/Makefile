@@ -14,6 +14,9 @@ include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS2/)"
 
+CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
+LIB_DEPENDENCIES += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/LibIPAM.lib)
+
 
 TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS2/
 TARGETEXE				=	$(TARGETEXEDir)PS2${EXE_SUFFIX}
@@ -28,7 +31,6 @@ SUBDIR_OBJS := $(foreach dir, $(SubDirs), $(shell $(MAKE) CONFIGURATION=$(CONFIG
 
 Objs	=	\
 	$(ObjDir)Main${OBJ_SUFFIX}\
-	$(ObjDir)Geolocation${OBJ_SUFFIX}\
 	$(ObjDir)DocumentMetadata${OBJ_SUFFIX}\
 
 

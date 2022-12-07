@@ -13,7 +13,7 @@
 #include "Stroika/Foundation/Time/Date.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
-#include "Geolocation.h"
+#include "LibIPAM/Common/Geolocation.h"
 #include "ImageMetadataExtraction.h"
 
 DISABLE_COMPILER_MSC_WARNING_START (4127)
@@ -25,6 +25,7 @@ using namespace std::filesystem;
 using namespace Stroika::Foundation;
 using Characters::String;
 
+using namespace IPAM::LibIPAM::Common;
 using Metadata::DocumentMetadata;
 
 namespace Metadata {

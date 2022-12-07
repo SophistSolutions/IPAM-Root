@@ -63,7 +63,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Sources\Digikam.cpp" />
-    <ClCompile Include="..\..\Sources\Geolocation.cpp" />
     <ClCompile Include="..\..\Sources\ImageMetadataExtraction.cpp" />
     <ClCompile Include="..\..\Sources\Main.cpp">
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/include;C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.33.31629/ATLMFC/include;C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Auxiliary/VS/include;C:/Program Files (x86)/Windows Kits/10/include/10.0.19041.0/ucrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.19041.0/um;C:/Program Files (x86)/Windows Kits/10/include/10.0.19041.0/shared;C:/Program Files (x86)/Windows Kits/10/include/10.0.19041.0/winrt;C:/Program Files (x86)/Windows Kits/10/include/10.0.19041.0/cppwinrt;C:/Program Files (x86)/Windows Kits/NETFXSDK/4.8/include/um;C:/Work/PS1/ThirdPartyComponents/exiv2/includes/;C:/Work/PS1/Builds/Debug/ThirdPartyComponents/include/;C:/Work/PS1/ThirdPartyComponents/Stroika/StroikaRoot/Library/Sources/;C:/Work/PS1/IntermediateFiles/Debug/</AdditionalIncludeDirectories>
@@ -78,7 +77,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Sources\Digikam.h" />
-    <ClInclude Include="..\..\Sources\Geolocation.h" />
     <ClInclude Include="..\..\Sources\DocumentMetadata.h" />
     <ClInclude Include="..\..\Sources\ImageMetadataExtraction.h" />
   </ItemGroup>

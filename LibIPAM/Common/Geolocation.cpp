@@ -16,7 +16,7 @@
 using namespace Stroika::Foundation;
 using Characters::String;
 
-namespace IPAM::LibIPAM::Metadata {
+namespace IPAM::LibIPAM::Common {
 
     Geolocation::Coordinate::Coordinate (double d)
     {

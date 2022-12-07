@@ -14,10 +14,15 @@ include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/)"
 
+
+CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
+LIB_DEPENDENCIES += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/LibIPAM.lib)
+
+
+
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-LIB_DEPENDENCIES += psapi.lib
 LIB_DEPENDENCIES += exiv2.lib
-LIB_DEPENDENCIES += libexpat.lib
+LIB_DEPENDENCIES += libexpat.lib psapi.lib
 else
 LIB_DEPENDENCIES += -lexiv2 -lexpat -lz
 endif
@@ -42,7 +47,6 @@ SUBDIR_OBJS := $(foreach dir, $(SubDirs), $(shell $(MAKE) CONFIGURATION=$(CONFIG
 
 Objs	=	\
 	$(ObjDir)Main${OBJ_SUFFIX}\
-	$(ObjDir)Geolocation${OBJ_SUFFIX}\
 	$(ObjDir)Digikam${OBJ_SUFFIX}\
 	$(ObjDir)DocumentMetadata${OBJ_SUFFIX}\
 	$(ObjDir)ImageMetadataExtraction${OBJ_SUFFIX}\

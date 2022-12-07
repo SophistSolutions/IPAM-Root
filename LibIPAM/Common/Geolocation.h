@@ -13,7 +13,7 @@
 using namespace Stroika::Foundation;
 using Characters::String;
 
-namespace IPAM::LibIPAM::Metadata {
+namespace IPAM::LibIPAM::Common {
     class Geolocation {
     public:
         class Coordinate {

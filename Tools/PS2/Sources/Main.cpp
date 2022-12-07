@@ -14,11 +14,17 @@
 #include "Stroika/Foundation/IO/FileSystem/FileOutputStream.h"
 
 #include "DocumentMetadata.h"
-#include "Geolocation.h"
+#include "LibIPAM/Common/Geolocation.h"
+
 
 using namespace std::filesystem;
 
 using namespace Stroika::Foundation;
+
+using namespace IPAM::LibIPAM::Common;
+
+
+
 using Characters::String;
 
 const path kDocumentMetaDataFile = L"c:\\ssw\\mdResults\\DocumentMetaData.json";
@@ -146,7 +152,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {
     Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
 #if qDebug
-    Metadata::Geolocation::TestSuite ();
+    Geolocation::TestSuite ();
 #endif
 
     LoadMasterTagList ();

@@ -17,10 +17,12 @@
 
 #include "Digikam.h"
 #include "DocumentMetadata.h"
-#include "Geolocation.h"
+#include "LibIPAM/Common/Geolocation.h"
 
 using namespace Stroika::Foundation;
 using Characters::String;
+
+using namespace IPAM::LibIPAM::Common;
 
 using namespace Metadata;
 
