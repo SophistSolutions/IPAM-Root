@@ -124,7 +124,7 @@ namespace Metadata {
                     optional<String>              foundComment;
                     optional<String>              foundAuthor;
                     for (Exiv2::XmpData::const_iterator md = xmpData.begin (); md != xmpData.end (); ++md) {
-                        String key = String::FromNarrowSDKString (md->key ().c_str ());
+                        String key = String::FromNarrowSDKString (md->key ());
                         if (strcmp (md->key ().c_str (), kRatingKeyword) == 0) {
                             if (strcmp (md->value ().toString ().c_str (), "99") == 0) {
                                 ms.rating = 1.0; // metadata apparently only allows 2 digits
