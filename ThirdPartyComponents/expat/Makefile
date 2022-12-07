@@ -46,7 +46,7 @@ PRODUCED_OUTPUT_ARTIFACTS=	\
 
 ifeq (Unix,$(ProjectPlatformSubdir))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat.so
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat.a
 endif
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 ifeq (Debug,$(CMAKE_CONFIGURATION))
