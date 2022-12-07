@@ -134,7 +134,7 @@ ifeq ($(PRODUCED_OUTPUT_ARTIFACTS),)
 	$(error This makefile requires a recognized ProjectPlatformSubdir)
 endif
 	@$(StroikaRoot)ScriptsLib/CheckFileExists $(PRODUCED_OUTPUT_ARTIFACTS)
-	@$(ECHO) " Stroika/ThirdPartyComponents/Exiv2 -  [Succeeded]";
+	@$(ECHO) " ThirdPartyComponents/Exiv2 -  [Succeeded]";
 
 
 $(ZIPPEDFILE):
