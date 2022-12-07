@@ -52,8 +52,8 @@
   <PropertyGroup>
     <NMakeBuildCommandLine>make --directory $(ProjectDir)\..\..\ CONFIGURATION=$(CONFIGURATION) $(JOBS_FLAG) --silent all</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>make --directory $(ProjectDir)\..\..\ CONFIGURATION=$(CONFIGURATION) clean --silent</NMakeCleanCommandLine>
-    <OutDir>$(ProjectDir)..\..\..\Builds\$(Configuration)\IPAM\</OutDir>
-    <IntDir>$(ProjectDir)..\..\..\IntermediateFiles\$(Configuration)\IPAM\</IntDir>
+    <OutDir>$(ProjectDir)..\..\..\Builds\$(Configuration)\IPAM\API-Server\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\IntermediateFiles\$(Configuration)\IPAM\API-Server\</IntDir>
     <ExecutablePath>$(StroikaBuildToolsExtraPath);$(CommonExecutablePath)</ExecutablePath>
     <NMakeIncludeSearchPath>$(ProjectDir)\..\..\;$(ProjectDir)\..\..\..\IntermediateFiles\$(Configuration)\IPAM\;$(ProjectDir)\..\..\..\ThirdPartyComponents\Stroika\StroikaRoot\Library\Sources\</NMakeIncludeSearchPath>
     <AdditionalOptions>/std:c++latest</AdditionalOptions>

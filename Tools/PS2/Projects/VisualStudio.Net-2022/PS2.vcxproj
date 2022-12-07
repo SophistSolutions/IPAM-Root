@@ -51,8 +51,8 @@
   <PropertyGroup>
     <NMakeBuildCommandLine>make --directory $(ProjectDir)\..\..\..\ CONFIGURATION=$(CONFIGURATION) $(JOBS_FLAG) --silent all</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>make --directory $(ProjectDir)\..\..\..\ CONFIGURATION=$(CONFIGURATION) clean --silent</NMakeCleanCommandLine>
-    <OutDir>$(ProjectDir)..\..\..\Builds\$(Configuration)\Tools\PS2\</OutDir>
-    <IntDir>$(ProjectDir)..\..\..\IntermediateFiles\$(Configuration)\Tools\PS2\</IntDir>
+    <OutDir>$(ProjectDir)..\..\..\..\Builds\$(Configuration)\IPAM\Tools\PS2\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\..\IntermediateFiles\$(Configuration)\IPAM\Tools\PS2\</IntDir>
     <ExecutablePath>$(StroikaBuildToolsExtraPath);$(CommonExecutablePath)</ExecutablePath>
     <NMakeIncludeSearchPath>$(ProjectDir)\..\..\..\;$(ProjectDir)\..\..\..\..\IntermediateFiles\$(Configuration)\PS2\;$(ProjectDir)\..\..\..\..\ThirdPartyComponents\Stroika\StroikaRoot\Library\Sources\</NMakeIncludeSearchPath>
     <AdditionalOptions>/std:c++latest</AdditionalOptions>
