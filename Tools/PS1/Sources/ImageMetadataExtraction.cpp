@@ -294,7 +294,7 @@ namespace Metadata {
                 }
             }
             else {
-                throw exception ("unsupported file type");
+                Execution::Throw (Execution::RuntimeErrorException{L"unsupported file type"sv});
             }
         }
         catch (...) {
