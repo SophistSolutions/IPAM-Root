@@ -9,7 +9,7 @@ include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
 include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
 include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 
-SrcDir				=	$(TOP_ROOT)IPAM/
+SrcDir				=	$(TOP_ROOT)API-Server/
 
 
 SHELL=/bin/bash

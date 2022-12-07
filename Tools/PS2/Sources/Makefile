@@ -1,4 +1,4 @@
-export TOP_ROOT=$(abspath ../../)/
+export TOP_ROOT=$(abspath ../../../)/
 StroikaRoot=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
 
 ifneq ($(CONFIGURATION),)
@@ -6,24 +6,17 @@ ifneq ($(CONFIGURATION),)
 endif
 
 SrcDir				=	$(TOP_ROOT)Backend/Sources/
-ObjDir				=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/PS1/
+ObjDir				=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/Tools/PS2/
 
 include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
 include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
 include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 
-CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/PS1/)"
-
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-# CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)ThirdPartyComponents/exiv2/includes/)"
-# LIBS_PATH_DIRECTIVES += -LIBPATH:"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)ThirdPartyComponents/exiv2/)"
-# LIB_DEPENDENCIES += exiv2.lib exiv2-xmp.lib
-LIB_DEPENDENCIES += psapi.lib
-endif
+CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/Tools/PS2/)"
 
 
-TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/PS1/
-TARGETEXE				=	$(TARGETEXEDir)PS1${EXE_SUFFIX}
+TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/Tools/PS2/
+TARGETEXE				=	$(TARGETEXEDir)PS2${EXE_SUFFIX}
 
 
 SubDirs=\
@@ -36,21 +29,20 @@ SUBDIR_OBJS := $(foreach dir, $(SubDirs), $(shell $(MAKE) CONFIGURATION=$(CONFIG
 Objs	=	\
 	$(ObjDir)Main${OBJ_SUFFIX}\
 	$(ObjDir)Geolocation${OBJ_SUFFIX}\
-	$(ObjDir)Digikam${OBJ_SUFFIX}\
 	$(ObjDir)DocumentMetadata${OBJ_SUFFIX}\
-	$(ObjDir)ImageMetadataExtraction${OBJ_SUFFIX}\
+
 
 VERSION_FILE_IN=$(TOP_ROOT)VERSION
-VERSION_FILE_OUT=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/PS1/AppVersion.h
+VERSION_FILE_OUT=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/Tools/PS2/AppVersion.h
 $(VERSION_FILE_OUT):	$(VERSION_FILE_IN)
-	@mkdir -p $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/PS1
-	@$(StroikaRoot)ScriptsLib/MakeVersionFile $(VERSION_FILE_IN) $(VERSION_FILE_OUT) AppCPlusPlusVersion kAppVersion __PS1_AppVersion_H__
+	@mkdir -p $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/Tools/PS2
+	@$(StroikaRoot)ScriptsLib/MakeVersionFile $(VERSION_FILE_IN) $(VERSION_FILE_OUT) AppCPlusPlusVersion kAppVersion __PS2_AppVersion_H__
 
 $(ObjDir)Main${OBJ_SUFFIX} $(ObjDir)Service${OBJ_SUFFIX}:		$(VERSION_FILE_OUT)
 
 
 all:
-	@$(StroikaRoot)/ScriptsLib/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "Building PS1"
+	@$(StroikaRoot)/ScriptsLib/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "Building Tools/PS2"
 	@mkdir -p $(TARGETEXEDir)
 	@$(MAKE) --silent $(VERSION_FILE_OUT) MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 	@for s in ${SubDirs}; do $(MAKE) --directory $${s} -s MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all; done
