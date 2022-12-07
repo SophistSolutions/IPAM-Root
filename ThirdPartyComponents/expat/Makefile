@@ -18,6 +18,9 @@ endif
 
 .PHONY:	all clean clobber check doBuilds_
 
+#
+# CHECK FOR UPDATED VERSIONS https://github.com/libexpat/libexpat/releases
+#
 VERSION=2_5_0
 ZIPPEDFILE=../Origs-Cache/R_$(VERSION).zip
 
@@ -30,9 +33,6 @@ PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_:=$(shell realpath --canoni
 OUTPUT_WORKDIR_PRETTYNAME="$(shell $(StroikaRoot)ScriptsLib/SubstituteBackVariables "$(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/")"
 
 
-#
-# CHECK FOR UPDATED VERSIONS http://xerces.apache.org/xerces-c/
-#
 
 FETCHURLS=
 FETCHURLS+=https://github.com/libexpat/libexpat/archive/refs/tags/R_$(VERSION).zip
@@ -44,32 +44,13 @@ PRODUCED_OUTPUT_ARTIFACTS=	\
 	$(PER_CONFIGURATION_BUILDS_DIR)include/expat_config.h \
 	$(PER_CONFIGURATION_BUILDS_DIR)include/expat_external.h
 
-ifeq (Unix,$(ProjectPlatformSubdir))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat.a
-endif
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat.lib
-endif
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat${LIB_SUFFIX}
 
 ifneq ($(CONFIGURATION),)
 CMAKE_CURRENT_SOURCE_DIR:=$(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/expat
 CMAKE_CURRENT_SOURCE_DIR:=$(shell realpath --canonicalize-missing $(CMAKE_CURRENT_SOURCE_DIR) )
 CMAKE_CURRENT_SOURCE_DIR:=$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(CMAKE_CURRENT_SOURCE_DIR))
-endif
-
-
-##
-## It appears just /I"C:/Program Files (x86)/Windows Kits/10/include/10.0.18362.0/ucrt"
-## causes build problems. Unsure why (didnt did much).
-##
-## But there is no need for any of the /I parameters, as none were supported before Stroika 2.1a2, so strip them all for now
-##		-- LGP 2019-09-26
-##
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-CFLAGS:=$(call STRIP_INCLUDE_COMPILER_FLAGS,$(CFLAGS))
-CXXFLAGS:=$(call STRIP_INCLUDE_COMPILER_FLAGS,$(CXXFLAGS))
 endif
 
 
@@ -149,38 +130,13 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 
 
 
-# SEE https://github.com/libexpat/libexpat/tree/master/expat for what we may want to set....
-# CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=no
-# CMAKE_ARGS+= -DEXPAT_LIBRARY=no
-
-
-
-#
-#PARALLEL BUILD TRICKERY
-#	We CANNOT find out the argument to -j (-jN). But even if we could, we would
-#	really need to shared the same job-server in any other tasks which is captured in $(JOBSERVER_INFO)
-#	Really - for now - just use if {JOBSERVER_INFO} is empty or not as a flag for whether or not to do any
-#	parallel build magic (windoze and unix)
-#		-- LGP 2019-01-10
-#
-
 # JOBSERVER_INFO is the data to be assigned to MFLAGS in calling sub-make.
 # MAYBE it should come from MAKEFLAGS? and maybe 
 # NOTE: SUBTLE - YOU CANNOT read the MFLAGS variable from THIS MAKE, but must do it from a SUBSHELL
 JOBSERVER_INFO=$(filter -j --jobserver-fds=% --jobserver-auth=%, $(shell echo $${MFLAGS}))
 
-ifneq ($(JOBSERVER_INFO),)
-# ifeq (Unix,$(ProjectPlatformSubdir))
-# # Trick to make gnu make JOBSERVER work with cmake - pass args to trampoline with environment variables; doesn't work on darwin(debug? lowpri)
-# export MAKE
-# CMAKE_ARGS+= -DCMAKE_MAKE_PROGRAM="$(shell realpath MAKE-Trampoline)"
-# else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-# # closest we can easily get to approximating support for job-server
-# export CL+=/MP
-# endif
-endif
-
 CMAKE_BUILD_EXTRAS_=
+CMAKE_BUILD_EXTRAS_+= -v
 ifneq ($(JOBSERVER_INFO),)
 ifeq (Unix,$(ProjectPlatformSubdir))
 # Not perfect, but maybe OK - best if cmake supported same job-server
@@ -200,8 +156,6 @@ CMAKE_ARGS+= -DEXPAT_BUILD_EXAMPLES=OFF
 
 CMAKE_ARGS+= -DEXPAT_DEBUG_POSTFIX=
 CMAKE_ARGS+= -DEXPAT_RELEASE_POSTFIX=
-CMAKE_ARGS+= -DEXPAT_NOCONFIG_POSTFIX=
-
 
 
 ifeq ($(DETECTED_HOST_OS),MSYS)
