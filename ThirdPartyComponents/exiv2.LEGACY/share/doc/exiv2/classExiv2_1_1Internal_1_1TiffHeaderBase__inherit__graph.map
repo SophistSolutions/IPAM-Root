@@ -1,7 +1,0 @@
-<map id="Exiv2::Internal::TiffHeaderBase" name="Exiv2::Internal::TiffHeaderBase">
-<area shape="rect" id="node1" title="Contains internal objects which are not published and are not part of the libexiv2 API." alt="" coords="5,81,204,108"/>
-<area shape="rect" id="node2" href="$classExiv2_1_1Internal_1_1Cr2Header.html" title="Canon CR2 header structure." alt="" coords="255,5,427,32"/>
-<area shape="rect" id="node3" href="$classExiv2_1_1Internal_1_1OrfHeader.html" title="Olympus ORF header structure." alt="" coords="256,56,425,83"/>
-<area shape="rect" id="node4" href="$classExiv2_1_1Internal_1_1Rw2Header.html" title="Panasonic RW2 header structure." alt="" coords="252,107,429,133"/>
-<area shape="rect" id="node5" href="$classExiv2_1_1Internal_1_1TiffHeader.html" title="Standard TIFF header structure." alt="" coords="257,157,425,184"/>
-</map>
