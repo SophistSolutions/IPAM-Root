@@ -1,19 +1,24 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Sources">
+    <Filter Include="Common">
       <UniqueIdentifier>{035e5bcd-f10a-46b3-85e7-e3c4a2b1c6c2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Makefile" />
-    <None Include="..\..\Sources\Makefile">
-      <Filter>Sources</Filter>
+    <None Include="..\..\Common\Makefile">
+      <Filter>Common</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Sources\Main.cpp">
-      <Filter>Sources</Filter>
+    <ClCompile Include="..\..\Common\Geolocation.cpp">
+      <Filter>Common</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Common\Geolocation.h">
+      <Filter>Common</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

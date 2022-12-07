@@ -11,6 +11,8 @@
 
 #include "Geolocation.h"
 
+
+
 using namespace Stroika::Foundation;
 using Characters::String;
 
