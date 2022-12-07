@@ -8,6 +8,7 @@
 #include "Stroika/Foundation/Characters/Format.h"
 #include "Stroika/Foundation/Characters/RegularExpression.h"
 #include "Stroika/Foundation/Characters/String2Int.h"
+#include "Stroika/Foundation/DataExchange/BadFormatException.h"
 #include "Stroika/Foundation/Debug/Trace.h"
 
 #include "Geolocation.h"
@@ -15,6 +16,7 @@
 using namespace Stroika::Foundation;
 
 using Characters::String;
+using Characters::RegularExpression;
 
 using namespace IPAM::LibIPAM::Common;
 
@@ -25,78 +27,78 @@ using namespace IPAM::LibIPAM::Common;
  */
 Geolocation::Coordinate::Coordinate (double d)
 {
-    value = std::fmod (d, 360);
+    _value = std::fmod (d, 360);
 }
 
-Geolocation::Coordinate::Coordinate (String s, const Characters::RegularExpression regex)
+Geolocation::Coordinate::Coordinate (const String& s, const RegularExpression& regex)
     : Coordinate{0}
 {
     Containers::Sequence<String> matches;
     if (s.Matches (regex, &matches)) {
-        value = std::fmod (Characters::FloatConversion::ToFloat (matches[1]), 360);
+        _value = std::fmod (Characters::FloatConversion::ToFloat (matches[1]), 360);
         if (matches[2].length () == 2) {
             int minutes = Characters::String2Int (matches[2]);
-            if (abs (minutes) >= kBase) {
-                throw L"Invalid coordinate specification (minutes > 60)";
+            if (abs (minutes) >= _kBase) {
+                Execution::Throw (DataExchange::BadFormatException{L"Invalid coordinate specification (minutes > 60)"sv});
             }
-            value += minutes / kBase;
+            _value += minutes / _kBase;
         }
         if (matches[3].length () == 2) {
             int seconds = Characters::String2Int (matches[3]);
-            if (abs (seconds) >= kBase) {
-                throw L"Invalid coordinate specification (seconds > 60)";
+            if (abs (seconds) >= _kBase) {
+                Execution::Throw (DataExchange::BadFormatException{L"Invalid coordinate specification (seconds > 60)"sv});
             }
-            value += seconds / (kBase * kBase);
+            _value += seconds / (_kBase * _kBase);
         }
         if (matches[4].length () > 1) {
-            value += Characters::FloatConversion::ToFloat (matches[4]) / (kBase * kBase);
+            _value += Characters::FloatConversion::ToFloat (matches[4]) / (_kBase * _kBase);
         }
-        value *= (matches[0] == L"-") ? -1.0 : 1.0;
+        _value *= (matches[0] == L"-") ? -1.0 : 1.0;
     }
     else {
-        throw L"Invalid coordinate specification"; // what exactly to throw??
+        Execution::Throw (DataExchange::BadFormatException{L"Invalid coordinate specification"sv});
     }
 }
 
-double Geolocation::Coordinate::GPSCoordStringToValue (String coor)
+double Geolocation::Coordinate::GPSCoordStringToValue (const String& coor)
 {
-    Characters::RegularExpression coordinateExp{L"^([0-9]*)?,([0-9]*)(\\.[0-9]*)([NWES]?)"};
+    static const RegularExpression kCoordinateExp_{L"^([0-9]*)?,([0-9]*)(\\.[0-9]*)([NWES]?)"};
     Containers::Sequence<String>  matches;
-    if (coor.Matches (coordinateExp, &matches)) {
+    if (coor.Matches (kCoordinateExp_, &matches)) {
         double degrees = std::stod (matches[0].c_str ());
         double minutes = std::stod (matches[1].c_str ());
         double seconds = std::stod (matches[2].c_str ());
         double sign    = (matches[3] == L"N" or matches[3] == L"E") ? 1 : -1;
         return sign * (degrees + (minutes + seconds) / 60);
     }
-    throw L"Invalid coordinate specification"; // what exactly to throw??
+    Execution::Throw (DataExchange::BadFormatException{L"Invalid coordinate specification"sv});
 }
 
 int Geolocation::Coordinate::degrees () const
 {
     double intPart;
-    modf (value, &intPart);
+    modf (_value, &intPart);
     return int (intPart);
 }
 int Geolocation::Coordinate::minutes () const
 {
     double intPart;
-    double fractional = modf (value, &intPart);
-    modf (fractional * kBase, &intPart);
+    double fractional = modf (_value, &intPart);
+    modf (fractional * _kBase, &intPart);
     return int (intPart);
 }
 double Geolocation::Coordinate::seconds () const
 {
     double intPart;
-    double fractional = modf (value, &intPart);
-    double result     = modf (fractional * kBase, &intPart);
-    return std::round (result * kBase * kPrecision) / kPrecision;
+    double fractional = modf (_value, &intPart);
+    double result     = modf (fractional * _kBase, &intPart);
+    return std::round (result * _kBase * _kPrecision) / _kPrecision;
 }
 
 String Geolocation::Coordinate::ToISOString_ (const wchar_t* degreeSpecification)
 {
     String result;
-    if (value >= 0) {
+    if (_value >= 0) {
         result += L'+';
     }
     result += Characters::Format (degreeSpecification, degrees ());
@@ -215,7 +217,7 @@ Geolocation::Geolocation (wchar_t* _latitude, wchar_t* _longitude, wchar_t* _alt
 Geolocation::Geolocation (String isoString)
 {
     Containers::Sequence<String> matches;
-    if (isoString.Matches (kExp, &matches)) {
+    if (isoString.Matches (kExp_, &matches)) {
         latitude  = Latitude (matches[0]);
         longitude = Longitude (matches[1]);
         if (matches[2].length () > 1) {
@@ -223,7 +225,7 @@ Geolocation::Geolocation (String isoString)
         }
     }
     else {
-        throw L"Invalid Geolocation specification"; // what exactly to throw??
+        Execution::Throw (DataExchange::BadFormatException{L"Invalid Geolocation specification"sv});
     }
 }
 

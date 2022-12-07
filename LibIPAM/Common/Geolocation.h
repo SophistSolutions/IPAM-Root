@@ -21,11 +21,11 @@ namespace IPAM::LibIPAM::Common {
         public:
             Coordinate () = delete;
 
-            static double GPSCoordStringToValue (String coor);
+            static double GPSCoordStringToValue (const String& coor);
 
         protected:
             Coordinate (double d);
-            Coordinate (String s, const Characters::RegularExpression regex);
+            Coordinate (const String& s, const Characters::RegularExpression& regex);
 
         public:
             nonvirtual int    degrees () const;
@@ -37,9 +37,9 @@ namespace IPAM::LibIPAM::Common {
             nonvirtual auto operator<=> (const Coordinate& rhs) const;
 
         protected:
-            static constexpr double kBase      = 60.0;
-            static constexpr double kPrecision = 100000.0;
-            double                  value;
+            static constexpr double _kBase      = 60.0;
+            static constexpr double _kPrecision = 100000.0;
+            double                  _value;
 
             nonvirtual String ToISOString_ (const wchar_t* degreeSpecification);
         };
@@ -49,7 +49,7 @@ namespace IPAM::LibIPAM::Common {
         class Latitude : public Coordinate {
         public:
             Latitude (double d = 0);
-            Latitude (String s);
+            Latitude (const String& s);
             Latitude (const Latitude& rhs);
 
             nonvirtual void   operator= (const Latitude& rhs);
@@ -60,7 +60,7 @@ namespace IPAM::LibIPAM::Common {
             // sign followed by 2,4 or 6 digits
             // followed by optional decimal point and further digits
             // ^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\.[0-9]+)?
-            static inline Characters::RegularExpression kLatitudeExp{L"^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\\.[0-9]+)?"};
+            static inline Characters::RegularExpression kLatitudeExp_{L"^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\\.[0-9]+)?"};
 
 #if qDebug
         public:
@@ -73,7 +73,7 @@ namespace IPAM::LibIPAM::Common {
         class Longitude : public Coordinate {
         public:
             Longitude (double d = 0);
-            Longitude (String s);
+            Longitude (const String& s);
             Longitude (const Longitude& rhs);
 
             nonvirtual void operator= (const Longitude& rhs);
@@ -98,7 +98,7 @@ namespace IPAM::LibIPAM::Common {
         Geolocation (String _latitude, String _longitude);
         Geolocation (String _latitude, String _longitude, double _altitude);
 
-        Geolocation (wchar_t* _latitude, wchar_t* _longitude, wchar_t* _altitude = NULL);
+        Geolocation (wchar_t* _latitude, wchar_t* _longitude, wchar_t* _altitude = nullptr);
 
         Geolocation (String isoString);
 
@@ -113,7 +113,7 @@ namespace IPAM::LibIPAM::Common {
         static void TestSuite ();
 #endif
     private:
-        static inline Characters::RegularExpression kExp{L"^(?:([+-][0-9]{2,6}(?:\\.[0-9]+)?)([+-][0-9]{3,7}(?:\\.[0-9]+)?))(?:([+-][0-9]+(?:\\.[0-9]+)?)(?:CRSWGS_84))?\\/"};
+        static inline Characters::RegularExpression kExp_{L"^(?:([+-][0-9]{2,6}(?:\\.[0-9]+)?)([+-][0-9]{3,7}(?:\\.[0-9]+)?))(?:([+-][0-9]+(?:\\.[0-9]+)?)(?:CRSWGS_84))?\\/"};
     };
 
 }
