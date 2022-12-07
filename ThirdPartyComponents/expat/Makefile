@@ -215,7 +215,9 @@ doBuilds_:
 	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(ECHO) $(TOOLSET_CMD_ENV_SETS_)"cmake --build . --config $(CMAKE_CONFIGURATION) --target install" > $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
 	@MAKEFLAGS= && cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(TOOLSET_CMD_ENV_SETS_)cmake --build . --config $(CMAKE_CONFIGURATION) --target install >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
 	@# I beleive cmake findlibrary code for FindExpat looks for libexpat.lib and builds of Exiv2 fail if that file not present
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 	@if [ ! -e $(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat.lib ] ; then cp $(PER_CONFIGURATION_BUILDS_DIR)lib/libexpatd.lib $(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat.lib; fi
+endif
 ifeq (Unix,$(ProjectPlatformSubdir))
 else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 	@#We get warnings about a missing pdb file when linking otherwise...(not sure why since symbol info sb in the .lib)
