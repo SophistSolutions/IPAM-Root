@@ -1,5 +1,5 @@
-#include <iostream>
 #include <fstream>
+#include <iostream>
 
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Characters/ToString.h"
@@ -12,14 +12,10 @@
 #include "Stroika/Foundation/IO/FileSystem/FileInputStream.h"
 #include "Stroika/Foundation/IO/FileSystem/FileOutputStream.h"
 
-
 #include "DocumentMetadata.h"
-
 
 using namespace Stroika::Foundation;
 using Characters::String;
-
-
 
 namespace Metadata {
     String DocumentMetadata::Comment::ToString () const
@@ -44,7 +40,6 @@ namespace Metadata {
         return sb.str ();
     }
 
-
     void DocumentMetadata::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
     {
         using DataExchange::ObjectVariantMapper;
@@ -56,7 +51,7 @@ namespace Metadata {
             ObjectVariantMapper::StructFieldInfo{L"author", StructFieldMetaInfo{&DocumentMetadata::Comment::author}},
         });
         mapper.AddCommonType<Containers::Sequence<DocumentMetadata::Comment>> ();
-        mapper.AddCommonType <optional<Containers::Sequence<DocumentMetadata::Comment>>> ();
+        mapper.AddCommonType<optional<Containers::Sequence<DocumentMetadata::Comment>>> ();
 
         mapper.AddClass<DocumentMetadata> ({
             ObjectVariantMapper::StructFieldInfo{L"tags", StructFieldMetaInfo{&DocumentMetadata::tags}},
@@ -76,7 +71,7 @@ namespace Metadata {
         ObjectVariantMapper mapper;
         DocumentMetadata::SupportVariantMapping (mapper);
         mapper.AddCommonType<Containers::Mapping<String, DocumentMetadata>> ();
-       
+
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (mds), IO::FileSystem::FileOutputStream::New (filePath));
     }
 
@@ -91,5 +86,3 @@ namespace Metadata {
         mapper.ToObject (xxx, mds);
     }
 }
-
-

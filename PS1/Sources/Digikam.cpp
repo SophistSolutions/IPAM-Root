@@ -1,8 +1,8 @@
+#include "Stroika/Foundation/Characters/RegularExpression.h"
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Characters/ToString.h"
 #include "Stroika/Foundation/Containers/Mapping.h"
 #include "Stroika/Foundation/Containers/MultiSet.h"
-#include "Stroika/Foundation/Characters/RegularExpression.h"
 #include "Stroika/Foundation/Containers/Set.h"
 #include "Stroika/Foundation/DataExchange/ObjectVariantMapper.h"
 #include "Stroika/Foundation/DataExchange/StructFieldMetaInfo.h"
@@ -15,14 +15,9 @@
 #include "Stroika/Foundation/Streams/iostream/OutputStreamFromStdOStream.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
-
 #include "Digikam.h"
 #include "DocumentMetadata.h"
 #include "Geolocation.h"
-
-
-
-
 
 using namespace Stroika::Foundation;
 using Characters::String;
@@ -39,7 +34,6 @@ using namespace Metadata;
     to find images need Images.id, Images.name, Images.album, Albums.relativePath
     to find useful tags: TagProperties.property (== persion|faceEngineId and has non-null value)
 */
-
 
 namespace digikam {
 
@@ -61,13 +55,13 @@ namespace digikam {
             for (const auto& ari : conn.mkStatement (L"Select id,identifier,specificPath from AlbumRoots;").GetAllRows (0, 1, 2)) {
                 // example identier: volumeid:?path=P:
                 // from internet example: volumeid:?path=%/home/user1/Photo
-                int    id   = std::get<0> (ari).As<int> ();
+                int    id           = std::get<0> (ari).As<int> ();
                 String path         = std::get<1> (ari).As<String> ();
                 String specificPath = std::get<2> (ari).As<String> ();
-                    /*+ std::get<2> (ari).As<String> ()*/;
+                /*+ std::get<2> (ari).As<String> ()*/;
 
                 Characters::RegularExpression albumLocation{L"^(?:volumeid:\\?path=)(.*)"};
-                Containers::Sequence<String> matches;
+                Containers::Sequence<String>  matches;
                 if (path.Matches (albumLocation, &matches)) {
                     path = matches[0];
                 }
@@ -103,10 +97,10 @@ namespace digikam {
             }
 
             // comments
-            for (const auto& ii : conn.mkStatement (L"Select imageid,comment,author from ImageComments;").GetAllRows (0, 1,2)) {
+            for (const auto& ii : conn.mkStatement (L"Select imageid,comment,author from ImageComments;").GetAllRows (0, 1, 2)) {
                 int                                 id      = std::get<0> (ii).As<int> ();
                 String                              comment = std::get<1> (ii).As<String> ();
-                String                              author = std::get<2> (ii).As<String> ();
+                String                              author  = std::get<2> (ii).As<String> ();
                 const Characters::RegularExpression kIgnoreComment (L"^(\\n*|Screenshot|AppleMark|Maker.*E-ve|CREATOR:.*)");
                 if (comment.length () > 0 and not comment.Matches (kIgnoreComment)) {
                     String path;
@@ -116,10 +110,10 @@ namespace digikam {
                         // only one comment supported by digikam so don't need to check if already created
                         ms.comment = Containers::Sequence<DocumentMetadata::Comment> ();
                         if (author.length () > 0) {
-                            ms.comment.value ().Append (DocumentMetadata::Comment (String (comment.c_str ()), author));                        
+                            ms.comment.value ().Append (DocumentMetadata::Comment (String (comment.c_str ()), author));
                         }
                         else {
-                            ms.comment.value ().Append (DocumentMetadata::Comment (String (comment.c_str ())));                        
+                            ms.comment.value ().Append (DocumentMetadata::Comment (String (comment.c_str ())));
                         }
                         //DbgTrace (L"comment: %d, %s", id, DocumentMetadata::Comment::ToString (ms.comment.value ()).c_str ());
                         scrapedMetadata.Add (path, ms);
@@ -131,24 +125,24 @@ namespace digikam {
 
             // location
             for (const auto& ii : conn.mkStatement (L"Select imageid,latitudeNumber,longitudeNumber/*,altitude*/ from ImagePositions;").GetAllRows (0, 1, 2)) {
-                int     id      = std::get<0> (ii).As<int> ();
-                double  lat     = std::get<1> (ii).As<double> ();
-                double  longi   = std::get<2> (ii).As<double> ();
-              //  double  alt     = std::get<3> (ii).As<double> ();
+                int    id    = std::get<0> (ii).As<int> ();
+                double lat   = std::get<1> (ii).As<double> ();
+                double longi = std::get<2> (ii).As<double> ();
+                //  double  alt     = std::get<3> (ii).As<double> ();
                 String path;
                 if (imageIDToImagePath.Lookup (id, &path)) {
                     DocumentMetadata ms;
                     scrapedMetadata.Lookup (path, &ms);
                     ms.location = Geolocation (lat, longi /*, alt*/).ToISOString ();
-                 //   DbgTrace (L"geoloc: %d, %s", id, ms.location.value ().c_str ());
+                    //   DbgTrace (L"geoloc: %d, %s", id, ms.location.value ().c_str ());
                     scrapedMetadata.Add (path, ms);
                 }
-            }            
-            
+            }
+
             // date, rating
             for (const auto& ii : conn.mkStatement (L"Select imageid,rating,creationDate from ImageInformation;").GetAllRows (0, 1, 2)) {
-                int    id    = std::get<0> (ii).As<int> ();
-                int rating   = std::get<1> (ii).As<int> ();
+                int    id     = std::get<0> (ii).As<int> ();
+                int    rating = std::get<1> (ii).As<int> ();
                 String date   = std::get<2> (ii).As<String> ();
                 String path;
                 if (imageIDToImagePath.Lookup (id, &path)) {
@@ -159,12 +153,12 @@ namespace digikam {
                     // I choose to respect their mapping, rather than the most obvious, where 1 star would be 20% instead of 1%
                     switch (rating) {
                         case -1:
-                        case 0:     // for me at least, these are the same (visually same, probably no way back to -1 if accidentally set)
+                        case 0: // for me at least, these are the same (visually same, probably no way back to -1 if accidentally set)
                             break;
                         case 1:
                             ms.rating = 0.01;
                             break;
-                        case 2: 
+                        case 2:
                             ms.rating = 0.25;
                             break;
                         case 3:
@@ -183,7 +177,7 @@ namespace digikam {
                         date = Time::DateTime::Parse (date, Time::DateTime::kISO8601Format).AsUTC ().Format (Time::DateTime::kISO8601Format);
                     }
                     ms.date = date;
-                 //   DbgTrace (L"date: %d, %s", id, ms.date.value ().c_str ());
+                    //   DbgTrace (L"date: %d, %s", id, ms.date.value ().c_str ());
                     scrapedMetadata.Add (path, ms);
                 }
             }
@@ -194,7 +188,7 @@ namespace digikam {
             Containers::Set<int> meaningfulTags;
             Containers::Set<int> badTags;
             for (const auto& ii : conn.mkStatement (L"Select tagid,property from TagProperties;").GetAllRows (0, 1)) {
-                int id = std::get<0> (ii).As<int> ();
+                int    id       = std::get<0> (ii).As<int> ();
                 String property = std::get<1> (ii).As<String> ();
                 if (property == L"person" or property == L"faceEngineId") {
                     //DbgTrace (L"meaningfulTags added: %d, %s", id, property.c_str ());
@@ -208,7 +202,7 @@ namespace digikam {
             }
             Containers::Mapping<int, String> tagValues;
             for (const auto& ii : conn.mkStatement (L"Select id,name from Tags;").GetAllRows (0, 1)) {
-                int    id       = std::get<0> (ii).As<int> ();
+                int    id   = std::get<0> (ii).As<int> ();
                 String name = std::get<1> (ii).As<String> ();
                 if (not badTags.Contains (id)) {
                     tagValues.Add (id, name);
@@ -216,8 +210,8 @@ namespace digikam {
                 }
             }
             for (const auto& ii : conn.mkStatement (L"Select imageid,tagid from ImageTags;").GetAllRows (0, 1)) {
-                int    imageid   = std::get<0> (ii).As<int> ();
-                int    tagid = std::get<1> (ii).As<int> ();
+                int    imageid = std::get<0> (ii).As<int> ();
+                int    tagid   = std::get<1> (ii).As<int> ();
                 String value;
                 if (tagValues.Lookup (tagid, &value)) {
                     String path;

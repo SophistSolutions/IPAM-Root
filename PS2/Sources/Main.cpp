@@ -21,15 +21,14 @@ using namespace std::filesystem;
 using namespace Stroika::Foundation;
 using Characters::String;
 
-
-const path kDocumentMetaDataFile    = L"c:\\ssw\\mdResults\\DocumentMetaData.json";
-const path kTagInfoOutputFile       = L"c:\\ssw\\mdResults\\DocumentMetaDataTagInfo.json";
+const path kDocumentMetaDataFile = L"c:\\ssw\\mdResults\\DocumentMetaData.json";
+const path kTagInfoOutputFile    = L"c:\\ssw\\mdResults\\DocumentMetaDataTagInfo.json";
 
 using namespace Metadata;
 
 namespace {
     struct TagInfo {
-        Containers::Set<String> photosContaining;
+        Containers::Set<String>      photosContaining;
         Containers::MultiSet<String> siblingTagsCount;
     };
 
@@ -50,59 +49,58 @@ namespace {
         return lhs.key < rhs.key;
     }
 
-
     void LoadMasterTagList ()
     {
         try {
 
             Containers::Mapping<String, TagInfo*> fullTagInfo_ptr;
 
-           {
-               DbgTrace (L"about to read metadata");
-               Containers::Mapping<String, DocumentMetadata> pt1;
-               {
-                   Debug::TimingTrace ttrc;
-                   DocumentMetadata::ReadFromJSONFile (&pt1, kDocumentMetaDataFile);
-               }
-               DbgTrace (L"found %d photos metadata", pt1.Keys ().length ());
+            {
+                DbgTrace (L"about to read metadata");
+                Containers::Mapping<String, DocumentMetadata> pt1;
+                {
+                    Debug::TimingTrace ttrc;
+                    DocumentMetadata::ReadFromJSONFile (&pt1, kDocumentMetaDataFile);
+                }
+                DbgTrace (L"found %d photos metadata", pt1.Keys ().length ());
 
-               for (auto pi : pt1) {
-                   String key = pi.fKey;
-                  // DbgTrace (L"processing %s", key.c_str ());
+                for (auto pi : pt1) {
+                    String key = pi.fKey;
+                    // DbgTrace (L"processing %s", key.c_str ());
 
-                   // guarantee they are added to our tag list
-                   for (String t : pi.fValue.tags) {
-                       if (not fullTagInfo_ptr.ContainsKey (t)) {
-                           fullTagInfo_ptr.Add (t, new TagInfo ());
-                       }
-                   }
+                    // guarantee they are added to our tag list
+                    for (String t : pi.fValue.tags) {
+                        if (not fullTagInfo_ptr.ContainsKey (t)) {
+                            fullTagInfo_ptr.Add (t, new TagInfo ());
+                        }
+                    }
 
-                   int skipCount = 1;
-                   for (auto it = pi.fValue.tags.begin (); it != pi.fValue.tags.end (); ++it) {
-                       auto tinfo = fullTagInfo_ptr.LookupValue (*it);
-                       tinfo->photosContaining.Add (key);
-                       Containers::Set<String> rest (pi.fValue.tags.begin () + skipCount, pi.fValue.tags.end ());
-                       for (auto it1 : rest) {
-                        //   DbgTrace (L"  matched pair (%s,%s)", it->c_str (), it1.c_str ());
-                           tinfo->siblingTagsCount.Add (it1);
-                        fullTagInfo_ptr.LookupValue (it1)->siblingTagsCount.Add (*it);
-                       }
-                       ++skipCount;
-                     //  DbgTrace (L"  finished tag %s, photo count = %d, sibling count = %d", it->c_str (), fullTagInfo.LookupValue (*it)->photosContaining.Count (), fullTagInfo.LookupValue (*it)->siblingTagsCount.Count ());
-                   }
-               }
-           }
-           struct TagInfo_Serialize {
-               Containers::Set<String>                     photosContaining;
-               Containers::SortedCollection<TagInfoHelper> siblingTagsCount;
-           };
+                    int skipCount = 1;
+                    for (auto it = pi.fValue.tags.begin (); it != pi.fValue.tags.end (); ++it) {
+                        auto tinfo = fullTagInfo_ptr.LookupValue (*it);
+                        tinfo->photosContaining.Add (key);
+                        Containers::Set<String> rest (pi.fValue.tags.begin () + skipCount, pi.fValue.tags.end ());
+                        for (auto it1 : rest) {
+                            //   DbgTrace (L"  matched pair (%s,%s)", it->c_str (), it1.c_str ());
+                            tinfo->siblingTagsCount.Add (it1);
+                            fullTagInfo_ptr.LookupValue (it1)->siblingTagsCount.Add (*it);
+                        }
+                        ++skipCount;
+                        //  DbgTrace (L"  finished tag %s, photo count = %d, sibling count = %d", it->c_str (), fullTagInfo.LookupValue (*it)->photosContaining.Count (), fullTagInfo.LookupValue (*it)->siblingTagsCount.Count ());
+                    }
+                }
+            }
+            struct TagInfo_Serialize {
+                Containers::Set<String>                     photosContaining;
+                Containers::SortedCollection<TagInfoHelper> siblingTagsCount;
+            };
 
             Containers::Mapping<String, TagInfo_Serialize> fullTagInfo;
             {
-               DbgTrace (L"processing tag info");
-               Debug::TimingTrace ttrc;
-               
-               // sorted multiset doesn't currently do what I want (sorts by key, not value)
+                DbgTrace (L"processing tag info");
+                Debug::TimingTrace ttrc;
+
+                // sorted multiset doesn't currently do what I want (sorts by key, not value)
                 // so do the sorting by hand
 
                 for (auto it = fullTagInfo_ptr.begin (); it != fullTagInfo_ptr.end (); ++it) {
@@ -115,7 +113,6 @@ namespace {
                     fullTagInfo.Add (it->fKey, ti);
                 }
             }
-
 
             {
                 DbgTrace (L"writing processed tag info to %s", kTagInfoOutputFile.c_str ());
@@ -139,9 +136,9 @@ namespace {
                 DataExchange::Variant::JSON::Writer{}.Write (tagInfoMapper.FromObject (fullTagInfo), IO::FileSystem::FileOutputStream::New (kTagInfoOutputFile));
             }
         }
-       catch (...) {
-           DbgTrace (L"got exception=%s", Characters::ToString (current_exception ()).c_str ());
-       }
+        catch (...) {
+            DbgTrace (L"got exception=%s", Characters::ToString (current_exception ()).c_str ());
+        }
     }
 }
 

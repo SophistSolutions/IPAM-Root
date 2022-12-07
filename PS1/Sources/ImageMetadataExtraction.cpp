@@ -1,9 +1,9 @@
-#include <iostream>
-#include <filesystem>
-#include <cstring>
-#include <iomanip>
 #include <cassert>
+#include <cstring>
+#include <filesystem>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
 
 #include "Stroika/Foundation/Characters/RegularExpression.h"
 #include "Stroika/Foundation/Characters/String.h"
@@ -13,12 +13,10 @@
 #include "Stroika/Foundation/Time/Date.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
-
 #include "Geolocation.h"
 #include "ImageMetadataExtraction.h"
 
 #include "exiv2/exiv2.hpp"
-
 
 using namespace std::filesystem;
 
@@ -26,8 +24,6 @@ using namespace Stroika::Foundation;
 using Characters::String;
 
 using Metadata::DocumentMetadata;
-
-
 
 namespace Metadata {
     ImageMetadataExtractor::ImageMetadataExtractor ()
@@ -45,11 +41,11 @@ namespace Metadata {
             auto extract_ipc = [&] () {
                 Exiv2::IptcData& iptcData = image->iptcData ();
                 if (not iptcData.empty ()) {
-                    const char* kTagKeyword     = "Iptc.Application2.Keywords";
-                    const char* kDateKeyword    = "Iptc.Application2.DateCreated";
-                    const char* kTimeKeyword    = "Iptc.Application2.TimeCreated";
-                    const char* kTitleKeyword   = "Iptc.Application2.ObjectName";
-                    const char* kCaptionKeyword = "Iptc.Application2.Caption";
+                    const char*      kTagKeyword     = "Iptc.Application2.Keywords";
+                    const char*      kDateKeyword    = "Iptc.Application2.DateCreated";
+                    const char*      kTimeKeyword    = "Iptc.Application2.TimeCreated";
+                    const char*      kTitleKeyword   = "Iptc.Application2.ObjectName";
+                    const char*      kCaptionKeyword = "Iptc.Application2.Caption";
                     optional<String> foundDate;
                     optional<String> foundTime;
 
@@ -67,8 +63,8 @@ namespace Metadata {
                         }
                         else if (strcmp (md->key ().c_str (), kCaptionKeyword) == 0) {
                             if (md->value ().toString ().length () > 0) {
-                                    // only one comment supported by metadata so don't need to check if already created
-                                    ms.comment = Containers::Sequence<DocumentMetadata::Comment> ();
+                                // only one comment supported by metadata so don't need to check if already created
+                                ms.comment = Containers::Sequence<DocumentMetadata::Comment> ();
                                 // comment author not supported by IPTC
                                 ms.comment.value ().Append (DocumentMetadata::Comment (String::FromNarrowSDKString (md->value ().toString ())));
                             }
@@ -101,24 +97,23 @@ namespace Metadata {
                     }
                     return true;
                 }
-                return false; 
+                return false;
             };
 
-             // we do this first. Although considered obsolete and not always there, it handles keywords slightly better
-             extract_ipc ();
+            // we do this first. Although considered obsolete and not always there, it handles keywords slightly better
+            extract_ipc ();
 
             {
                 Exiv2::XmpData& xmpData = image->xmpData ();
                 if (not xmpData.empty ()) {
-                    const char* kRatingKeyword      = "Xmp.MicrosoftPhoto.Rating";
-                    const char* kTitleKeyword       = "Xmp.acdsee.caption";
-                    const char* kCommentKeyword     = "Xmp.acdsee.notes";
-                    const char* kCommentAuthor      = "Xmp.acdsee.author";
-                    const char* kDateKeyword        = "Xmp.xmp.CreateDate";
-                    const char* kAltitudeKeyword    = "Xmp.exif.GPSAltitude";
-                    const char* kLatitudeKeyword    = "Xmp.exif.GPSLatitude";
-                    const char* kLongitudeKeyword   = "Xmp.exif.GPSLongitude";
-                        
+                    const char* kRatingKeyword    = "Xmp.MicrosoftPhoto.Rating";
+                    const char* kTitleKeyword     = "Xmp.acdsee.caption";
+                    const char* kCommentKeyword   = "Xmp.acdsee.notes";
+                    const char* kCommentAuthor    = "Xmp.acdsee.author";
+                    const char* kDateKeyword      = "Xmp.xmp.CreateDate";
+                    const char* kAltitudeKeyword  = "Xmp.exif.GPSAltitude";
+                    const char* kLatitudeKeyword  = "Xmp.exif.GPSLatitude";
+                    const char* kLongitudeKeyword = "Xmp.exif.GPSLongitude";
 
                     Characters::RegularExpression tagEntry{L"^Xmp\\.mwg-rs\\.Regions\\/mwg-rs:RegionList\\[(?:[0-9]*)?\\]\\/mwg-rs:Name"};
                     optional<String>              foundLongitude;
@@ -130,11 +125,11 @@ namespace Metadata {
                         String key = String::FromNarrowSDKString (md->key ().c_str ());
                         if (strcmp (md->key ().c_str (), kRatingKeyword) == 0) {
                             if (strcmp (md->value ().toString ().c_str (), "99") == 0) {
-                                ms.rating = 1.0;    // metadata apparently only allows 2 digits
-                           }
-                           else {
-                               ms.rating = std::round ((stoi (md->value ().toString ()) / 100.0) * 100.0) / 100.0;
-                           }
+                                ms.rating = 1.0; // metadata apparently only allows 2 digits
+                            }
+                            else {
+                                ms.rating = std::round ((stoi (md->value ().toString ()) / 100.0) * 100.0) / 100.0;
+                            }
                         }
                         else if (strcmp (md->key ().c_str (), kTitleKeyword) == 0) {
                             ms.title = String::FromNarrowSDKString (md->value ().toString ());
@@ -166,27 +161,22 @@ namespace Metadata {
                     if (foundLatitude.has_value () and foundLongitude.has_value ()) {
                         if (foundAltitude.has_value ()) {
                             ms.location = Geolocation (Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()), Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ()) /*, double _altitude*/).ToISOString ();
-                            
                         }
                         else {
                             ms.location = Geolocation (Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()), Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ())).ToISOString ();
                         }
                     }
-                    if (foundComment.has_value () and foundComment.value ()!= L"Ignored") {
+                    if (foundComment.has_value () and foundComment.value () != L"Ignored") {
                         // only one comment supported by metadata so don't need to check if already created
                         ms.comment = Containers::Sequence<DocumentMetadata::Comment> ();
                         ms.comment.value ().Append (DocumentMetadata::Comment (String (foundComment.value ().c_str ()), foundAuthor));
                     }
                 }
-
             }
         }
 
         return ms;
     }
-
-
-
 
     Containers::Set<String> DumpEXIF (Exiv2::Image::UniquePtr& image, std::ofstream& outfile)
     {
@@ -350,7 +340,6 @@ namespace Metadata {
             DbgTrace (L"got exception=%s", Characters::ToString (current_exception ()).c_str ());
         }
 
-
         return extTally;
     }
 
@@ -378,7 +367,7 @@ namespace Metadata {
                         imageMetaData.Add (IO::FileSystem::FromPath (p).ReplaceAll (L"\\", L"/"), ms);
                     }
                     catch (...) {
-                        DbgTrace (L"failed to find metadata for  %s", p.c_str ());                   
+                        DbgTrace (L"failed to find metadata for  %s", p.c_str ());
                     }
                 }
             }
@@ -390,6 +379,4 @@ namespace Metadata {
         return imageMetaData;
     }
 
-
-
-}   // namespace
+} // namespace

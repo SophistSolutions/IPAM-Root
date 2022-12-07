@@ -5,9 +5,7 @@
 #include "Stroika/Foundation/Containers/Set.h"
 #include "Stroika/Foundation/DataExchange/ObjectVariantMapper.h"
 
-
 #include "DocumentMetadata.h"
-
 
 namespace digikam {
     extern Containers::Mapping<String, Metadata::DocumentMetadata> ScrapeDigikamDB (const wchar_t* dbPath);

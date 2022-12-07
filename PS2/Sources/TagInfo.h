@@ -19,7 +19,7 @@ namespace Metadata {
         static void                                           WriteToFileAsJSON (Containers::Mapping<String, TagInfo_Serialize> mds, const std::filesystem::path filePath);
         static Containers::Mapping<String, TagInfo_Serialize> ReadFromJSONFile (const std::filesystem::path filePath);
 
-        static Containers::Mapping<String, TagInfo*> ProcessMetadata (Containers::Mapping<String, DocumentMetadata> dm);
+        static Containers::Mapping<String, TagInfo*>          ProcessMetadata (Containers::Mapping<String, DocumentMetadata> dm);
         static Containers::Mapping<String, TagInfo_Serialize> PrepareForSerialization (Containers::Mapping<String, TagInfo*> fullTagInfo_ptr);
     };
 
