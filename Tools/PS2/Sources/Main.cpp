@@ -43,17 +43,9 @@ namespace {
     struct TagInfoHelper {
         String       key;
         unsigned int value;
+
+        auto operator<=> (const TagInfoHelper& rhs) const = default;
     };
-    bool operator<(const TagInfoHelper& lhs, const TagInfoHelper& rhs)
-    {
-        if (lhs.value > rhs.value) {
-            return true;
-        }
-        else if (lhs.value < rhs.value) {
-            return false;
-        }
-        return lhs.key < rhs.key;
-    }
 
     void LoadMasterTagList ()
     {
