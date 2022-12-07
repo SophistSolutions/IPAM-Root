@@ -51,7 +51,7 @@ endif
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 ifeq (Debug,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpatd.lib
+	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpatdMD.lib
 endif
 ifeq (Release,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
@@ -191,6 +191,7 @@ endif
 # it helps with the build of exiv2 --LGP 2022-12-06
 CMAKE_ARGS+= -DEXPAT_BUILD_PKGCONFIG=on
 
+CMAKE_ARGS+= -DEXPAT_SHARED_LIBS=OFF
 
 
 ifeq ($(DETECTED_HOST_OS),MSYS)

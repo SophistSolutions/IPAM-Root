@@ -19,6 +19,8 @@ ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 # LIBS_PATH_DIRECTIVES += -LIBPATH:"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)ThirdPartyComponents/exiv2/)"
 # LIB_DEPENDENCIES += exiv2.lib exiv2-xmp.lib
 LIB_DEPENDENCIES += psapi.lib
+LIB_DEPENDENCIES += exiv2.lib
+LIB_DEPENDENCIES += libexpatdMD.lib
 endif
 
 
