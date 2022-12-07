@@ -7,13 +7,15 @@
 #include "Stroika/Frameworks/StroikaPreComp.h"
 
 #include "Stroika/Foundation/Characters/RegularExpression.h"
-#include "Stroika/Foundation/Characters/ToString.h"
-#include "Stroika/Foundation/Debug/Trace.h"
 
-using namespace Stroika::Foundation;
-using Characters::String;
 
 namespace IPAM::LibIPAM::Common {
+
+    using namespace Stroika::Foundation;
+    using Characters::String;
+    
+    /**
+     */
     class Geolocation {
     public:
         class Coordinate {
@@ -31,21 +33,20 @@ namespace IPAM::LibIPAM::Common {
             nonvirtual int    minutes () const;
             nonvirtual double seconds () const;
 
+        public:
             nonvirtual bool operator== (const Coordinate& rhs) const;
-            nonvirtual bool operator!= (const Coordinate& rhs) const;
-            nonvirtual bool operator>= (const Coordinate& rhs) const;
-            nonvirtual bool operator> (const Coordinate& rhs) const;
-            nonvirtual bool operator<= (const Coordinate& rhs) const;
-            nonvirtual bool operator<(const Coordinate& rhs) const;
+            nonvirtual auto operator<=> (const Coordinate& rhs) const;
 
         protected:
-            const double kBase      = 60.0;
-            const double kPrecision = 100000.0;
+           static constexpr double kBase      = 60.0;
+            static constexpr double kPrecision = 100000.0;
             double       value;
 
             nonvirtual String ToISOString_ (const wchar_t* degreeSpecification);
         };
 
+        /**
+         */
         class Latitude : public Coordinate {
         public:
             Latitude (double d = 0);
@@ -68,6 +69,8 @@ namespace IPAM::LibIPAM::Common {
 #endif
         };
 
+        /**
+         */
         class Longitude : public Coordinate {
         public:
             Longitude (double d = 0);
@@ -83,7 +86,7 @@ namespace IPAM::LibIPAM::Common {
             // sign followed by 3,5 or 7 digits
             // followed by optional decimal point and further digits
             // ^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\.[0-9]+)?
-            static inline Characters::RegularExpression kLongitudeExp{L"^([+-])([0-9]{3})([0-9]{2})?([0-9]{2})?(\\.[0-9]+)?"};
+            static inline Characters::RegularExpression kLongitudeExp_{L"^([+-])([0-9]{3})([0-9]{2})?([0-9]{2})?(\\.[0-9]+)?"};
 #if qDebug
         public:
             static void TestSuite ();
@@ -114,111 +117,13 @@ namespace IPAM::LibIPAM::Common {
         static inline Characters::RegularExpression kExp{L"^(?:([+-][0-9]{2,6}(?:\\.[0-9]+)?)([+-][0-9]{3,7}(?:\\.[0-9]+)?))(?:([+-][0-9]+(?:\\.[0-9]+)?)(?:CRSWGS_84))?\\/"};
     };
 
-    /*
+}
+
+/*
  ********************************************************************************
  ***************************** Implementation Details ***************************
  ********************************************************************************
  */
-    inline bool Geolocation::Coordinate::operator== (const Geolocation::Coordinate& rhs) const
-    {
-        return (abs (rhs.value - value) <= .00001);
-    }
-
-    inline bool Geolocation::Coordinate::operator!= (const Geolocation::Coordinate& rhs) const
-    {
-        return (abs (rhs.value - value) > .00001);
-    }
-    inline bool Geolocation::Coordinate::operator>= (const Geolocation::Coordinate& rhs) const
-    {
-        return value >= rhs.value;
-    }
-    inline bool Geolocation::Coordinate::operator> (const Geolocation::Coordinate& rhs) const
-    {
-        return !operator== (rhs) and value > rhs.value;
-    }
-    inline bool Geolocation::Coordinate::operator<= (const Geolocation::Coordinate& rhs) const
-    {
-        return value <= rhs.value;
-    }
-    inline bool Geolocation::Coordinate::operator<(const Geolocation::Coordinate& rhs) const
-    {
-        return !operator== (rhs) and value < rhs.value;
-    }
-
-    inline Geolocation::Latitude::Latitude (double d)
-        : Coordinate (d)
-    {
-    }
-
-    inline Geolocation::Latitude::Latitude (String s)
-        : Coordinate (s, kLatitudeExp)
-    {
-    }
-
-    inline Geolocation::Latitude::Latitude (const Latitude& rhs)
-        : Coordinate (rhs.value)
-    {
-    }
-    inline void Geolocation::Latitude::operator= (const Latitude& rhs)
-    {
-        value = rhs.value;
-    }
-
-    inline String Geolocation::Latitude::ToISOString ()
-    {
-        return ToISOString_ (L"%02d");
-    }
-
-    inline Geolocation::Longitude::Longitude (double d)
-        : Coordinate (d)
-    {
-    }
-    inline Geolocation::Longitude::Longitude (String s)
-        : Coordinate (s, kLongitudeExp)
-    {
-    }
-
-    inline Geolocation::Longitude::Longitude (const Longitude& rhs)
-        : Coordinate (rhs.value)
-    {
-    }
-
-    inline void Geolocation::Longitude::operator= (const Longitude& rhs)
-    {
-        value = rhs.value;
-    }
-
-    inline String Geolocation::Longitude::ToISOString ()
-    {
-        return ToISOString_ (L"%03d");
-    }
-
-    inline Geolocation::Geolocation (Latitude _latitude, Longitude _longitude, double _altitude)
-        : latitude (_latitude)
-        , longitude (_longitude)
-        , altitude (_altitude)
-    {
-    }
-
-    inline Geolocation::Geolocation (Latitude _latitude, Geolocation::Longitude _longitude)
-        : latitude (_latitude)
-        , longitude (_longitude)
-    {
-    }
-
-    inline Geolocation::Geolocation (String _latitude, String _longitude)
-        : latitude (_latitude)
-        , longitude (_longitude)
-    {
-    }
-
-    inline Geolocation::Geolocation (String _latitude, String _longitude, double _altitude)
-        : latitude (_latitude)
-        , longitude (_longitude)
-        , altitude (_altitude)
-    {
-    }
-
-} // namespace
+#include "Geolocation.inl"
 
 #endif /*__IPAM_LibIPAM_Common_Geolocation_h__*/

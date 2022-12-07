@@ -16,14 +16,11 @@
 #include "DocumentMetadata.h"
 #include "LibIPAM/Common/Geolocation.h"
 
-
 using namespace std::filesystem;
 
 using namespace Stroika::Foundation;
 
 using namespace IPAM::LibIPAM::Common;
-
-
 
 using Characters::String;
 

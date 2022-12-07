@@ -59,6 +59,7 @@
     <AdditionalOptions>/std:c++latest</AdditionalOptions>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="..\..\Common\Geolocation.inl" />
     <None Include="..\..\Common\Makefile" />
     <None Include="..\..\Makefile" />
   </ItemGroup>

@@ -13,8 +13,8 @@
 #include "Stroika/Foundation/Time/Date.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
-#include "LibIPAM/Common/Geolocation.h"
 #include "ImageMetadataExtraction.h"
+#include "LibIPAM/Common/Geolocation.h"
 
 DISABLE_COMPILER_MSC_WARNING_START (4127)
 #include "exiv2/exiv2.hpp"
