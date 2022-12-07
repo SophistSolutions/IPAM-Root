@@ -21,6 +21,8 @@ ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 LIB_DEPENDENCIES += psapi.lib
 LIB_DEPENDENCIES += exiv2.lib
 LIB_DEPENDENCIES += libexpatdMD.lib
+else
+LIB_DEPENDENCIES += -lexiv2 -lexpat -lz
 endif
 
 
