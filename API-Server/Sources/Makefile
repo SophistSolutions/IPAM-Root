@@ -6,7 +6,7 @@ ifneq ($(CONFIGURATION),)
 endif
 
 SrcDir				=	$(TOP_ROOT)Backend/Sources/
-ObjDir				=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/API-Serverb/
+ObjDir				=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/API-Server/
 
 include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
 include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
@@ -15,7 +15,7 @@ include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/API-Server/)"
 
 
-TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/API-Server/
+TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/API-Server/
 TARGETEXE				=	$(TARGETEXEDir)API-Server${EXE_SUFFIX}
 
 
@@ -31,16 +31,16 @@ Objs	=	\
 
 
 VERSION_FILE_IN=$(TOP_ROOT)VERSION
-VERSION_FILE_OUT=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/API-Server/AppVersion.h
+VERSION_FILE_OUT=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/API-Server/AppVersion.h
 $(VERSION_FILE_OUT):	$(VERSION_FILE_IN)
-	@mkdir -p $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/API-Server
+	@mkdir -p $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/API-Server
 	@$(StroikaRoot)ScriptsLib/MakeVersionFile $(VERSION_FILE_IN) $(VERSION_FILE_OUT) AppCPlusPlusVersion kAppVersion __IPAM_AppVersion_H__
 
 $(ObjDir)Main${OBJ_SUFFIX} $(ObjDir)Service${OBJ_SUFFIX}:		$(VERSION_FILE_OUT)
 
 
 all:
-	@$(StroikaRoot)/ScriptsLib/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "Building API-Server"
+	@$(StroikaRoot)/ScriptsLib/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "Building IPAM/API-Server"
 	@mkdir -p $(TARGETEXEDir)
 	@$(MAKE) --silent $(VERSION_FILE_OUT) MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 	@for s in ${SubDirs}; do $(MAKE) --directory $${s} -s MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all; done

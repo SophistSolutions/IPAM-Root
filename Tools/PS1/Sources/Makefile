@@ -6,13 +6,13 @@ ifneq ($(CONFIGURATION),)
 endif
 
 SrcDir				=	$(TOP_ROOT)Backend/Sources/
-ObjDir				=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/Tools/PS1/
+ObjDir				=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/
 
 include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
 include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
 include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 
-CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/Tools/PS1/)"
+CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/)"
 
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 # CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)ThirdPartyComponents/exiv2/includes/)"
@@ -22,7 +22,7 @@ LIB_DEPENDENCIES += psapi.lib
 endif
 
 
-TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/Tools/PS1/
+TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS1/
 TARGETEXE				=	$(TARGETEXEDir)PS1${EXE_SUFFIX}
 
 
@@ -41,16 +41,16 @@ Objs	=	\
 	$(ObjDir)ImageMetadataExtraction${OBJ_SUFFIX}\
 
 VERSION_FILE_IN=$(TOP_ROOT)VERSION
-VERSION_FILE_OUT=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/Tools/PS1/AppVersion.h
+VERSION_FILE_OUT=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/AppVersion.h
 $(VERSION_FILE_OUT):	$(VERSION_FILE_IN)
-	@mkdir -p $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/Tools/PS1
+	@mkdir -p $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1
 	@$(StroikaRoot)ScriptsLib/MakeVersionFile $(VERSION_FILE_IN) $(VERSION_FILE_OUT) AppCPlusPlusVersion kAppVersion __PS1_AppVersion_H__
 
 $(ObjDir)Main${OBJ_SUFFIX} $(ObjDir)Service${OBJ_SUFFIX}:		$(VERSION_FILE_OUT)
 
 
 all:
-	@$(StroikaRoot)/ScriptsLib/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "Building Tools/PS1"
+	@$(StroikaRoot)/ScriptsLib/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "Building IPAM/Tools/PS1"
 	@mkdir -p $(TARGETEXEDir)
 	@$(MAKE) --silent $(VERSION_FILE_OUT) MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 	@for s in ${SubDirs}; do $(MAKE) --directory $${s} -s MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all; done

@@ -49,12 +49,12 @@
     <Import Project="$(ProjectDir)\..\..\..\..\Workspaces\VisualStudio.net\Microsoft.Cpp.stroika.user.props" Condition="exists('$(ProjectDir)\..\..\..\..\Workspaces\VisualStudio.net\Microsoft.Cpp.stroika.user.props')" Label="User-Editable-Properties" />
   </ImportGroup>
   <PropertyGroup>
-    <NMakeBuildCommandLine>make --directory $(ProjectDir)\..\..\ CONFIGURATION=$(CONFIGURATION) $(JOBS_FLAG) --silent all</NMakeBuildCommandLine>
-    <NMakeCleanCommandLine>make --directory $(ProjectDir)\..\..\ CONFIGURATION=$(CONFIGURATION) clean --silent</NMakeCleanCommandLine>
-    <OutDir>$(ProjectDir)..\..\..\Builds\$(Configuration)\PS1\</OutDir>
-    <IntDir>$(ProjectDir)..\..\..\IntermediateFiles\$(Configuration)\PS1\</IntDir>
+    <NMakeBuildCommandLine>make --directory $(ProjectDir)\..\..\..\ CONFIGURATION=$(CONFIGURATION) $(JOBS_FLAG) --silent all</NMakeBuildCommandLine>
+    <NMakeCleanCommandLine>make --directory $(ProjectDir)\..\..\..\ CONFIGURATION=$(CONFIGURATION) clean --silent</NMakeCleanCommandLine>
+    <OutDir>$(ProjectDir)..\..\..\Builds\$(Configuration)\Tools\PS1\</OutDir>
+    <IntDir>$(ProjectDir)..\..\..\IntermediateFiles\$(Configuration)\Tools\PS1\</IntDir>
     <ExecutablePath>$(StroikaBuildToolsExtraPath);$(CommonExecutablePath)</ExecutablePath>
-    <NMakeIncludeSearchPath>$(ProjectDir)\..\..\;$(ProjectDir)\..\..\..\IntermediateFiles\$(Configuration)\PS1\;$(ProjectDir)\..\..\..\ThirdPartyComponents\Stroika\StroikaRoot\Library\Sources\</NMakeIncludeSearchPath>
+    <NMakeIncludeSearchPath>$(ProjectDir)\..\..\..\;$(ProjectDir)\..\..\..\..\IntermediateFiles\$(Configuration)\PS1\;$(ProjectDir)\..\..\..\..\ThirdPartyComponents\Stroika\StroikaRoot\Library\Sources\</NMakeIncludeSearchPath>
     <AdditionalOptions>/std:c++latest</AdditionalOptions>
   </PropertyGroup>
   <ItemGroup>
