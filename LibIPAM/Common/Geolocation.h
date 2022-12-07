@@ -8,12 +8,11 @@
 
 #include "Stroika/Foundation/Characters/RegularExpression.h"
 
-
 namespace IPAM::LibIPAM::Common {
 
     using namespace Stroika::Foundation;
     using Characters::String;
-    
+
     /**
      */
     class Geolocation {
@@ -38,9 +37,9 @@ namespace IPAM::LibIPAM::Common {
             nonvirtual auto operator<=> (const Coordinate& rhs) const;
 
         protected:
-           static constexpr double kBase      = 60.0;
+            static constexpr double kBase      = 60.0;
             static constexpr double kPrecision = 100000.0;
-            double       value;
+            double                  value;
 
             nonvirtual String ToISOString_ (const wchar_t* degreeSpecification);
         };

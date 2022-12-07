@@ -18,9 +18,6 @@ using Characters::String;
 
 using namespace IPAM::LibIPAM::Common;
 
-
-
-
 /*
  ********************************************************************************
  **************************** Geolocation::Coordinate ***************************
@@ -120,8 +117,6 @@ String Geolocation::Coordinate::ToISOString_ (const wchar_t* degreeSpecification
     return result;
 }
 
-
-
 /*
  ********************************************************************************
  ***************************** Geolocation::Latitude ****************************
@@ -202,8 +197,6 @@ void Geolocation::Longitude::TestSuite ()
     Assert (Longitude (L"+1234543.891234").ToISOString () == L"+1234543.891234");
 }
 #endif
-
-
 
 /*
  ********************************************************************************

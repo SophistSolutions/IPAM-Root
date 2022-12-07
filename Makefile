@@ -172,5 +172,6 @@ endif
 
 
 format-code:
+	@$(MAKE) --directory=LibIPAM --no-print-directory format-code
 	@$(MAKE) --directory=API-Server --no-print-directory format-code
 	@$(MAKE) --directory=Tools --no-print-directory format-code

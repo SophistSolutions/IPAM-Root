@@ -4,16 +4,14 @@
 #ifndef __IPAM_LibIPAM_Common_Geolocation_inl__
 #define __IPAM_LibIPAM_Common_Geolocation_inl__ 1
 
-
 namespace IPAM::LibIPAM::Common {
-
 
     /*
  ********************************************************************************
  ***************************** Implementation Details ***************************
  ********************************************************************************
  */
-   inline bool Geolocation::Coordinate::operator== (const Geolocation::Coordinate& rhs) const
+    inline bool Geolocation::Coordinate::operator== (const Geolocation::Coordinate& rhs) const
     {
         return (abs (rhs.value - value) <= .00001);
     }
@@ -21,7 +19,6 @@ namespace IPAM::LibIPAM::Common {
     {
         return (abs (rhs.value - value) <=> .00001);
     }
-
 
     inline Geolocation::Latitude::Latitude (double d)
         : Coordinate (d)
