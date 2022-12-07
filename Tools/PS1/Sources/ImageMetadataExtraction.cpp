@@ -270,16 +270,6 @@ namespace Metadata {
         return tags;
     }
 
-    string wstring2string (const wstring& s)
-    {
-        int len;
-        int slength = (int)s.length () + 1;
-        len         = WideCharToMultiByte (CP_ACP, 0, s.c_str (), slength, 0, 0, 0, 0);
-        std::string r (len, '\0');
-        WideCharToMultiByte (CP_ACP, 0, s.c_str (), slength, &r[0], len, 0, 0);
-        return r;
-    }
-
     void ReadImageMetaData (const path& pictFile, const char* outputDirectoryForSampleFiles)
     {
         try {
@@ -295,8 +285,8 @@ namespace Metadata {
                 tags += DumpXMP (image, outfile);
                 outfile << "************** Found Tags *******************" << endl;
                 if (tags.length () > 0) {
-                    for (String t : tags) {
-                        outfile << wstring2string (t.c_str ()) << endl;
+                    for (const String& t : tags) {
+                        outfile << t.AsNarrowSDKString () << endl;
                     }
                 }
                 else {
