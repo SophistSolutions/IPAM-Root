@@ -33,6 +33,7 @@
   <PropertyGroup Label="Globals">
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     <ProjectGuid>{30B6D154-A548-40A5-BCF1-E8B5B6112CD3}</ProjectGuid>
+    <ProjectName>API-Server</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
