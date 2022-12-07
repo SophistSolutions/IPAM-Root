@@ -339,7 +339,7 @@ namespace Metadata {
                     extTally.Add (ext);
                     if (extTally.OccurrencesOf (ext) == 1) {
                         DbgTrace (L"found '%s' at %s", ext.c_str (), p.c_str ());
-                        if (outputDirectoryForSampleFiles != NULL) {
+                        if (outputDirectoryForSampleFiles != nullptr) {
                             ReadImageMetaData (p, outputDirectoryForSampleFiles);
                         }
                     }

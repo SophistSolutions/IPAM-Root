@@ -26,7 +26,7 @@ Geolocation::Coordinate::Coordinate (double d)
 }
 
 Geolocation::Coordinate::Coordinate (String s, const Characters::RegularExpression regex)
-    : Coordinate (0)
+    : Coordinate{0}
 {
     Containers::Sequence<String> matches;
     if (s.Matches (regex, &matches)) {
@@ -119,7 +119,7 @@ Geolocation::Geolocation (wchar_t* _latitude, wchar_t* _longitude, wchar_t* _alt
     : latitude (String (_latitude))
     , longitude (String (_longitude))
 {
-    if (_altitude != NULL) {
+    if (_altitude != nullptr) {
         altitude = std::stod (_altitude);
     }
 }

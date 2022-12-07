@@ -45,10 +45,6 @@ namespace Metadata {
     }
 
 
-    DocumentMetadata::DocumentMetadata ()
-    {
-    }
-
     void DocumentMetadata::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
     {
         using DataExchange::ObjectVariantMapper;
@@ -73,7 +69,7 @@ namespace Metadata {
         });
     }
 
-    void DocumentMetadata::WriteToFileAsJSON (Containers::Mapping<String, DocumentMetadata> mds, const std::filesystem::path filePath)
+    void DocumentMetadata::WriteToFileAsJSON (Containers::Mapping<String, DocumentMetadata> mds, const std::filesystem::path& filePath)
     {
         using DataExchange::ObjectVariantMapper;
 
@@ -84,7 +80,7 @@ namespace Metadata {
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (mds), IO::FileSystem::FileOutputStream::New (filePath));
     }
 
-    void DocumentMetadata::ReadFromJSONFile (Containers::Mapping<String, DocumentMetadata>* mds, const std::filesystem::path filePath)
+    void DocumentMetadata::ReadFromJSONFile (Containers::Mapping<String, DocumentMetadata>* mds, const std::filesystem::path& filePath)
     {
         using DataExchange::ObjectVariantMapper;
 

@@ -77,9 +77,6 @@
     <ClCompile Include="..\..\Sources\DocumentMetadata.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\..\..\ThirdPartyComponents\exiv2\lib\exiv2.lib" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\..\Sources\Digikam.h" />
     <ClInclude Include="..\..\Sources\Geolocation.h" />
     <ClInclude Include="..\..\Sources\DocumentMetadata.h" />

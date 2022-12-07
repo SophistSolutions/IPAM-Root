@@ -19,7 +19,7 @@ namespace Metadata {
         struct Comment {
             Comment (String comment_, optional<String> author_);
             Comment (String comment_);
-            Comment ();
+            Comment () = default;
 
             nonvirtual bool operator== (const Comment& rhs) const;
             nonvirtual bool operator!= (const Comment& rhs) const;
@@ -36,7 +36,7 @@ namespace Metadata {
         };
 
     public:
-        DocumentMetadata ();
+        DocumentMetadata () = default;
 
     public:
         Containers::Set<String> tags;
@@ -54,8 +54,8 @@ namespace Metadata {
 
     public:
         static void SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper);
-        static void WriteToFileAsJSON (Containers::Mapping<String, DocumentMetadata> mds, const std::filesystem::path filePath);
-        static void ReadFromJSONFile (Containers::Mapping<String, DocumentMetadata>* mds, const std::filesystem::path filePath);
+        static void WriteToFileAsJSON (Containers::Mapping<String, DocumentMetadata> mds, const std::filesystem::path& filePath);
+        static void ReadFromJSONFile (Containers::Mapping<String, DocumentMetadata>* mds, const std::filesystem::path& filePath);
     };
 
     /*
@@ -63,9 +63,6 @@ namespace Metadata {
  ***************************** Implementation Details ***************************
  ********************************************************************************
  */
-    inline DocumentMetadata::Comment::Comment ()
-    {
-    }
 
     inline DocumentMetadata::Comment::Comment (String comment_, optional<String> author_)
         : comment (comment_)

@@ -29,9 +29,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="..\..\..\ThirdPartyComponents\exiv2\lib\exiv2.lib" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\..\Sources\Digikam.h">
       <Filter>Sources</Filter>
     </ClInclude>
