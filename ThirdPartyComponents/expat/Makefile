@@ -49,14 +49,8 @@ PRODUCED_OUTPUT_ARTIFACTS+=	\
 	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat.a
 endif
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-ifeq (Debug,$(CMAKE_CONFIGURATION))
-PRODUCED_OUTPUT_ARTIFACTS+=	\
-	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpatdMD.lib
-endif
-ifeq (Release,$(CMAKE_CONFIGURATION))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
 	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexpat.lib
-endif
 endif
 
 ifneq ($(CONFIGURATION),)
@@ -80,7 +74,7 @@ endif
 
 
 all:
-	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Stroika/ThirdPartyComponents/expat $(VERSION) Build {$(CONFIGURATION)}:"
+	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "IPAM/ThirdPartyComponents/expat $(VERSION) Build {$(CONFIGURATION)}:"
 ifeq ($(CONFIGURATION),)
 	@for i in `$(StroikaRoot)GetConfigurations` ; do\
 		$(MAKE) --no-print-directory all CONFIGURATION=$$i;\
@@ -186,12 +180,28 @@ ifneq ($(JOBSERVER_INFO),)
 # endif
 endif
 
+CMAKE_BUILD_EXTRAS_=
+ifneq ($(JOBSERVER_INFO),)
+ifeq (Unix,$(ProjectPlatformSubdir))
+# Not perfect, but maybe OK - best if cmake supported same job-server
+CMAKE_BUILD_EXTRAS_ += -j10
+else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+# closest we can easily get to approximating support for job-server
+export CL+=/MP
+endif
+endif
 
 # On Visual Studio, they default to having this off, but we want to generate the pkgconfig file in hopes
 # it helps with the build of exiv2 --LGP 2022-12-06
-CMAKE_ARGS+= -DEXPAT_BUILD_PKGCONFIG=on
+CMAKE_ARGS+= -DEXPAT_BUILD_PKGCONFIG=ON
 
 CMAKE_ARGS+= -DEXPAT_SHARED_LIBS=OFF
+CMAKE_ARGS+= -DEXPAT_BUILD_EXAMPLES=OFF
+
+CMAKE_ARGS+= -DEXPAT_DEBUG_POSTFIX=
+CMAKE_ARGS+= -DEXPAT_RELEASE_POSTFIX=
+CMAKE_ARGS+= -DEXPAT_NOCONFIG_POSTFIX=
+
 
 
 ifeq ($(DETECTED_HOST_OS),MSYS)
@@ -209,8 +219,8 @@ doBuilds_:
 	@echo 'cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) ; $(TOOLSET_CMD_ENV_SETS_)cmake -G "$(CMAKE_USE_GENERATOR)" $(CMAKE_ARGS) $(CMAKE_CURRENT_SOURCE_DIR)' >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt 2>&1
 	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) ; $(TOOLSET_CMD_ENV_SETS_)cmake -G "$(CMAKE_USE_GENERATOR)" $(CMAKE_ARGS) $(CMAKE_CURRENT_SOURCE_DIR) >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt 2>&1
 	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) `$(StroikaRoot)ScriptsLib/SubstituteBackVariables "expat ${VERSION} - Compiling (See $(OUTPUT_WORKDIR_PRETTYNAME)BUILD-OUT.txt)"` "... "
-	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(ECHO) $(TOOLSET_CMD_ENV_SETS_)"cmake --build . --config $(CMAKE_CONFIGURATION)" > $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/BUILD-OUT.txt 2>&1
-	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(TOOLSET_CMD_ENV_SETS_)cmake --build . --config $(CMAKE_CONFIGURATION) >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/BUILD-OUT.txt 2>&1
+	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(ECHO) $(TOOLSET_CMD_ENV_SETS_)"cmake --build . --config $(CMAKE_CONFIGURATION) $(CMAKE_BUILD_EXTRAS_)" > $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/BUILD-OUT.txt 2>&1
+	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(TOOLSET_CMD_ENV_SETS_)cmake --build . --config $(CMAKE_CONFIGURATION) $(CMAKE_BUILD_EXTRAS_) >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/BUILD-OUT.txt 2>&1
 	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) `$(StroikaRoot)ScriptsLib/SubstituteBackVariables "expat ${VERSION} - Copying builds (See $(OUTPUT_WORKDIR_PRETTYNAME)INSTALL.OUT)"` "... "
 	@#NB: Set MAKEFLAGS= to silence warnings about -j jobserver when run with -j N (probaly bug with expat 3.2 cmake makefile but didnt dig cuz not important)
 	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(ECHO) $(TOOLSET_CMD_ENV_SETS_)"cmake --build . --config $(CMAKE_CONFIGURATION) --target install" > $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
