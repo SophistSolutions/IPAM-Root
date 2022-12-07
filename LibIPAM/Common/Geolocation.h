@@ -1,8 +1,8 @@
 /*
- * Copyright(c) Sophist Solutions, Inc. 1990-2022.  All rights reserved
+ * Copyright(c) Sophist Solutions, Inc. 2022.  All rights reserved
  */
-#ifndef _Geolocation_h_
-#define _Geolocation_h_ 1
+#ifndef __IPAM_LibIPAM_Common_Geolocation_h__
+#define __IPAM_LibIPAM_Common_Geolocation_h__ 1
 
 #include "Stroika/Frameworks/StroikaPreComp.h"
 
@@ -13,7 +13,7 @@
 using namespace Stroika::Foundation;
 using Characters::String;
 
-namespace Metadata {
+namespace IPAM::LibIPAM::Metadata {
     class Geolocation {
     public:
         class Coordinate {
@@ -221,4 +221,4 @@ namespace Metadata {
 
 } // namespace
 
-#endif /*_Geolocation_h_*/
+#endif /*__IPAM_LibIPAM_Common_Geolocation_h__*/
