@@ -107,7 +107,7 @@ namespace {
                     TagInfo_Serialize ti;
                     ti.photosContaining = it->fValue->photosContaining;
                     for (auto it1 : it->fValue->siblingTagsCount) {
-                        ti.siblingTagsCount.Add (TagInfoHelper {it1.fValue, it1.fCount});
+                        ti.siblingTagsCount.Add (TagInfoHelper{it1.fValue, it1.fCount});
                     }
 
                     fullTagInfo.Add (it->fKey, ti);
