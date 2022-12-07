@@ -18,9 +18,16 @@ endif
 
 .PHONY:	all clean clobber check doBuilds_
 
-BASENAME=main
-ZIPPEDFILE=../Origs-Cache/$(BASENAME).zip
-EXTRACTED_DIRNAME=$(BASENAME)
+#
+# CHECK FOR UPDATED VERSIONS https://github.com/Exiv2/exiv2/releases
+#
+#		NOTE - main not a real release number - so this isn't safe. Floating version
+#		But they dont appear to have done a release since fixing the auto_ptr stuff
+VERSION=main
+#VERSION=0.27.5
+ZIPPEDFILE=../Origs-Cache/Exiv2_$(VERSION).zip
+
+
 
 
 PER_CONFIGURATION_BUILDS_DIR:=$(shell realpath --canonicalize-missing ../../Builds/$(CONFIGURATION)/ThirdPartyComponents/)/
@@ -37,7 +44,8 @@ OUTPUT_WORKDIR_PRETTYNAME="$(shell $(StroikaRoot)ScriptsLib/SubstituteBackVariab
 #
 
 FETCHURLS=
-FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/heads/$(BASENAME).zip
+FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/tags/v$(VERSION).zip
+FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/heads/$(VERSION).zip
 
 
 
@@ -91,20 +99,20 @@ CXXFLAGS+= -pthread
 endif
 
 
-##
-## It appears just /I"C:/Program Files (x86)/Windows Kits/10/include/10.0.18362.0/ucrt"
-## causes build problems. Unsure why (didnt did much).
-##
-## But there is no need for any of the /I parameters, as none were supported before Stroika 2.1a2, so strip them all for now
-##		-- LGP 2019-09-26
-##
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-CFLAGS:=$(call STRIP_INCLUDE_COMPILER_FLAGS,$(CFLAGS))
-CXXFLAGS:=$(call STRIP_INCLUDE_COMPILER_FLAGS,$(CXXFLAGS))
-endif
+# ##
+# ## It appears just /I"C:/Program Files (x86)/Windows Kits/10/include/10.0.18362.0/ucrt"
+# ## causes build problems. Unsure why (didnt did much).
+# ##
+# ## But there is no need for any of the /I parameters, as none were supported before Stroika 2.1a2, so strip them all for now
+# ##		-- LGP 2019-09-26
+# ##
+# ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+# CFLAGS:=$(call STRIP_INCLUDE_COMPILER_FLAGS,$(CFLAGS))
+# CXXFLAGS:=$(call STRIP_INCLUDE_COMPILER_FLAGS,$(CXXFLAGS))
+# endif
 
 
-# Avoid having warnings leak from here to linking code when Xerces is used --LGP 2022-01-18
+# Avoid having warnings leak from here to linking code when Exiv is used (linktime codegen) --LGP 2022-01-18
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 ifneq ($(findstring -GL,$(CXXFLAGS)),)
 CXXFLAGS+= -wd4702 
@@ -146,7 +154,6 @@ endif
 
 
 clean:
-	@rm -rf $(EXTRACTED_DIRNAME) 
 ifeq ($(CONFIGURATION),)
 	@rm -rf $(StroikaRoot)IntermediateFiles/*/ThirdPartyComponents/Exiv2
 else
@@ -182,68 +189,34 @@ $(ZIPPEDFILE):
 
 ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPEDFILE)
 	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) `$(StroikaRoot)ScriptsLib/SubstituteBackVariables "Exiv2 ${VERSION} - Extracting $(ZIPPEDFILE) to $@"` "... "
-	@mkdir -p $@
-	unzip -q $(ZIPPEDFILE) -d FRED
-	mv FRED/exiv2-main/* $@
-	rm -rf FRED
+	@rm -rf FRED $@
+	@mkdir $@
+	@unzip -q $(ZIPPEDFILE) -d FRED
+	@mv FRED/exiv2-$(VERSION)/* $@
+	@rm -rf FRED
+ifeq ($(VERSION),main)
 	if [ "$@" != "ORIGs" ] ; then \
-		$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Exiv2 ${VERSION} - Patching ... ";\
-		patch -p0 $@/cmake/compilerFlags.cmake Patches/Patch-KillCompilerFlagChangeBreakingStaticLibsWindoze.Patch >> $@/PATCHING.OUT;\
+		$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Exiv2 ${VERSION} - Patching ($@/PATCHING.OUT)... ";\
 		patch -p0 $@/src/futils.cpp Patches/BeCompatibleWithUNICODEAPIDefines.Patch >> $@/PATCHING.OUT;\
+		patch -p0 $@/cmake/compilerFlags.cmake Patches/Patch-KillCompilerFlagChangeBreakingStaticLibsWindoze.Patch >> $@/PATCHING.OUT;\
 	fi
+endif
 
 
 
-
-
-###NOTE - because we set network:BOOL:OFF - Xerces doesn't depend on CURL (but we could make it so if we wanted, but then update dependencies
-### in ThirdPartyLibs/Makefile
-# CMAKE_ARGS+= -Dnetwork:BOOL=OFF
-# ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-# CMAKE_ARGS+= -Dtranscoder=windows
-# else ifeq ($(DETECTED_HOST_OS),Darwin)
-# #AVOID Undefined symbols for architecture x86_64:  "_CFRelease", etc.... Avoid library dependency
-# CMAKE_ARGS+= -Dtranscoder=iconv
-# else
-# CMAKE_ARGS+= -Dtranscoder=gnuiconv
-# endif
-
-## DIDNT HELP
-#CMAKE_ARGS+= -DCMAKE_SYSTEM_PREFIX_PATH=$(CMAKE_PER_TARGET_BUILD_DIR)
-
-
-#   Checking Build System
-#   Building Custom Rule C:/Sandbox/IPAM/DevRoot/IntermediateFiles/Debug/ThirdPartyComponents/Exiv2/xmpsdk/CMakeLists.txt
-# cl : command line  error D8016: '/Ox' and '/RTCs' command-line options are incompatible [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\exiv2-xmp.vcxproj]
-#   Building Custom Rule C:/Sandbox/IPAM/DevRoot/IntermediateFiles/Debug/ThirdPartyComponents/Exiv2/src/CMakeLists.txt
-# cl : command line  error D8016: '/Ox' and '/RTCs' command-line options are incompatible [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\exiv2lib_int.vcxproj]
-# ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-# CFLAGS:=$(filter-out -RTCs%, $(CFLAGS))
-# CXXFLAGS:=$(filter-out -RTCs%, $(CXXFLAGS))
-# endif
-
-
-#           ] (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\cr2image.cpp)
-# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\futils.cpp(341,7): error C2679: binary '=': no operator found which takes a right-hand operand of type 'TCHAR [260]' (or there is no acceptable conversion) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\src\exiv2lib.vcxproj]
-# ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-# CFLAGS:=$(filter-out -DUNICODE, $(CFLAGS))
-# CXXFLAGS:=$(filter-out -DUNICODE, $(CXXFLAGS))
-# CFLAGS:=$(filter-out -D_UNICODE, $(CFLAGS))
-# CXXFLAGS:=$(filter-out -D_UNICODE, $(CXXFLAGS))
-# endif
-
-
+# Just because we don't build that library
 CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=OFF
 
 # https://github.com/Exiv2/exiv2#BMFF
 CMAKE_ARGS+= -DEXIV2_ENABLE_BMFF=ON
 
+# I personally prefer static linking
 CMAKE_ARGS+= -DBUILD_SHARED_LIBS=OFF
 
-### Should not be needed but finding stuff in wrong place - mingw - instead...
-###  SB mingw only hack at least
+## Should not be needed but finding stuff in wrong place - mingw - instead...
+##  SB mingw only hack at least
+## https://github.com/SophistSolutions/IPAM-Root/issues/9
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-
 X_=$(call FUNCTION_CONVERT_FILES_TO_COMPILER_NATIVE,$(PER_CONFIGURATION_BUILDS_DIR))
 CMAKE_ARGS+= -DPC_EXPAT_INCLUDE_DIRS=$(X_)/include/
 CMAKE_ARGS+= -DPC_EXPAT_LIBRARY_DIRS=$(X_)/lib/
@@ -255,10 +228,16 @@ endif
 
 
 ##
-### Avoid compile error in time_t XMLDateTime::getEpoch(bool duration) const
 ### not sure why this is needed?
-###  -- LGP 2019-09-26
-##
+# BUT AVOID THIS:
+#   XMPUtils-FileInfo.cpp
+#   XMPUtils.cpp
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPCore_Impl.hpp(29,11): fatal  error C1083: Cannot open include file: 'pthread.h': No such file or directory (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\ExpatAdapter.cpp) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\exiv2-xmp.vcxproj]
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPCore_Impl.hpp(29,11): fatal  error C1083: Cannot open include file: 'pthread.h': No such file or directory (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPMeta-Parse.cpp) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\exiv2-xmp.vcxproj]
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPCore_Impl.hpp(29,11): fatal  error C1083: Cannot open include file: 'pthread.h': No such file or directory (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPIterator.cpp) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\exiv2-xmp.vcxproj]
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPCore_Impl.hpp(29,11): fatal  error C1083: Cannot open include file: 'pthread.h': No such file or directory (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPMeta.cpp) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\exiv2-xmp.vcxproj]
+# C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPCore_Impl.hpp(29,11): fatal  error C1083: Cannot open include file: 'pthread.h': No such file or directory (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\WXMPUtils.cpp) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\exiv2-xmp.vcxproj]
+###  -- LGP 2022-12=07
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 CFLAGS += /DWIN32
 CXXFLAGS += /DWIN32
