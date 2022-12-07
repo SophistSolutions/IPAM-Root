@@ -74,29 +74,29 @@ CMAKE_CURRENT_SOURCE_DIR:=$(shell realpath --canonicalize-missing $(CMAKE_CURREN
 CMAKE_CURRENT_SOURCE_DIR:=$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(CMAKE_CURRENT_SOURCE_DIR))
 endif
 
-ifeq (true,$(HasMakefileBugWorkaround_lto_skipping_undefined_incompatible))
-### not sure why???
-#Building Stroika Tools {clang++-6-release-libstdc++}:
-#         Compiling {StroikaRoot}Tools/Sources/Stroika/Frameworks/WebServer/HTMLViewCompiler/HTMLViewCompiler.cpp ...
-#      Linking  $StroikaRoot/Builds/clang++-6-release-libstdc++/HTMLViewCompiler...
-#/usr/bin/ld: skipping incompatible /Sandbox/Stroika-Dev/Builds/clang++-6-release-libstdc++/ThirdPartyComponents/lib//libxerces-c.so when searching for -lxerces-c
-CFLAGS:=$(filter-out -flto, $(CFLAGS))
-CXXFLAGS:=$(filter-out -flto, $(CXXFLAGS))
-else ifeq (Unix,$(ProjectPlatformSubdir))
-## similar bug with g++ - but just warnings here (all regtests pass without this change)
-##/home/lewis/Sandbox/Stroika-Build-Dir-Ubuntu1804_x86_64/Builds/g++-optimized/ThirdPartyComponents/include/xercesc/util/BinInputStream.hpp:29:22: warning: type 'struct BinInputStream' violates the C++ One Definition Rule [-Wodr]
-CFLAGS:=$(filter-out -flto, $(CFLAGS))
-CXXFLAGS:=$(filter-out -flto, $(CXXFLAGS))
-endif
+# ifeq (true,$(HasMakefileBugWorkaround_lto_skipping_undefined_incompatible))
+# ### not sure why???
+# #Building Stroika Tools {clang++-6-release-libstdc++}:
+# #         Compiling {StroikaRoot}Tools/Sources/Stroika/Frameworks/WebServer/HTMLViewCompiler/HTMLViewCompiler.cpp ...
+# #      Linking  $StroikaRoot/Builds/clang++-6-release-libstdc++/HTMLViewCompiler...
+# #/usr/bin/ld: skipping incompatible /Sandbox/Stroika-Dev/Builds/clang++-6-release-libstdc++/ThirdPartyComponents/lib//libxerces-c.so when searching for -lxerces-c
+# CFLAGS:=$(filter-out -flto, $(CFLAGS))
+# CXXFLAGS:=$(filter-out -flto, $(CXXFLAGS))
+# else ifeq (Unix,$(ProjectPlatformSubdir))
+# ## similar bug with g++ - but just warnings here (all regtests pass without this change)
+# ##/home/lewis/Sandbox/Stroika-Build-Dir-Ubuntu1804_x86_64/Builds/g++-optimized/ThirdPartyComponents/include/xercesc/util/BinInputStream.hpp:29:22: warning: type 'struct BinInputStream' violates the C++ One Definition Rule [-Wodr]
+# CFLAGS:=$(filter-out -flto, $(CFLAGS))
+# CXXFLAGS:=$(filter-out -flto, $(CXXFLAGS))
+# endif
 
 
-ifeq (Unix,$(ProjectPlatformSubdir))
-#@todo fixup - bug workaround - configure autodetects -posix and se we have to add it in here. Must find
-# some way we can ADD these params to CFLAGS without REPLACING
-# -- without this hack - we get link error building Xerces
-CFLAGS+= -pthread
-CXXFLAGS+= -pthread
-endif
+# ifeq (Unix,$(ProjectPlatformSubdir))
+# #@todo fixup - bug workaround - configure autodetects -posix and se we have to add it in here. Must find
+# # some way we can ADD these params to CFLAGS without REPLACING
+# # -- without this hack - we get link error building Xerces
+# CFLAGS+= -pthread
+# CXXFLAGS+= -pthread
+# endif
 
 
 # ##
@@ -194,12 +194,14 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 	@unzip -q $(ZIPPEDFILE) -d FRED
 	@mv FRED/exiv2-$(VERSION)/* $@
 	@rm -rf FRED
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 ifeq ($(VERSION),main)
 	if [ "$@" != "ORIGs" ] ; then \
 		$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Exiv2 ${VERSION} - Patching ($@/PATCHING.OUT)... ";\
 		patch -p0 $@/src/futils.cpp Patches/BeCompatibleWithUNICODEAPIDefines.Patch >> $@/PATCHING.OUT;\
 		patch -p0 $@/cmake/compilerFlags.cmake Patches/Patch-KillCompilerFlagChangeBreakingStaticLibsWindoze.Patch >> $@/PATCHING.OUT;\
 	fi
+endif
 endif
 
 
