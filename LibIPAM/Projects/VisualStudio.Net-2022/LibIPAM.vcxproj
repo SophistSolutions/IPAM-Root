@@ -59,18 +59,19 @@
     <AdditionalOptions>/std:c++latest</AdditionalOptions>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="..\..\Common\DocumentMetadata.inl" />
     <None Include="..\..\Common\Geolocation.inl" />
     <None Include="..\..\Common\Makefile" />
     <None Include="..\..\Makefile" />
+    <None Include="..\..\Metadata\Document.inl" />
+    <None Include="..\..\Metadata\Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Common\DocumentMetadata.cpp" />
     <ClCompile Include="..\..\Common\Geolocation.cpp" />
+    <ClCompile Include="..\..\Metadata\Document.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\Common\DocumentMetadata.h" />
     <ClInclude Include="..\..\Common\Geolocation.h" />
+    <ClInclude Include="..\..\Metadata\Document.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

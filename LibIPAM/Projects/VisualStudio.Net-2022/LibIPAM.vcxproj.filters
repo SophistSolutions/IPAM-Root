@@ -4,6 +4,9 @@
     <Filter Include="Common">
       <UniqueIdentifier>{035e5bcd-f10a-46b3-85e7-e3c4a2b1c6c2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Metadata">
+      <UniqueIdentifier>{1b7efaf8-f7d9-44f5-8824-3cc58d66862c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Makefile" />
@@ -13,24 +16,27 @@
     <None Include="..\..\Common\Geolocation.inl">
       <Filter>Common</Filter>
     </None>
-    <None Include="..\..\Common\DocumentMetadata.inl">
-      <Filter>Common</Filter>
+    <None Include="..\..\Metadata\Document.inl">
+      <Filter>Metadata</Filter>
+    </None>
+    <None Include="..\..\Metadata\Makefile">
+      <Filter>Metadata</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Common\Geolocation.cpp">
       <Filter>Common</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\DocumentMetadata.cpp">
-      <Filter>Common</Filter>
+    <ClCompile Include="..\..\Metadata\Document.cpp">
+      <Filter>Metadata</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\Geolocation.h">
       <Filter>Common</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\DocumentMetadata.h">
-      <Filter>Common</Filter>
+    <ClInclude Include="..\..\Metadata\Document.h">
+      <Filter>Metadata</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

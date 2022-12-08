@@ -15,7 +15,8 @@ SrcDir				=	$(TOP_ROOT)LibIPAM/
 SHELL=/bin/bash
 
 SubDirs=\
-	Common
+	Common \
+	Metadata \
 
 SUBDIR_OBJS := $(foreach dir, $(SubDirs), $(shell $(MAKE) CONFIGURATION=$(CONFIGURATION) --directory $(dir) -s list-objs))
 

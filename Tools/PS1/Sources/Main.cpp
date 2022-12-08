@@ -15,7 +15,7 @@
 #include "Stroika/Foundation/Time/DateTime.h"
 
 #include "Digikam.h"
-#include "LibIPAM/Common/DocumentMetadata.h"
+#include "LibIPAM/Metadata/Document.h"
 #include "ImageMetadataExtraction.h"
 
 using Metadata::DocumentMetadata;

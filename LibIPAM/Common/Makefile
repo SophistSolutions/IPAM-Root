@@ -20,7 +20,6 @@ SubDirs=\
 
 
 Objs	=	\
-	$(ObjDir)DocumentMetadata${OBJ_SUFFIX}\
 	$(ObjDir)Geolocation${OBJ_SUFFIX}\
 
 

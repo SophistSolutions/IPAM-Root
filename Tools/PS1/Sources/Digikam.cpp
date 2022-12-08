@@ -15,8 +15,8 @@
 #include "Stroika/Foundation/Streams/iostream/OutputStreamFromStdOStream.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
-#include "LibIPAM/Common/DocumentMetadata.h"
 #include "LibIPAM/Common/Geolocation.h"
+#include "LibIPAM/Metadata/Document.h"
 
 #include "Digikam.h"
 
