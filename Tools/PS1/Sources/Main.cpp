@@ -21,7 +21,7 @@
 using Metadata::DocumentMetadata;
 
 namespace {
-    const bool kTallyExtensions  = false;
+    const bool kTallyExtensions  = true;
     const bool kScrapeFileSystem = false;
     const bool kScrapeDigikamDB  = false;
     const bool kCreateMasterFile = true;
@@ -71,16 +71,12 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (kSourceDirectory, kSampleExtractionFilesDirectory);
 
         DataExchange::ObjectVariantMapper mapper;
-        mapper.AddCommonType<Containers::MultiSet<String>> ();
+        mapper.AddCommonType<Containers::MultiSet<String>>();
+        mapper.AddCommonType<Containers::CountedValue<String>>();
+        
         path extenstionTallyPath = (string (kOutputDirectory) + kExtensionTallyFileName);
 
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (extTally), IO::FileSystem::FileOutputStream::New (extenstionTallyPath));
-        /*
-        DbgTrace(L"****************************");
-        for (const auto& i : extTally) {
-            DbgTrace(L"%s : %d", i.fValue.c_str(), i.fCount);
-        }
-        */
     }
 
     Containers::Mapping<String, DocumentMetadata> dbScrape;
