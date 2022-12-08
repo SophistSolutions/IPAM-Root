@@ -1,4 +1,8 @@
-#pragma once
+/*
+ * Copyright(c) Sophist Solutions, Inc. 2022.  All rights reserved
+ */
+#ifndef __IPAM_LibIPAM_Common_DocumentMetadata_h__
+#define __IPAM_LibIPAM_Common_DocumentMetadata_h__ 1
 
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Containers/Mapping.h"
@@ -56,35 +60,13 @@ namespace Metadata {
         static void ReadFromJSONFile(Containers::Mapping<String, DocumentMetadata>* mds, const std::filesystem::path& filePath);
     };
 
-    /*
-     ********************************************************************************
-     ***************************** Implementation Details ***************************
-     ********************************************************************************
-     */
-
-    inline DocumentMetadata::Comment::Comment(String comment_, optional<String> author_)
-        : comment(comment_)
-        , author(author_)
-    {
-    }
-
-    inline DocumentMetadata::Comment::Comment(String comment_)
-        : comment(comment_)
-    {
-    }
-
-    inline bool DocumentMetadata::Comment::operator== (const Comment& rhs) const
-    {
-        return comment == rhs.comment and author == rhs.author;
-    }
-
-    inline auto DocumentMetadata::Comment::operator<=> (const DocumentMetadata::Comment& rhs) const
-    {
-        auto ans = comment <=> rhs.comment;
-        if (ans == 0) {
-            return author <=> rhs.author;
-        }
-        return ans;
-    }
-
 } // namespace
+
+/*
+ ********************************************************************************
+ ***************************** Implementation Details ***************************
+ ********************************************************************************
+ */
+#include "DocumentMetadata.inl"
+
+#endif /*__IPAM_LibIPAM_Common_DocumentMetadata_h__*/
