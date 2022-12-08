@@ -23,9 +23,11 @@
 using namespace Stroika::Foundation;
 using Characters::String;
 
-using namespace IPAM::LibIPAM::Common;
+using namespace IPAM;
 
-using namespace Metadata;
+using namespace LibIPAM::Common;
+
+using namespace LibIPAM;
 
 /*
     Digikam SQL mappings
@@ -43,9 +45,9 @@ namespace digikam {
     using namespace Stroika::Foundation::Database;
     using namespace Stroika::Foundation::Database::SQL;
 
-    Containers::Mapping<String, DocumentMetadata> ScrapeDigikamDB (String dbPath)
+    Containers::Mapping<String, Metadata::Document> ScrapeDigikamDB (String dbPath)
     {
-        Containers::Mapping<String, DocumentMetadata> scrapedMetadata;
+        Containers::Mapping<String, Metadata::Document> scrapedMetadata;
         try {
             auto conn = SQLite::Connection::New (SQLite::Options{.fDBPath = dbPath.c_str (), .fThreadingMode = SQLite::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
 
@@ -93,7 +95,7 @@ namespace digikam {
                     String imagePath = albumPaths[album] + L"/" + name;
                     //DbgTrace (L"got: %d, %d, %s, %s", id, album, name.c_str (), imagePath.c_str ());
                     imageIDToImagePath.Add (id, imagePath);
-                    DocumentMetadata ms;
+                    Metadata::Document ms;
                     ms.album = (IO::FileSystem::FromPath (std::filesystem::path (imagePath.c_str ()).remove_filename ())).SubString (rootPathLength).SubString (0, -1);
                     scrapedMetadata.Add (imagePath, ms);
                 };
@@ -108,17 +110,17 @@ namespace digikam {
                 if (comment.length () > 0 and not comment.Matches (kIgnoreComment)) {
                     String path;
                     if (imageIDToImagePath.Lookup (id, &path)) {
-                        DocumentMetadata ms;
+                        Metadata::Document ms;
                         scrapedMetadata.Lookup (path, &ms);
                         // only one comment supported by digikam so don't need to check if already created
-                        ms.comment = Containers::Sequence<DocumentMetadata::Comment> ();
+                        ms.comment = Containers::Sequence<Metadata::Document::Comment> ();
                         if (author.length () > 0) {
-                            ms.comment.value ().Append (DocumentMetadata::Comment (String (comment.c_str ()), author));
+                            ms.comment.value ().Append (Metadata::Document::Comment (String (comment.c_str ()), author));
                         }
                         else {
-                            ms.comment.value ().Append (DocumentMetadata::Comment (String (comment.c_str ())));
+                            ms.comment.value ().Append (Metadata::Document::Comment (String (comment.c_str ())));
                         }
-                        //DbgTrace (L"comment: %d, %s", id, DocumentMetadata::Comment::ToString (ms.comment.value ()).c_str ());
+                        //DbgTrace (L"comment: %d, %s", id, Metadata::Document::Comment::ToString (ms.comment.value ()).c_str ());
                         scrapedMetadata.Add (path, ms);
                     }
                 }
@@ -134,7 +136,7 @@ namespace digikam {
                 //  double  alt     = std::get<3> (ii).As<double> ();
                 String path;
                 if (imageIDToImagePath.Lookup (id, &path)) {
-                    DocumentMetadata ms;
+                    Metadata::Document ms;
                     scrapedMetadata.Lookup (path, &ms);
                     ms.location = Geolocation (lat, longi /*, alt*/).ToISOString ();
                     //   DbgTrace (L"geoloc: %d, %s", id, ms.location.value ().c_str ());
@@ -149,7 +151,7 @@ namespace digikam {
                 String date   = std::get<2> (ii).As<String> ();
                 String path;
                 if (imageIDToImagePath.Lookup (id, &path)) {
-                    DocumentMetadata ms;
+                    Metadata::Document ms;
                     scrapedMetadata.Lookup (path, &ms);
 
                     // digikam does an unusual mapping of its user selected stars to percentile value (as shown in stored metadata in files)
@@ -219,7 +221,7 @@ namespace digikam {
                 if (tagValues.Lookup (tagid, &value)) {
                     String path;
                     if (imageIDToImagePath.Lookup (imageid, &path)) {
-                        DocumentMetadata ms;
+                        Metadata::Document ms;
                         scrapedMetadata.Lookup (path, &ms);
                         ms.tags.Add (value);
                         //   DbgTrace (L"date: %d, %s", id, ms.date.value ().c_str ());

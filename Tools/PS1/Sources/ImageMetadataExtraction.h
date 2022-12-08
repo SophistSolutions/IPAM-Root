@@ -9,16 +9,19 @@
 #include "LibIPAM/Metadata/Document.h"
 
 namespace Metadata {
+
+    using namespace IPAM::LibIPAM::Metadata;
+
     using Characters::String;
     class ImageMetadataExtractor {
     public:
         ImageMetadataExtractor ();
 
         // extract relevant metadata from image file
-        DocumentMetadata Extract (const std::filesystem::path& pictFile);
+        Metadata::Document Extract (const std::filesystem::path& pictFile);
 
         // extract relevant metadata from all image files in the directory (and subdirectories)
-        Containers::Mapping<String, DocumentMetadata> ExtractAll (const std::filesystem::path& topDir);
+        Containers::Mapping<String, Metadata::Document> ExtractAll (const std::filesystem::path& topDir);
 
         // find all the file extensions in a directory (and subdirectories) and optionally
         // attempt to extract image metadata from first file of each extension found

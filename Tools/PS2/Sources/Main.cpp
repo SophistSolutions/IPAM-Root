@@ -13,13 +13,14 @@
 #include "Stroika/Foundation/Debug/Trace.h"
 #include "Stroika/Foundation/IO/FileSystem/FileOutputStream.h"
 
-#include "DocumentMetadata.h"
 #include "LibIPAM/Common/Geolocation.h"
+#include "LibIPAM/Metadata/Document.h"
 
 using namespace std::filesystem;
 
 using namespace Stroika::Foundation;
 
+using namespace IPAM::LibIPAM;
 using namespace IPAM::LibIPAM::Common;
 
 using Characters::String;
@@ -27,7 +28,6 @@ using Characters::String;
 const path kDocumentMetaDataFile = L"c:\\ssw\\mdResults\\DocumentMetaData.json";
 const path kTagInfoOutputFile    = L"c:\\ssw\\mdResults\\DocumentMetaDataTagInfo.json";
 
-using namespace Metadata;
 
 namespace {
     struct TagInfo {
@@ -52,10 +52,10 @@ namespace {
 
             {
                 DbgTrace (L"about to read metadata");
-                Containers::Mapping<String, DocumentMetadata> pt1;
+                Containers::Mapping<String, Metadata::Document> pt1;
                 {
                     Debug::TimingTrace ttrc;
-                    DocumentMetadata::ReadFromJSONFile (&pt1, kDocumentMetaDataFile);
+                    Metadata::Document::ReadFromJSONFile (&pt1, kDocumentMetaDataFile);
                 }
                 DbgTrace (L"found %d photos metadata", pt1.Keys ().length ());
 

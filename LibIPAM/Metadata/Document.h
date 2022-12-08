@@ -1,4 +1,8 @@
-#pragma once
+/*
+ * Copyright(c) Sophist Solutions, Inc. 2022.  All rights reserved
+ */
+#ifndef __IPAM_LibIPAM_Metadata_Document_h__
+#define __IPAM_LibIPAM_Metadata_Document_h__ 1
 
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Containers/Mapping.h"
@@ -13,9 +17,9 @@ using Characters::String;
     ToDo:
 
 */
-namespace Metadata {
+namespace IPAM::LibIPAM::Metadata {
 
-class DocumentMetadata {
+    class Document {
     public:
         struct Comment {
             Comment(String comment_, optional<String> author_);
@@ -34,7 +38,7 @@ class DocumentMetadata {
         };
 
     public:
-        DocumentMetadata() = default;
+        Document() = default;
 
     public:
         Containers::Set<String> tags;
@@ -52,39 +56,17 @@ class DocumentMetadata {
 
     public:
         static void SupportVariantMapping(DataExchange::ObjectVariantMapper& mapper);
-        static void WriteToFileAsJSON(Containers::Mapping<String, DocumentMetadata> mds, const std::filesystem::path& filePath);
-        static void ReadFromJSONFile(Containers::Mapping<String, DocumentMetadata>* mds, const std::filesystem::path& filePath);
-};
+        static void WriteToFileAsJSON (Containers::Mapping<String, Document> mds, const std::filesystem::path& filePath);
+        static void ReadFromJSONFile (Containers::Mapping<String, Document>* mds, const std::filesystem::path& filePath);
+    };
+
+} // namespace
 
 /*
  ********************************************************************************
  ***************************** Implementation Details ***************************
  ********************************************************************************
  */
+#include "Document.inl"
 
-    inline DocumentMetadata::Comment::Comment(String comment_, optional<String> author_)
-        : comment(comment_)
-        , author(author_)
-    {
-    }
-
-    inline DocumentMetadata::Comment::Comment(String comment_)
-        : comment(comment_)
-    {
-    }
-
-    inline bool DocumentMetadata::Comment::operator== (const Comment& rhs) const
-    {
-        return comment == rhs.comment and author == rhs.author;
-    }
-
-    inline auto DocumentMetadata::Comment::operator<=> (const DocumentMetadata::Comment& rhs) const
-    {
-        auto ans = comment <=> rhs.comment;
-        if (ans == 0) {
-            return author <=> rhs.author;
-        }
-        return ans;
-    }
-
-} // namespace
+#endif /*__IPAM_LibIPAM_Metadata_Document_h__*/

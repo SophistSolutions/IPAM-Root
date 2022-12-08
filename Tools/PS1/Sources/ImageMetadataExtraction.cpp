@@ -26,7 +26,6 @@ using namespace Stroika::Foundation;
 using Characters::String;
 
 using namespace IPAM::LibIPAM::Common;
-using Metadata::DocumentMetadata;
 
 namespace Metadata {
     ImageMetadataExtractor::ImageMetadataExtractor ()
@@ -35,9 +34,9 @@ namespace Metadata {
         DbgTrace(L"bmffSupported = %s", (bmffSupported) ? L"true" : L"false");
     }
 
-    DocumentMetadata ImageMetadataExtractor::Extract (const path& pictFile)
+    Metadata::Document ImageMetadataExtractor::Extract (const path& pictFile)
     {
-        DocumentMetadata ms;
+        Metadata::Document ms;
 
         Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (pictFile.string ());
         if (image != nullptr) {
@@ -70,9 +69,9 @@ namespace Metadata {
                         else if (md->key () == kCaptionKeyword) {
                             if (md->value ().toString ().length () > 0) {
                                 // only one comment supported by metadata so don't need to check if already created
-                                ms.comment = Containers::Sequence<DocumentMetadata::Comment> ();
+                                ms.comment = Containers::Sequence<Metadata::Document::Comment> ();
                                 // comment author not supported by IPTC
-                                ms.comment.value ().Append (DocumentMetadata::Comment (String::FromNarrowSDKString (md->value ().toString ())));
+                                ms.comment.value ().Append (Metadata::Document::Comment (String::FromNarrowSDKString (md->value ().toString ())));
                             }
                         }
                         else if (md->key() == kDateKeyword) {
@@ -177,8 +176,8 @@ namespace Metadata {
                     }
                     if (foundComment.has_value () and foundComment.value () != L"Ignored") {
                         // only one comment supported by metadata so don't need to check if already created
-                        ms.comment = Containers::Sequence<DocumentMetadata::Comment> ();
-                        ms.comment.value ().Append (DocumentMetadata::Comment (String (foundComment.value ().c_str ()), foundAuthor));
+                        ms.comment = Containers::Sequence<Metadata::Document::Comment> ();
+                        ms.comment.value ().Append (Metadata::Document::Comment (String (foundComment.value ().c_str ()), foundAuthor));
                     }
                 }
             }
@@ -342,9 +341,9 @@ namespace Metadata {
         return extTally;
     }
 
-    Containers::Mapping<String, DocumentMetadata> ImageMetadataExtractor::ExtractAll (const std::filesystem::path& topDir)
+    Containers::Mapping<String, Metadata::Document> ImageMetadataExtractor::ExtractAll (const std::filesystem::path& topDir)
     {
-        Containers::Mapping<String, DocumentMetadata> imageMetaData;
+        Containers::Mapping<String, Metadata::Document> imageMetaData;
 
         size_t topDirLength = IO::FileSystem::FromPath (topDir).size ();
         try {
@@ -361,7 +360,7 @@ namespace Metadata {
 
                 if (is_regular_file (p)) {
                     try {
-                        DocumentMetadata ms = Extract (p);
+                        Metadata::Document ms = Extract (p);
                         ms.album            = IO::FileSystem::FromPath (path (p).remove_filename ()).SubString (topDirLength).SubString (0, -1).ReplaceAll (L"\\", L"/");
                         imageMetaData.Add (IO::FileSystem::FromPath (p).ReplaceAll (L"\\", L"/"), ms);
                     }

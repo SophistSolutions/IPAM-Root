@@ -18,7 +18,6 @@
 #include "LibIPAM/Metadata/Document.h"
 #include "ImageMetadataExtraction.h"
 
-using Metadata::DocumentMetadata;
 
 namespace {
     constexpr   wstring_view  kMyTopLevelDirectory = L"P:/";
@@ -51,9 +50,9 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     path digikamScrapeFilePath = (kOutputDirectory + kDigikamScrapeFileName).c_str ();
     path fileScrapeFilePath    = (kOutputDirectory + kFileScrapeFileName).c_str();
 
-    Containers::Mapping<String, DocumentMetadata> mergedMetaData;
+    Containers::Mapping<String, Metadata::Document> mergedMetaData;
 
-    Containers::Mapping<String, DocumentMetadata> fileScrape;
+    Containers::Mapping<String, Metadata::Document> fileScrape;
     if (kScrapeFileSystem) {
         {
             DbgTrace (L"scraping file system directory at %s", kSourceDirectory.c_str());
@@ -63,7 +62,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         {
             DbgTrace (L"writing file system scrape to %s", fileScrapeFilePath.c_str ());
             Debug::TimingTrace ttrc;
-            DocumentMetadata::WriteToFileAsJSON (fileScrape, fileScrapeFilePath);
+            Metadata::Document::WriteToFileAsJSON (fileScrape, fileScrapeFilePath);
         }
         mergedMetaData = fileScrape;
     }
@@ -83,7 +82,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (extTally), IO::FileSystem::FileOutputStream::New (extenstionTallyPath));
     }
 
-    Containers::Mapping<String, DocumentMetadata> dbScrape;
+    Containers::Mapping<String, Metadata::Document> dbScrape;
     if (kScrapeDigikamDB) {
         {
             DbgTrace (L"scraping digikam database at %s", kDigikamDatabase.c_str ());
@@ -93,7 +92,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         {
             DbgTrace (L"writing digikam scrape to %s", digikamScrapeFilePath.c_str ());
             Debug::TimingTrace ttrc;
-            Metadata::DocumentMetadata::WriteToFileAsJSON (dbScrape, digikamScrapeFilePath);
+            Metadata::Document::WriteToFileAsJSON (dbScrape, digikamScrapeFilePath);
         }
     }
 
@@ -102,20 +101,20 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
             // read in an old copy
             DbgTrace (L"about to read file system metadata");
             Debug::TimingTrace ttrc;
-            DocumentMetadata::ReadFromJSONFile (&fileScrape, fileScrapeFilePath);
+            Metadata::Document::ReadFromJSONFile (&fileScrape, fileScrapeFilePath);
         }
         if (not kScrapeDigikamDB) {
             // read in an old copy
             DbgTrace (L"about to read digikam metadata from %s", digikamScrapeFilePath.c_str ());
             Debug::TimingTrace ttrc;
-            DocumentMetadata::ReadFromJSONFile (&dbScrape, digikamScrapeFilePath);
+            Metadata::Document::ReadFromJSONFile (&dbScrape, digikamScrapeFilePath);
         }
 
         DbgTrace (L"merging file and database sources, files length = %d, db length = %d", fileScrape.Keys ().length (), dbScrape.Keys ().length ());
-        Containers::Mapping<String, DocumentMetadata> masterList;
+        Containers::Mapping<String, Metadata::Document> masterList;
         for (const auto& it : fileScrape) {
-            DocumentMetadata dmd = it.fValue;
-            DocumentMetadata digikamDmd;
+            Metadata::Document dmd = it.fValue;
+            Metadata::Document digikamDmd;
             if (dbScrape.Lookup (it.fKey, &digikamDmd)) {
                 String ext                               = String{path (it.fKey.c_str ()).extension ().wstring ()}.ToLowerCase ();
                 bool   ignoreMissingFromFileScrapeForNow = (ext == L".nef" or ext == L".heic" or ext == L".mov" or ext == L".bmp");
@@ -124,11 +123,11 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                 if (digikamDmd.comment.has_value ()) {
                     if (dmd.comment.has_value ()) {
                         if (dmd.comment.value () != digikamDmd.comment.value ()) { // should just be assert
-                            DbgTrace (L"COMMENT disagreement for %s (%s vs %s)", it.fKey.c_str (), DocumentMetadata::Comment::ToString (dmd.comment.value ()).c_str (), DocumentMetadata::Comment::ToString (digikamDmd.comment.value ()).c_str ());
+                            DbgTrace (L"COMMENT disagreement for %s (%s vs %s)", it.fKey.c_str (), Metadata::Document::Comment::ToString (dmd.comment.value ()).c_str (), Metadata::Document::Comment::ToString (digikamDmd.comment.value ()).c_str ());
                         }
                     }
                     else {
-                        DbgTrace (L"adding missing comment for %s (adding %s)", it.fKey.c_str (), DocumentMetadata::Comment::ToString (digikamDmd.comment.value ()).c_str ());
+                        DbgTrace (L"adding missing comment for %s (adding %s)", it.fKey.c_str (), Metadata::Document::Comment::ToString (digikamDmd.comment.value ()).c_str ());
                         dmd.comment = digikamDmd.comment;
                     }
                 }
@@ -190,8 +189,8 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
             DbgTrace (L"adding digikam only info to master list");
             Debug::TimingTrace ttrc;
             for (const auto& it : dbScrape) {
-                DocumentMetadata digikamDmd = it.fValue;
-                DocumentMetadata dmd;
+                Metadata::Document digikamDmd = it.fValue;
+                Metadata::Document dmd;
                 if (not fileScrape.Lookup (it.fKey, &dmd)) {
                     //          DbgTrace (L"adding missing dmd from digikam: %s", it.fKey.c_str ());
                     masterList.Add (it.fKey, digikamDmd);
@@ -203,7 +202,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
             auto outputPath = filesystem::path ((kOutputDirectory + kMergedTagsFileName).c_str ());
             DbgTrace (L"writing processed tag info to %s", outputPath.c_str ());
             Debug::TimingTrace ttrc;
-            DocumentMetadata::WriteToFileAsJSON (fileScrape, outputPath);
+            Metadata::Document::WriteToFileAsJSON (fileScrape, outputPath);
         }
     }
 
