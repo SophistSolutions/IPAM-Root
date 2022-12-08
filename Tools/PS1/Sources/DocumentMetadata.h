@@ -14,6 +14,7 @@ using Characters::String;
 
 */
 namespace Metadata {
+
     class DocumentMetadata {
     public:
         struct Comment {
@@ -22,11 +23,8 @@ namespace Metadata {
             Comment() = default;
 
             nonvirtual bool operator== (const Comment& rhs) const;
-            nonvirtual bool operator!= (const Comment& rhs) const;
-            nonvirtual bool operator>= (const Comment& rhs) const;
-            nonvirtual bool operator> (const Comment& rhs) const;
-            nonvirtual bool operator<= (const Comment& rhs) const;
-            nonvirtual bool operator<(const Comment& rhs) const;
+            nonvirtual auto operator<=> (const Comment& rhs) const;
+
 
             nonvirtual String ToString() const;
             static String     ToString(Containers::Sequence<Comment>);
@@ -59,10 +57,10 @@ namespace Metadata {
     };
 
     /*
- ********************************************************************************
- ***************************** Implementation Details ***************************
- ********************************************************************************
- */
+     ********************************************************************************
+     ***************************** Implementation Details ***************************
+     ********************************************************************************
+     */
 
     inline DocumentMetadata::Comment::Comment(String comment_, optional<String> author_)
         : comment(comment_)
@@ -79,39 +77,14 @@ namespace Metadata {
     {
         return comment == rhs.comment and author == rhs.author;
     }
-    inline bool DocumentMetadata::Comment::operator!= (const Comment& rhs) const
-    {
-        return comment != rhs.comment or author != rhs.author;
-    }
-    inline bool DocumentMetadata::Comment::operator>= (const Comment& rhs) const
-    {
-        if (comment == rhs.comment) {
-            return author >= rhs.author;
-        }
-        return comment >= rhs.comment;
-    }
-    inline bool DocumentMetadata::Comment::operator> (const Comment& rhs) const
-    {
-        if (comment == rhs.comment) {
-            return author > rhs.author;
-        }
-        return comment > rhs.comment;
-    }
 
-    inline bool DocumentMetadata::Comment::operator<= (const Comment& rhs) const
+    inline auto DocumentMetadata::Comment::operator<=> (const DocumentMetadata::Comment& rhs) const
     {
-        if (comment == rhs.comment) {
-            return author <= rhs.author;
+        auto ans = comment <=> rhs.comment;
+        if (ans == 0) {
+            return author <=> rhs.author;
         }
-        return comment <= rhs.comment;
-    }
-
-    inline bool DocumentMetadata::Comment::operator<(const Comment& rhs) const
-    {
-        if (comment == rhs.comment) {
-            return author < rhs.author;
-        }
-        return comment < rhs.comment;
+        return ans;
     }
 
 } // namespace

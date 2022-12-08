@@ -10,33 +10,31 @@ using namespace Stroika::Foundation;
 using Characters::String;
 
 /*
-    ToDo: 
-     
+    ToDo:
+
 */
 namespace Metadata {
-    class DocumentMetadata {
+
+class DocumentMetadata {
     public:
         struct Comment {
-            Comment (String comment_, optional<String> author_);
-            Comment (String comment_);
-            Comment () = default;
+            Comment(String comment_, optional<String> author_);
+            Comment(String comment_);
+            Comment() = default;
 
             nonvirtual bool operator== (const Comment& rhs) const;
-            nonvirtual bool operator!= (const Comment& rhs) const;
-            nonvirtual bool operator>= (const Comment& rhs) const;
-            nonvirtual bool operator> (const Comment& rhs) const;
-            nonvirtual bool operator<= (const Comment& rhs) const;
-            nonvirtual bool operator<(const Comment& rhs) const;
+            nonvirtual auto operator<=> (const Comment& rhs) const;
 
-            nonvirtual String ToString () const;
-            static String     ToString (Containers::Sequence<Comment>);
+
+            nonvirtual String ToString() const;
+            static String     ToString(Containers::Sequence<Comment>);
 
             String           comment;
             optional<String> author;
         };
 
     public:
-        DocumentMetadata () = default;
+        DocumentMetadata() = default;
 
     public:
         Containers::Set<String> tags;
@@ -53,25 +51,25 @@ namespace Metadata {
         optional<String>                        album;  // for file system, owning directory path from root
 
     public:
-        static void SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper);
-        static void WriteToFileAsJSON (Containers::Mapping<String, DocumentMetadata> mds, const std::filesystem::path& filePath);
-        static void ReadFromJSONFile (Containers::Mapping<String, DocumentMetadata>* mds, const std::filesystem::path& filePath);
-    };
+        static void SupportVariantMapping(DataExchange::ObjectVariantMapper& mapper);
+        static void WriteToFileAsJSON(Containers::Mapping<String, DocumentMetadata> mds, const std::filesystem::path& filePath);
+        static void ReadFromJSONFile(Containers::Mapping<String, DocumentMetadata>* mds, const std::filesystem::path& filePath);
+};
 
-    /*
+/*
  ********************************************************************************
  ***************************** Implementation Details ***************************
  ********************************************************************************
  */
 
-    inline DocumentMetadata::Comment::Comment (String comment_, optional<String> author_)
-        : comment (comment_)
-        , author (author_)
+    inline DocumentMetadata::Comment::Comment(String comment_, optional<String> author_)
+        : comment(comment_)
+        , author(author_)
     {
     }
 
-    inline DocumentMetadata::Comment::Comment (String comment_)
-        : comment (comment_)
+    inline DocumentMetadata::Comment::Comment(String comment_)
+        : comment(comment_)
     {
     }
 
@@ -79,39 +77,14 @@ namespace Metadata {
     {
         return comment == rhs.comment and author == rhs.author;
     }
-    inline bool DocumentMetadata::Comment::operator!= (const Comment& rhs) const
-    {
-        return comment != rhs.comment or author != rhs.author;
-    }
-    inline bool DocumentMetadata::Comment::operator>= (const Comment& rhs) const
-    {
-        if (comment == rhs.comment) {
-            return author >= rhs.author;
-        }
-        return comment >= rhs.comment;
-    }
-    inline bool DocumentMetadata::Comment::operator> (const Comment& rhs) const
-    {
-        if (comment == rhs.comment) {
-            return author > rhs.author;
-        }
-        return comment > rhs.comment;
-    }
 
-    inline bool DocumentMetadata::Comment::operator<= (const Comment& rhs) const
+    inline auto DocumentMetadata::Comment::operator<=> (const DocumentMetadata::Comment& rhs) const
     {
-        if (comment == rhs.comment) {
-            return author <= rhs.author;
+        auto ans = comment <=> rhs.comment;
+        if (ans == 0) {
+            return author <=> rhs.author;
         }
-        return comment <= rhs.comment;
-    }
-
-    inline bool DocumentMetadata::Comment::operator<(const Comment& rhs) const
-    {
-        if (comment == rhs.comment) {
-            return author < rhs.author;
-        }
-        return comment < rhs.comment;
+        return ans;
     }
 
 } // namespace
