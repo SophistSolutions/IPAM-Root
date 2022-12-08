@@ -44,7 +44,7 @@ namespace Metadata {
             image->readMetadata ();
 
             auto extract_ipc = [&] () {
-                Exiv2::IptcData& iptcData = image->iptcData ();
+                const Exiv2::IptcData& iptcData = image->iptcData ();
                 if (not iptcData.empty ()) {
                     constexpr string_view      kTagKeyword     = "Iptc.Application2.Keywords";
                     constexpr string_view      kDateKeyword    = "Iptc.Application2.DateCreated";
@@ -55,8 +55,8 @@ namespace Metadata {
                     optional<String> foundDate;
                     optional<String> foundTime;
 
-                    Exiv2::IptcData::iterator end = iptcData.end ();
-                    for (Exiv2::IptcData::iterator md = iptcData.begin (); md != end; ++md) {
+                    Exiv2::IptcData::const_iterator end = iptcData.end ();
+                    for (Exiv2::IptcData::const_iterator md = iptcData.begin (); md != end; ++md) {
                         if (md->key () == kTagKeyword) {
                             if (md->value ().toString ().length () > 0 and (md->value ().toString () != kIgnoredValue)) {
                                 ms.tags.Add (String::FromNarrowSDKString (md->value ().toString ()));
@@ -221,14 +221,14 @@ namespace Metadata {
         Containers::Set<String> tags;
 
         outfile << "************** IPTC *******************" << endl;
-        Exiv2::IptcData& iptcData = image->iptcData ();
+        const Exiv2::IptcData& iptcData = image->iptcData ();
         if (iptcData.empty ()) {
             outfile << "none found" << endl;
         }
         else {
             constexpr string_view   kTagKeyword = "Iptc.Application2.Keywords";
-            Exiv2::IptcData::iterator end         = iptcData.end ();
-            for (Exiv2::IptcData::iterator md = iptcData.begin (); md != end; ++md) {
+            Exiv2::IptcData::const_iterator end         = iptcData.end ();
+            for (Exiv2::IptcData::const_iterator md = iptcData.begin (); md != end; ++md) {
                 outfile << std::setw (44) << std::setfill (' ') << std::left
                         << md->key () << " "
                         << "0x" << std::setw (4) << std::setfill ('0') << std::right
