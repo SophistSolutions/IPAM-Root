@@ -6,6 +6,9 @@ IPFS - [Interplanetary Filesystem](https://ipfs.tech/).
 The original motivation behind IPAM was to allow seemless sharing and organizing of photo albums,
 but without giving up ownership/control to a third party (like Facebook or Google).
 
+## Design Overview
+[Design Overview](Documentation/ReadMe.md).
+
 ## Building
 
 ~~~
