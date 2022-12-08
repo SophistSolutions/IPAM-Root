@@ -4,7 +4,6 @@
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Characters/ToString.h"
 #include "Stroika/Foundation/Containers/Mapping.h"
-#include "Stroika/Foundation/Containers/MultiSet.h"
 #include "Stroika/Foundation/Containers/Set.h"
 #include "Stroika/Foundation/DataExchange/StructFieldMetaInfo.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Reader.h"
