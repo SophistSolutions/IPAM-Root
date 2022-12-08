@@ -40,7 +40,7 @@ namespace Metadata {
         DocumentMetadata ms;
 
         Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (pictFile.string ());
-        if (image.get () != 0) {
+        if (image != nullptr) {
             image->readMetadata ();
 
             auto extract_ipc = [&] () {
@@ -281,7 +281,7 @@ namespace Metadata {
     {
         try {
             Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (pictFile.string ());
-            if (image.get () != 0) {
+            if (image != nullptr) {
                 std::ofstream outfile (outputDirectoryForSampleFiles.AsNarrowSDKString() + pictFile.extension().string().substr(1) + ".txt");
 
                 image->readMetadata ();
