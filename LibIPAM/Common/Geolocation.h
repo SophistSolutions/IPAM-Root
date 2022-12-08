@@ -16,36 +16,37 @@ namespace IPAM::LibIPAM::Common {
     /**
      */
     class Geolocation {
-    public:
+    protected:
         class Coordinate {
-        public:
-            Coordinate () = delete;
+            public:
+                Coordinate () = delete;
 
-            static double GPSCoordStringToValue (const String& coor);
+                static double GPSCoordStringToValue (const String& coor);
 
-        protected:
-            Coordinate (double d);
-            Coordinate (const String& s, const Characters::RegularExpression& regex);
+            protected:
+                Coordinate (double d);
+                Coordinate (const String& s, const Characters::RegularExpression& regex);
 
-        public:
-            nonvirtual int    degrees () const;
-            nonvirtual int    minutes () const;
-            nonvirtual double seconds () const;
+            public:
+                nonvirtual int    degrees () const;
+                nonvirtual int    minutes () const;
+                nonvirtual double seconds () const;
 
-        public:
-            /**
-             *  \note comparisons not exact - but with within _kPrecision
-             */
-            nonvirtual bool operator== (const Coordinate& rhs) const;
-            nonvirtual auto operator<=> (const Coordinate& rhs) const;
+            public:
+                /**
+                 *  \note comparisons not exact - but with within _kPrecision
+                 */
+                nonvirtual bool operator== (const Coordinate& rhs) const;
+                nonvirtual auto operator<=> (const Coordinate& rhs) const;
 
-        protected:
-            static constexpr double _kBase      = 60.0;
-            static constexpr double _kPrecision = 100000.0;
-            double                  _value;
+            protected:
+                static constexpr double _kBase      = 60.0;
+                static constexpr double _kPrecision = 100000.0;
+                double                  _value;
 
-            nonvirtual String ToISOString_ (const wchar_t* degreeSpecification);
-        };
+                nonvirtual String ToISOString_ (const wchar_t* degreeSpecification);
+            };
+    public:
 
         /**
          */
