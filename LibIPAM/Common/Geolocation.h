@@ -33,6 +33,9 @@ namespace IPAM::LibIPAM::Common {
             nonvirtual double seconds () const;
 
         public:
+            /**
+             *  \note comparisons not exact - but with within _kPrecision
+             */
             nonvirtual bool operator== (const Coordinate& rhs) const;
             nonvirtual auto operator<=> (const Coordinate& rhs) const;
 

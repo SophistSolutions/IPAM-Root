@@ -49,8 +49,15 @@ endif
 
 STROIKA_CONFIG_PARAMS_COMMON=
 
+# Assume C++20, mostly (maybe fully soon)
+ifeq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
+STROIKA_CONFIG_PARAMS_COMMON+=	--cppstd-version c++20
+endif
+
 # Don't support MFC, we dont use anyhow (speeds builds)
 STROIKA_CONFIG_PARAMS_COMMON+=	--ATLMFC no
+
+
 
 
 ### @todo FIX - PROBABLY WRONG STRATEGY - FIX ELSEWHERE IN BUILD PROCESS SO ONLY appropriate
@@ -93,8 +100,8 @@ else ifneq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
 	@(export MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) && cd $(StroikaRoot) && ./configure Release-x86 --arch x86 --build-by-default $(DETECTED_HOST_OS) --config-tag Windows --config-tag x86 $(STROIKA_CONFIG_PARAMS_COMMON) $(STROIKA_CONFIG_PARAMS_RELEASE));
 	@(export MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) && cd $(StroikaRoot) && ./configure Release-x86_64 --arch x86_64 --build-by-default $(DETECTED_HOST_OS) --config-tag Windows --config-tag x86_64 $(STROIKA_CONFIG_PARAMS_COMMON) $(STROIKA_CONFIG_PARAMS_RELEASE));
 else
-	@(export MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) && cd $(StroikaRoot) && ./configure Debug --build-by-default $(DETECTED_HOST_OS) --config-tag Unix --only-if-has-compiler $(STROIKA_CONFIG_PARAMS_COMMON) $(STROIKA_CONFIG_PARAMS_DEBUG));
-	@(export MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) && cd $(StroikaRoot) && ./configure Release --build-by-default $(DETECTED_HOST_OS) --config-tag Unix --only-if-has-compiler $(STROIKA_CONFIG_PARAMS_COMMON) $(STROIKA_CONFIG_PARAMS_RELEASE));
+	@(export MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) && cd $(StroikaRoot) && ./configure Debug --build-by-default $(DETECTED_HOST_OS) --config-tag Unix --compiler-driver g++-11 --only-if-has-compiler $(STROIKA_CONFIG_PARAMS_COMMON) $(STROIKA_CONFIG_PARAMS_DEBUG));
+	@(export MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) && cd $(StroikaRoot) && ./configure Release --build-by-default $(DETECTED_HOST_OS) --config-tag Unix --compiler-driver g++-11 --only-if-has-compiler $(STROIKA_CONFIG_PARAMS_COMMON) $(STROIKA_CONFIG_PARAMS_RELEASE));
 endif
 ifneq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
 	@$(MAKE) --silent Builds/__AUTOMATIC_MAKE_PROJECT_FILES__

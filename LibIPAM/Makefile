@@ -21,11 +21,7 @@ SUBDIR_OBJS := $(foreach dir, $(SubDirs), $(shell $(MAKE) CONFIGURATION=$(CONFIG
 
 Objs = $(SUBDIR_OBJS)
 
-ifeq (Unix,$(ProjectPlatformSubdir))
 LibIPAM=$(TOP_ROOT)Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX)
-else
-LibIPAM=$(TOP_ROOT)Builds/$(CONFIGURATION)/LibIPAM$(LIB_SUFFIX)
-endif
 
 all:
 	@$(StroikaRoot)/ScriptsLib/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "Building LibIPAM {$(CONFIGURATION)}:"
@@ -51,3 +47,4 @@ clean clobber::
 
 format-code:
 	@$(StroikaRoot)ScriptsLib/FormatCode Common *.h *.inl *.cpp
+	@for s in ${SubDirs}; do $(StroikaRoot)ScriptsLib/FormatCode $${s} *.h *.inl *.cpp ; done

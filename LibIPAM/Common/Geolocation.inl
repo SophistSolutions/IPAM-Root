@@ -13,7 +13,7 @@ namespace IPAM::LibIPAM::Common {
      */
     inline bool Geolocation::Coordinate::operator== (const Geolocation::Coordinate& rhs) const
     {
-        return abs (rhs._value - _value) <= .00001;
+        return abs (rhs._value - _value) <= .00001; // @todo REWRITE using kPrecision
     }
     inline auto Geolocation::Coordinate::operator<=> (const Geolocation::Coordinate& rhs) const
     {
@@ -71,7 +71,6 @@ namespace IPAM::LibIPAM::Common {
     {
         return ToISOString_ (L"%03d");
     }
-
 
     /*
      ********************************************************************************

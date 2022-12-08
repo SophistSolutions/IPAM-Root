@@ -15,8 +15,8 @@
 
 using namespace Stroika::Foundation;
 
-using Characters::String;
 using Characters::RegularExpression;
+using Characters::String;
 
 using namespace IPAM::LibIPAM::Common;
 
@@ -63,7 +63,7 @@ Geolocation::Coordinate::Coordinate (const String& s, const RegularExpression& r
 double Geolocation::Coordinate::GPSCoordStringToValue (const String& coor)
 {
     static const RegularExpression kCoordinateExp_{L"^([0-9]*)?,([0-9]*)(\\.[0-9]*)([NWES]?)"};
-    Containers::Sequence<String>  matches;
+    Containers::Sequence<String>   matches;
     if (coor.Matches (kCoordinateExp_, &matches)) {
         double degrees = std::stod (matches[0].c_str ());
         double minutes = std::stod (matches[1].c_str ());
