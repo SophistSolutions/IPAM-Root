@@ -77,7 +77,7 @@ namespace IPAM::LibIPAM::Common {
      ********************************* Geolocation **********************************
      ********************************************************************************
      */
-    inline Geolocation::Geolocation (Latitude lat, Longitude lon, optional < double> alt)
+    inline Geolocation::Geolocation (Latitude lat, Longitude lon, optional<double> alt)
         : latitude{lat}
         , longitude{lon}
         , altitude{alt}

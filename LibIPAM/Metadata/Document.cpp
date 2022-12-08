@@ -19,83 +19,80 @@ using Characters::String;
 
 using namespace IPAM::LibIPAM::Metadata;
 
-
-    /*
+/*
      ********************************************************************************
      ************************ Metadata::Document::Comment ***************************
      ********************************************************************************
      */
 String Document::Comment::ToString () const
-    {
-        Characters::StringBuilder sb;
-        sb += L"{";
-        sb += L"comment: " + comment + L", ";
-        sb += L"author: ";
-        sb += (author.has_value()) ? author.value().c_str() : L"";
-        sb += L"}";
-        return sb.str();
+{
+    Characters::StringBuilder sb;
+    sb += L"{";
+    sb += L"comment: " + comment + L", ";
+    sb += L"author: ";
+    sb += (author.has_value ()) ? author.value ().c_str () : L"";
+    sb += L"}";
+    return sb.str ();
+}
+
+String Document::Comment::ToString (Containers::Sequence<Comment> comments)
+{
+    Characters::StringBuilder sb;
+    sb += L"{";
+    for (auto it : comments) {
+        sb += it.ToString ();
     }
+    sb += L"}";
+    return sb.str ();
+}
 
-    String Document::Comment::ToString (Containers::Sequence<Comment> comments)
-    {
-        Characters::StringBuilder sb;
-        sb += L"{";
-        for (auto it : comments) {
-            sb += it.ToString();
-        }
-        sb += L"}";
-        return sb.str();
-    }
-
-
-
-    /*
+/*
      ********************************************************************************
      ******************************** Metadata::Document ****************************
      ********************************************************************************
      */
-    void Document::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
-    {
-        using DataExchange::ObjectVariantMapper;
-        using DataExchange::StructFieldMetaInfo;
-        mapper.AddCommonType<Containers::Set<String>>();
+void Document::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
+{
+    using DataExchange::ObjectVariantMapper;
+    using DataExchange::StructFieldMetaInfo;
+    mapper.AddCommonType<Containers::Set<String>> ();
 
-        mapper.AddClass<Document::Comment> ({
-            ObjectVariantMapper::StructFieldInfo{L"comment", StructFieldMetaInfo{&Document::Comment::comment}},
-            ObjectVariantMapper::StructFieldInfo{L"author", StructFieldMetaInfo{&Document::Comment::author}},
-            });
-        mapper.AddCommonType<Containers::Sequence<Document::Comment>> ();
-        mapper.AddCommonType<optional<Containers::Sequence<Document::Comment>>> ();
+    mapper.AddClass<Document::Comment> ({
+        ObjectVariantMapper::StructFieldInfo{L"comment", StructFieldMetaInfo{&Document::Comment::comment}},
+        ObjectVariantMapper::StructFieldInfo{L"author", StructFieldMetaInfo{&Document::Comment::author}},
+    });
+    mapper.AddCommonType<Containers::Sequence<Document::Comment>> ();
+    mapper.AddCommonType<optional<Containers::Sequence<Document::Comment>>> ();
 
-        mapper.AddClass<Document> ({
-            ObjectVariantMapper::StructFieldInfo{L"tags", StructFieldMetaInfo{&Document::tags}},
-            ObjectVariantMapper::StructFieldInfo{L"date", StructFieldMetaInfo{&Document::date}},
-            ObjectVariantMapper::StructFieldInfo{L"location", StructFieldMetaInfo{&Document::location}},
-            ObjectVariantMapper::StructFieldInfo{L"comment", StructFieldMetaInfo{&Document::comment}},
-            ObjectVariantMapper::StructFieldInfo{L"title", StructFieldMetaInfo{&Document::title}},
-            ObjectVariantMapper::StructFieldInfo{L"rating", StructFieldMetaInfo{&Document::rating}},
-            ObjectVariantMapper::StructFieldInfo{L"album", StructFieldMetaInfo{&Document::album}},
-            });
-    }
+    mapper.AddClass<Document> ({
+        ObjectVariantMapper::StructFieldInfo{L"tags", StructFieldMetaInfo{&Document::tags}},
+        ObjectVariantMapper::StructFieldInfo{L"date", StructFieldMetaInfo{&Document::date}},
+        ObjectVariantMapper::StructFieldInfo{L"location", StructFieldMetaInfo{&Document::location}},
+        ObjectVariantMapper::StructFieldInfo{L"comment", StructFieldMetaInfo{&Document::comment}},
+        ObjectVariantMapper::StructFieldInfo{L"title", StructFieldMetaInfo{&Document::title}},
+        ObjectVariantMapper::StructFieldInfo{L"rating", StructFieldMetaInfo{&Document::rating}},
+        ObjectVariantMapper::StructFieldInfo{L"album", StructFieldMetaInfo{&Document::album}},
+    });
+}
 
-    void Document::WriteToFileAsJSON (Containers::Mapping<String, Document> mds, const std::filesystem::path& filePath)
-    {
-        using DataExchange::ObjectVariantMapper;
+void Document::WriteToFileAsJSON (Containers::Mapping<String, Document> mds, const std::filesystem::path& filePath)
+{
+    using DataExchange::ObjectVariantMapper;
 
-        ObjectVariantMapper mapper;
-        Document::SupportVariantMapping (mapper);
-        mapper.AddCommonType<Containers::Mapping<String, Document>> ();
+    ObjectVariantMapper mapper;
+    Document::SupportVariantMapping (mapper);
+    mapper.AddCommonType<Containers::Mapping<String, Document>> ();
 
-        DataExchange::Variant::JSON::Writer{}.Write(mapper.FromObject(mds), IO::FileSystem::FileOutputStream::New(filePath));
-    }
+    DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (mds), IO::FileSystem::FileOutputStream::New (filePath));
+}
 
-    void Document::ReadFromJSONFile (Containers::Mapping<String, Document>* mds, const std::filesystem::path& filePath)
-    {
-        using DataExchange::ObjectVariantMapper;
+void Document::ReadFromJSONFile (Containers::Mapping<String, Document>* mds, const std::filesystem::path& filePath)
+{
+    using DataExchange::ObjectVariantMapper;
 
-        ObjectVariantMapper mapper;
-        Document::SupportVariantMapping (mapper);
-        mapper.AddCommonType<Containers::Mapping<String, Document>> ();
-        DataExchange::VariantValue xxx = DataExchange::Variant::JSON::Reader{}.Read(IO::FileSystem::FileInputStream::New(filePath));
-        mapper.ToObject(xxx, mds);
-    }
+    ObjectVariantMapper mapper;
+    Document::SupportVariantMapping (mapper);
+    mapper.AddCommonType<Containers::Mapping<String, Document>> ();
+    DataExchange::VariantValue xxx = DataExchange::Variant::JSON::Reader{}.Read (IO::FileSystem::FileInputStream::New (filePath));
+    mapper.ToObject (xxx, mds);
+}

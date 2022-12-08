@@ -15,25 +15,23 @@
 #include "Stroika/Foundation/Time/DateTime.h"
 
 #include "Digikam.h"
-#include "LibIPAM/Metadata/Document.h"
 #include "ImageMetadataExtraction.h"
-
+#include "LibIPAM/Metadata/Document.h"
 
 namespace {
-    constexpr   wstring_view  kMyTopLevelDirectory = L"P:/";
+    constexpr wstring_view kMyTopLevelDirectory = L"P:/";
 
     const bool kTallyExtensions  = true;
     const bool kScrapeFileSystem = true;
     const bool kScrapeDigikamDB  = true;
     const bool kCreateMasterFile = true;
 
-
     //const String kSourceDirectory = L"P:/2022/May/Costa Rica";
     const String kSourceDirectory = L"P:/1900-1909";
-//String    kSourceDirectory                = L"P:/";
-    const String    kOutputDirectory                = L"c:/ssw/mdResults/";
-    const String    kSampleExtractionFilesDirectory = kOutputDirectory;
-    const String    kDigikamDatabase                = L"c:/Digikam/digikam4.db";
+    //String    kSourceDirectory                = L"P:/";
+    const String kOutputDirectory                = L"c:/ssw/mdResults/";
+    const String kSampleExtractionFilesDirectory = kOutputDirectory;
+    const String kDigikamDatabase                = L"c:/Digikam/digikam4.db";
 
     const wstring kDigikamScrapeFileName  = L"DigikamScrape.json";
     const wstring kFileScrapeFileName     = L"FileScrape.json";
@@ -48,14 +46,14 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
 
     path digikamScrapeFilePath = (kOutputDirectory + kDigikamScrapeFileName).c_str ();
-    path fileScrapeFilePath    = (kOutputDirectory + kFileScrapeFileName).c_str();
+    path fileScrapeFilePath    = (kOutputDirectory + kFileScrapeFileName).c_str ();
 
     Containers::Mapping<String, Metadata::Document> mergedMetaData;
 
     Containers::Mapping<String, Metadata::Document> fileScrape;
     if (kScrapeFileSystem) {
         {
-            DbgTrace (L"scraping file system directory at %s", kSourceDirectory.c_str());
+            DbgTrace (L"scraping file system directory at %s", kSourceDirectory.c_str ());
             Debug::TimingTrace ttrc;
             fileScrape = Metadata::ImageMetadataExtractor ().ExtractAll (path (kSourceDirectory.c_str ()));
         }
@@ -71,12 +69,12 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         DbgTrace (L"tallying extenstions for directory = %s", kSourceDirectory.c_str ());
         Debug::TimingTrace ttrc;
 
-        Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (path(kSourceDirectory.c_str()), kSampleExtractionFilesDirectory);
+        Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (path (kSourceDirectory.c_str ()), kSampleExtractionFilesDirectory);
 
         DataExchange::ObjectVariantMapper mapper;
-        mapper.AddCommonType<Containers::MultiSet<String>>();
-        mapper.AddCommonType<Containers::CountedValue<String>>();
-        
+        mapper.AddCommonType<Containers::MultiSet<String>> ();
+        mapper.AddCommonType<Containers::CountedValue<String>> ();
+
         path extenstionTallyPath = (kOutputDirectory + kExtensionTallyFileName).c_str ();
 
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (extTally), IO::FileSystem::FileOutputStream::New (extenstionTallyPath));

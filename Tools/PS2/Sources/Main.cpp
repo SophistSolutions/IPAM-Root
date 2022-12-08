@@ -28,7 +28,6 @@ using Characters::String;
 const path kDocumentMetaDataFile = L"c:\\ssw\\mdResults\\DocumentMetaData.json";
 const path kTagInfoOutputFile    = L"c:\\ssw\\mdResults\\DocumentMetaDataTagInfo.json";
 
-
 namespace {
     struct TagInfo {
         Containers::Set<String>      photosContaining;
@@ -66,7 +65,7 @@ namespace {
                     // guarantee they are added to our tag list
                     for (String t : pi.fValue.tags) {
                         if (not fullTagInfo_ptr.ContainsKey (t)) {
-                            fullTagInfo_ptr.Add (t, shared_ptr<TagInfo>(new TagInfo ()));
+                            fullTagInfo_ptr.Add (t, shared_ptr<TagInfo> (new TagInfo ()));
                         }
                     }
 

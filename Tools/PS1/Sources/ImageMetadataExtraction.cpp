@@ -30,8 +30,8 @@ using namespace IPAM::LibIPAM::Common;
 namespace Metadata {
     ImageMetadataExtractor::ImageMetadataExtractor ()
     {
-        bool bmffSupported = Exiv2::enableBMFF(true);
-        DbgTrace(L"bmffSupported = %s", (bmffSupported) ? L"true" : L"false");
+        bool bmffSupported = Exiv2::enableBMFF (true);
+        DbgTrace (L"bmffSupported = %s", (bmffSupported) ? L"true" : L"false");
     }
 
     Metadata::Document ImageMetadataExtractor::Extract (const path& pictFile)
@@ -45,14 +45,14 @@ namespace Metadata {
             auto extract_ipc = [&] () {
                 const Exiv2::IptcData& iptcData = image->iptcData ();
                 if (not iptcData.empty ()) {
-                    constexpr string_view      kTagKeyword     = "Iptc.Application2.Keywords";
-                    constexpr string_view      kDateKeyword    = "Iptc.Application2.DateCreated";
-                    constexpr string_view      kTimeKeyword    = "Iptc.Application2.TimeCreated";
-                    constexpr string_view      kTitleKeyword   = "Iptc.Application2.ObjectName";
-                    constexpr string_view      kCaptionKeyword = "Iptc.Application2.Caption";
-                    constexpr string_view      kIgnoredValue  = "Ignored";
-                    optional<String> foundDate;
-                    optional<String> foundTime;
+                    constexpr string_view kTagKeyword     = "Iptc.Application2.Keywords";
+                    constexpr string_view kDateKeyword    = "Iptc.Application2.DateCreated";
+                    constexpr string_view kTimeKeyword    = "Iptc.Application2.TimeCreated";
+                    constexpr string_view kTitleKeyword   = "Iptc.Application2.ObjectName";
+                    constexpr string_view kCaptionKeyword = "Iptc.Application2.Caption";
+                    constexpr string_view kIgnoredValue   = "Ignored";
+                    optional<String>      foundDate;
+                    optional<String>      foundTime;
 
                     Exiv2::IptcData::const_iterator end = iptcData.end ();
                     for (Exiv2::IptcData::const_iterator md = iptcData.begin (); md != end; ++md) {
@@ -74,12 +74,12 @@ namespace Metadata {
                                 ms.comment.value ().Append (Metadata::Document::Comment (String::FromNarrowSDKString (md->value ().toString ())));
                             }
                         }
-                        else if (md->key() == kDateKeyword) {
+                        else if (md->key () == kDateKeyword) {
                             if (md->value ().toString ().length () > 0) {
                                 foundDate = String::FromNarrowSDKString (md->value ().toString ());
                             }
                         }
-                        else if (md->key() == kTimeKeyword) {
+                        else if (md->key () == kTimeKeyword) {
                             if (md->value ().toString ().length () > 0) {
                                 foundTime = String::FromNarrowSDKString (md->value ().toString ());
                             }
@@ -122,7 +122,6 @@ namespace Metadata {
 
                     const String kRatingNearOne = L"99";
 
-
                     Characters::RegularExpression tagEntry{L"^Xmp\\.mwg-rs\\.Regions\\/mwg-rs:RegionList\\[(?:[0-9]*)?\\]\\/mwg-rs:Name"};
                     optional<String>              foundLongitude;
                     optional<String>              foundLatitude;
@@ -132,7 +131,7 @@ namespace Metadata {
                     for (Exiv2::XmpData::const_iterator md = xmpData.begin (); md != xmpData.end (); ++md) {
                         String key = String::FromNarrowSDKString (md->key ());
                         if (key == kRatingKeyword) {
-                            if (String::FromNarrowSDKString(md->value().toString()) == kRatingNearOne) {
+                            if (String::FromNarrowSDKString (md->value ().toString ()) == kRatingNearOne) {
                                 ms.rating = 1.0; // metadata apparently only allows 2 digits
                             }
                             else {
@@ -225,7 +224,7 @@ namespace Metadata {
             outfile << "none found" << endl;
         }
         else {
-            constexpr string_view   kTagKeyword = "Iptc.Application2.Keywords";
+            constexpr string_view           kTagKeyword = "Iptc.Application2.Keywords";
             Exiv2::IptcData::const_iterator end         = iptcData.end ();
             for (Exiv2::IptcData::const_iterator md = iptcData.begin (); md != end; ++md) {
                 outfile << std::setw (44) << std::setfill (' ') << std::left
@@ -281,7 +280,7 @@ namespace Metadata {
         try {
             Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (pictFile.string ());
             if (image != nullptr) {
-                std::ofstream outfile (outputDirectoryForSampleFiles.AsNarrowSDKString() + pictFile.extension().string().substr(1) + ".txt");
+                std::ofstream outfile (outputDirectoryForSampleFiles.AsNarrowSDKString () + pictFile.extension ().string ().substr (1) + ".txt");
 
                 image->readMetadata ();
                 outfile << "metadata of " << pictFile.string () << endl;
@@ -361,7 +360,7 @@ namespace Metadata {
                 if (is_regular_file (p)) {
                     try {
                         Metadata::Document ms = Extract (p);
-                        ms.album            = IO::FileSystem::FromPath (path (p).remove_filename ()).SubString (topDirLength).SubString (0, -1).ReplaceAll (L"\\", L"/");
+                        ms.album              = IO::FileSystem::FromPath (path (p).remove_filename ()).SubString (topDirLength).SubString (0, -1).ReplaceAll (L"\\", L"/");
                         imageMetaData.Add (IO::FileSystem::FromPath (p).ReplaceAll (L"\\", L"/"), ms);
                     }
                     catch (...) {

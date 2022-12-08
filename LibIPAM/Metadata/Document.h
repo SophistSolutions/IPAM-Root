@@ -24,20 +24,20 @@ namespace IPAM::LibIPAM::Metadata {
         struct Comment {
             Comment (const String& comment_, const optional<String>& author_);
             Comment (const String& comment_);
-            Comment() = default;
+            Comment () = default;
 
-            nonvirtual bool operator== (const Comment& rhs) const = default;
+            nonvirtual bool operator== (const Comment& rhs) const  = default;
             nonvirtual auto operator<=> (const Comment& rhs) const = default;
 
-            nonvirtual String ToString() const;
-            static String     ToString(Containers::Sequence<Comment>);
+            nonvirtual String ToString () const;
+            static String     ToString (Containers::Sequence<Comment>);
 
             String           comment;
             optional<String> author;
         };
 
     public:
-        Document() = default;
+        Document () = default;
 
     public:
         Containers::Set<String> tags;
@@ -54,7 +54,7 @@ namespace IPAM::LibIPAM::Metadata {
         optional<String>                        album;  // for file system, owning directory path from root
 
     public:
-        static void SupportVariantMapping(DataExchange::ObjectVariantMapper& mapper);
+        static void SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper);
         static void WriteToFileAsJSON (Containers::Mapping<String, Document> mds, const std::filesystem::path& filePath);
         static void ReadFromJSONFile (Containers::Mapping<String, Document>* mds, const std::filesystem::path& filePath);
     };
