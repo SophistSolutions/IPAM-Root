@@ -58,14 +58,14 @@ namespace {
                 }
                 DbgTrace (L"found %d photos metadata", pt1.Keys ().length ());
 
-                for (auto pi : pt1) {
+                for (const auto& pi : pt1) {
                     String key = pi.fKey;
                     // DbgTrace (L"processing %s", key.c_str ());
 
                     // guarantee they are added to our tag list
-                    for (String t : pi.fValue.tags) {
+                    for (const String& t : pi.fValue.tags) {
                         if (not fullTagInfo_ptr.ContainsKey (t)) {
-                            fullTagInfo_ptr.Add (t, shared_ptr<TagInfo> (new TagInfo ()));
+                            fullTagInfo_ptr.Add (t, make_shared<TagInfo> ());
                         }
                     }
 
