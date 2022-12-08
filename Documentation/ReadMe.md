@@ -48,4 +48,18 @@ to control access is management of KEYS (NOT WORKED OUT HOW TO HANDLE THIS).
 It would be NICE if there was a way for keys to expire (technically not fully possible, but maybe pragmatically possible - like
 with DRM).
 
+#### API-Server
+
+We will construct an API which allows easy access to POSTING, and UPDATING FILE objects (essentially the album manager).
+It will have ZERO data storage for system of record. But will store database INDEXES for likely/interesting keys.
+
+In this way, it can always RECONSTRUCT and load balance requests.
+
+The API-Server is what talks to IPFS nodes.
+
+#### AGENTS
+
+You will install on your iphone or PC an agent, that watches directories, and PUSHES any file changes to the API-Server
+
+In this way, the agents have a simple problem of finding data locally, and pushing/publishing it to the API-Server in the cloud.
 
