@@ -77,26 +77,10 @@ namespace IPAM::LibIPAM::Common {
      ************************************* Geolocation ******************************
      ********************************************************************************
      */
-    inline Geolocation::Geolocation (Latitude _latitude, Longitude _longitude, double _altitude)
-        : latitude{_latitude}
-        , longitude{_longitude}
-        , altitude{_altitude}
-    {
-    }
-    inline Geolocation::Geolocation (Latitude _latitude, Geolocation::Longitude _longitude)
-        : latitude{_latitude}
-        , longitude{_longitude}
-    {
-    }
-    inline Geolocation::Geolocation (String _latitude, String _longitude)
-        : latitude{_latitude}
-        , longitude{_longitude}
-    {
-    }
-    inline Geolocation::Geolocation (String _latitude, String _longitude, double _altitude)
-        : latitude{_latitude}
-        , longitude{_longitude}
-        , altitude{_altitude}
+    inline Geolocation::Geolocation (Latitude lat, Longitude lon, optional < double> alt)
+        : latitude{lat}
+        , longitude{lon}
+        , altitude{alt}
     {
     }
 

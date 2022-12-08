@@ -205,16 +205,16 @@ void Geolocation::Longitude::TestSuite ()
  *********************************** Geolocation ********************************
  ********************************************************************************
  */
-Geolocation::Geolocation (wchar_t* _latitude, wchar_t* _longitude, wchar_t* _altitude)
-    : latitude (String (_latitude))
-    , longitude (String (_longitude))
+Geolocation::Geolocation (const String& lat, const String& lon, const optional<String>& alt)
+    : latitude{lat}
+    , longitude{lon}
 {
-    if (_altitude != nullptr) {
-        altitude = std::stod (_altitude);
+    if (alt != nullptr) {
+        altitude = std::stod (alt->c_str ());
     }
 }
 
-Geolocation::Geolocation (String isoString)
+Geolocation::Geolocation (const String& isoString)
 {
     Containers::Sequence<String> matches;
     if (isoString.Matches (kExp_, &matches)) {

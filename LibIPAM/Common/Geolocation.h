@@ -96,17 +96,18 @@ namespace IPAM::LibIPAM::Common {
         };
 
     public:
-        Geolocation (Latitude _latitude, Longitude _longitude, double _altitude);
-        Geolocation (Latitude _latitude, Longitude _longitude);
-        Geolocation (String _latitude, String _longitude);
-        Geolocation (String _latitude, String _longitude, double _altitude);
+        /**
+         */
+        Geolocation (Latitude lat, Longitude lon, optional<double> alt = nullopt);
+        Geolocation (const String& lat, const String& lon, const optional<String>& alt = nullopt);
+        Geolocation (const String& isoString);
 
-        Geolocation (wchar_t* _latitude, wchar_t* _longitude, wchar_t* _altitude = nullptr);
-
-        Geolocation (String isoString);
-
+    public:
+        /**
+         */
         nonvirtual String ToISOString ();
 
+    public:
         Latitude         latitude;
         Longitude        longitude;
         optional<double> altitude;
