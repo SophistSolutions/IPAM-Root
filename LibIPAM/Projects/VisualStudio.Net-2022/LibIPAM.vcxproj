@@ -64,9 +64,11 @@
     <None Include="..\..\Makefile" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Common\DocumentMetadata.cpp" />
     <ClCompile Include="..\..\Common\Geolocation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Common\DocumentMetadata.h" />
     <ClInclude Include="..\..\Common\Geolocation.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

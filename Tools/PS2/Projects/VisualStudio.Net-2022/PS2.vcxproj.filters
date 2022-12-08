@@ -15,13 +15,5 @@
     <ClCompile Include="..\..\Sources\Main.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\DocumentMetadata.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Sources\DocumentMetadata.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

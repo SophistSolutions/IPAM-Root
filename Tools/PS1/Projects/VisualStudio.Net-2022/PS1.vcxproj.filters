@@ -18,18 +18,12 @@
     <ClCompile Include="..\..\Sources\Digikam.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Sources\DocumentMetadata.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Sources\ImageMetadataExtraction.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Sources\Digikam.h">
-      <Filter>Sources</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Sources\DocumentMetadata.h">
       <Filter>Sources</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Sources\ImageMetadataExtraction.h">

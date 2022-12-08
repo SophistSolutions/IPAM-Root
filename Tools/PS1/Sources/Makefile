@@ -47,7 +47,6 @@ SUBDIR_OBJS := $(foreach dir, $(SubDirs), $(shell $(MAKE) CONFIGURATION=$(CONFIG
 Objs	=	\
 	$(ObjDir)Main${OBJ_SUFFIX}\
 	$(ObjDir)Digikam${OBJ_SUFFIX}\
-	$(ObjDir)DocumentMetadata${OBJ_SUFFIX}\
 	$(ObjDir)ImageMetadataExtraction${OBJ_SUFFIX}\
 
 VERSION_FILE_IN=$(TOP_ROOT)VERSION

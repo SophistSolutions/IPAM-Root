@@ -6,7 +6,7 @@
 #include "Stroika/Foundation/Containers/Mapping.h"
 #include "Stroika/Foundation/Containers/MultiSet.h"
 
-#include "DocumentMetadata.h"
+#include "LibIPAM/Common/DocumentMetadata.h"
 
 namespace Metadata {
     using Characters::String;

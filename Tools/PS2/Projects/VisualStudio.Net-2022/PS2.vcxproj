@@ -62,11 +62,7 @@
     <None Include="..\..\Sources\Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\Sources\DocumentMetadata.cpp" />
     <ClCompile Include="..\..\Sources\Main.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\Sources\DocumentMetadata.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
