@@ -15,9 +15,10 @@
 #include "Stroika/Foundation/Streams/iostream/OutputStreamFromStdOStream.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
+#include "LibIPAM/Common/Geolocation.h"
+
 #include "Digikam.h"
 #include "DocumentMetadata.h"
-#include "LibIPAM/Common/Geolocation.h"
 
 using namespace Stroika::Foundation;
 using Characters::String;
