@@ -48,7 +48,7 @@ namespace {
     {
         try {
 
-            Containers::Mapping<String, TagInfo*> fullTagInfo_ptr;
+            Containers::Mapping<String, shared_ptr<TagInfo>> fullTagInfo_ptr;
 
             {
                 DbgTrace (L"about to read metadata");
@@ -66,7 +66,7 @@ namespace {
                     // guarantee they are added to our tag list
                     for (String t : pi.fValue.tags) {
                         if (not fullTagInfo_ptr.ContainsKey (t)) {
-                            fullTagInfo_ptr.Add (t, new TagInfo ());
+                            fullTagInfo_ptr.Add (t, shared_ptr<TagInfo>(new TagInfo ()));
                         }
                     }
 
