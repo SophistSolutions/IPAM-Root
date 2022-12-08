@@ -9,35 +9,18 @@ namespace IPAM::LibIPAM::Metadata {
 
     /*
      ********************************************************************************
-     ***************************** Implementation Details ***************************
+     ************************ Metadata::Document::Comment ***************************
      ********************************************************************************
      */
-
-    inline Document::Comment::Comment (String comment_, optional<String> author_)
-        : comment (comment_)
-        , author (author_)
+    inline Document::Comment::Comment (const String& comment_, const optional<String>& author_)
+        : comment{comment_}
+        , author{author_}
     {
     }
-
-    inline Document::Comment::Comment (String comment_)
-        : comment (comment_)
+    inline Document::Comment::Comment (const String& comment_)
+        : comment{comment_}
     {
     }
-
-    inline bool Document::Comment::operator== (const Comment& rhs) const
-    {
-        return comment == rhs.comment and author == rhs.author;
-    }
-
-    inline auto Document::Comment::operator<=> (const Document::Comment& rhs) const
-    {
-        auto ans = comment <=> rhs.comment;
-        if (ans == 0) {
-            return author <=> rhs.author;
-        }
-        return ans;
-    }
-
 
 }
 

@@ -19,7 +19,13 @@ using Characters::String;
 
 using namespace IPAM::LibIPAM::Metadata;
 
-    String Document::Comment::ToString () const
+
+    /*
+     ********************************************************************************
+     ************************ Metadata::Document::Comment ***************************
+     ********************************************************************************
+     */
+String Document::Comment::ToString () const
     {
         Characters::StringBuilder sb;
         sb += L"{";
@@ -41,6 +47,13 @@ using namespace IPAM::LibIPAM::Metadata;
         return sb.str();
     }
 
+
+
+    /*
+     ********************************************************************************
+     ******************************** Metadata::Document ****************************
+     ********************************************************************************
+     */
     void Document::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
     {
         using DataExchange::ObjectVariantMapper;
