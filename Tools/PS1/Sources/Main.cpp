@@ -21,21 +21,25 @@
 using Metadata::DocumentMetadata;
 
 namespace {
+    constexpr   wstring_view  kMyTopLevelDirectory = L"P:/";
+
     const bool kTallyExtensions  = true;
-    const bool kScrapeFileSystem = false;
-    const bool kScrapeDigikamDB  = false;
+    const bool kScrapeFileSystem = true;
+    const bool kScrapeDigikamDB  = true;
     const bool kCreateMasterFile = true;
 
-    //const char* kSourceDirectory  = "P:/1900-1909";
-    const char*    kSourceDirectory                = "P:/";
-    const char*    kOutputDirectory                = "c:/ssw/mdResults/";
-    const char*    kSampleExtractionFilesDirectory = kOutputDirectory;
-    const wchar_t* kDigikamDatabase                = L"c:/Digikam/digikam4.db";
 
-    const string kDigikamScrapeFileName  = "DigikamScrape.json";
-    const string kFileScrapeFileName     = "FileScrape.json";
-    const string kMergedTagsFileName     = "DocumentMetaData.json";
-    const string kExtensionTallyFileName = "ExtenstionTally.json";
+    //const String kSourceDirectory = L"P:/2022/May/Costa Rica";
+    const String kSourceDirectory = L"P:/1900-1909";
+//String    kSourceDirectory                = L"P:/";
+    const String    kOutputDirectory                = L"c:/ssw/mdResults/";
+    const String    kSampleExtractionFilesDirectory = kOutputDirectory;
+    const String    kDigikamDatabase                = L"c:/Digikam/digikam4.db";
+
+    const wstring kDigikamScrapeFileName  = L"DigikamScrape.json";
+    const wstring kFileScrapeFileName     = L"FileScrape.json";
+    const wstring kMergedTagsFileName     = L"DocumentMetaData.json";
+    const wstring kExtensionTallyFileName = L"ExtenstionTally.json";
 }
 
 using namespace std::filesystem;
@@ -44,17 +48,17 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {
     Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
 
-    path digikamScrapeFilePath = (string (kOutputDirectory) + kDigikamScrapeFileName);
-    path fileScrapeFilePath    = (string (kOutputDirectory) + kFileScrapeFileName);
+    path digikamScrapeFilePath = (kOutputDirectory + kDigikamScrapeFileName).c_str ();
+    path fileScrapeFilePath    = (kOutputDirectory + kFileScrapeFileName).c_str();
 
     Containers::Mapping<String, DocumentMetadata> mergedMetaData;
 
     Containers::Mapping<String, DocumentMetadata> fileScrape;
     if (kScrapeFileSystem) {
         {
-            DbgTrace (L"scraping file system directory at %s", kSourceDirectory);
+            DbgTrace (L"scraping file system directory at %s", kSourceDirectory.c_str());
             Debug::TimingTrace ttrc;
-            fileScrape = Metadata::ImageMetadataExtractor ().ExtractAll (kSourceDirectory);
+            fileScrape = Metadata::ImageMetadataExtractor ().ExtractAll (path (kSourceDirectory.c_str ()));
         }
         {
             DbgTrace (L"writing file system scrape to %s", fileScrapeFilePath.c_str ());
@@ -65,16 +69,16 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     }
 
     if (kTallyExtensions) {
-        DbgTrace (L"tallying extenstions for directory = %s", kSourceDirectory);
+        DbgTrace (L"tallying extenstions for directory = %s", kSourceDirectory.c_str ());
         Debug::TimingTrace ttrc;
 
-        Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (kSourceDirectory, kSampleExtractionFilesDirectory);
+        Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (path(kSourceDirectory.c_str()), kSampleExtractionFilesDirectory);
 
         DataExchange::ObjectVariantMapper mapper;
         mapper.AddCommonType<Containers::MultiSet<String>>();
         mapper.AddCommonType<Containers::CountedValue<String>>();
         
-        path extenstionTallyPath = (string (kOutputDirectory) + kExtensionTallyFileName);
+        path extenstionTallyPath = (kOutputDirectory + kExtensionTallyFileName).c_str ();
 
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (extTally), IO::FileSystem::FileOutputStream::New (extenstionTallyPath));
     }
@@ -82,7 +86,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     Containers::Mapping<String, DocumentMetadata> dbScrape;
     if (kScrapeDigikamDB) {
         {
-            DbgTrace (L"scraping digikam database at %s", kDigikamDatabase);
+            DbgTrace (L"scraping digikam database at %s", kDigikamDatabase.c_str ());
             Debug::TimingTrace ttrc;
             dbScrape = digikam::ScrapeDigikamDB (kDigikamDatabase);
         }
@@ -182,7 +186,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
             }
             masterList.Add (it.fKey, dmd);
         }
-        if ((strcmp (kSourceDirectory, "P:/") == 0) and true) {
+        if ((kSourceDirectory == kMyTopLevelDirectory) and true) {
             DbgTrace (L"adding digikam only info to master list");
             Debug::TimingTrace ttrc;
             for (const auto& it : dbScrape) {
@@ -196,10 +200,10 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         }
 
         {
-            auto outputPath = filesystem::path (string (kOutputDirectory) + kMergedTagsFileName);
+            auto outputPath = filesystem::path ((kOutputDirectory + kMergedTagsFileName).c_str ());
             DbgTrace (L"writing processed tag info to %s", outputPath.c_str ());
             Debug::TimingTrace ttrc;
-            DocumentMetadata::WriteToFileAsJSON (fileScrape, filesystem::path (string (kOutputDirectory) + kMergedTagsFileName));
+            DocumentMetadata::WriteToFileAsJSON (fileScrape, outputPath);
         }
     }
 

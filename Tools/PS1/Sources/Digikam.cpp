@@ -43,11 +43,11 @@ namespace digikam {
     using namespace Stroika::Foundation::Database;
     using namespace Stroika::Foundation::Database::SQL;
 
-    Containers::Mapping<String, DocumentMetadata> ScrapeDigikamDB (const wchar_t* dbPath)
+    Containers::Mapping<String, DocumentMetadata> ScrapeDigikamDB (String dbPath)
     {
         Containers::Mapping<String, DocumentMetadata> scrapedMetadata;
         try {
-            auto conn = SQLite::Connection::New (SQLite::Options{.fDBPath = dbPath, .fThreadingMode = SQLite::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
+            auto conn = SQLite::Connection::New (SQLite::Options{.fDBPath = dbPath.c_str (), .fThreadingMode = SQLite::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
 
             // step one: build imageID map to image path (so can access in masterListOfTags and because is our primary key)
             // album paths are done by reference so first need to build map of those

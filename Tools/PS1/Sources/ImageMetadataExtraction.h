@@ -22,7 +22,7 @@ namespace Metadata {
 
         // find all the file extensions in a directory (and subdirectories) and optionally
         // attempt to extract image metadata from first file of each extension found
-        Containers::MultiSet<String> TallyExtensions (const std::filesystem::path& topDir, const char* outputDirectoryForSampleFiles = NULL);
+        Containers::MultiSet<String> TallyExtensions (const std::filesystem::path& topDir, String outputDirectoryForSampleFiles);
     };
 
 }

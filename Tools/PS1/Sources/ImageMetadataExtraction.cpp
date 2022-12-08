@@ -31,6 +31,8 @@ using Metadata::DocumentMetadata;
 namespace Metadata {
     ImageMetadataExtractor::ImageMetadataExtractor ()
     {
+        bool bmffSupported = Exiv2::enableBMFF(true);
+        DbgTrace(L"bmffSupported = %s", (bmffSupported) ? L"true" : L"false");
     }
 
     DocumentMetadata ImageMetadataExtractor::Extract (const path& pictFile)
@@ -44,27 +46,28 @@ namespace Metadata {
             auto extract_ipc = [&] () {
                 Exiv2::IptcData& iptcData = image->iptcData ();
                 if (not iptcData.empty ()) {
-                    const char*      kTagKeyword     = "Iptc.Application2.Keywords";
-                    const char*      kDateKeyword    = "Iptc.Application2.DateCreated";
-                    const char*      kTimeKeyword    = "Iptc.Application2.TimeCreated";
-                    const char*      kTitleKeyword   = "Iptc.Application2.ObjectName";
-                    const char*      kCaptionKeyword = "Iptc.Application2.Caption";
+                    constexpr string_view      kTagKeyword     = "Iptc.Application2.Keywords";
+                    constexpr string_view      kDateKeyword    = "Iptc.Application2.DateCreated";
+                    constexpr string_view      kTimeKeyword    = "Iptc.Application2.TimeCreated";
+                    constexpr string_view      kTitleKeyword   = "Iptc.Application2.ObjectName";
+                    constexpr string_view      kCaptionKeyword = "Iptc.Application2.Caption";
+                    constexpr string_view      kIgnoredValue  = "Ignored";
                     optional<String> foundDate;
                     optional<String> foundTime;
 
                     Exiv2::IptcData::iterator end = iptcData.end ();
                     for (Exiv2::IptcData::iterator md = iptcData.begin (); md != end; ++md) {
-                        if (strcmp (md->key ().c_str (), kTagKeyword) == 0) {
-                            if (md->value ().toString ().length () > 0 and strcmp (md->value ().toString ().c_str (), "Ignored") != 0) {
+                        if (md->key () == kTagKeyword) {
+                            if (md->value ().toString ().length () > 0 and (md->value ().toString () != kIgnoredValue)) {
                                 ms.tags.Add (String::FromNarrowSDKString (md->value ().toString ()));
                             }
                         }
-                        else if (strcmp (md->key ().c_str (), kTitleKeyword) == 0) {
+                        else if (md->key () == kTitleKeyword) {
                             if (md->value ().toString ().length () > 0) {
                                 ms.title = String::FromNarrowSDKString (md->value ().toString ());
                             }
                         }
-                        else if (strcmp (md->key ().c_str (), kCaptionKeyword) == 0) {
+                        else if (md->key () == kCaptionKeyword) {
                             if (md->value ().toString ().length () > 0) {
                                 // only one comment supported by metadata so don't need to check if already created
                                 ms.comment = Containers::Sequence<DocumentMetadata::Comment> ();
@@ -72,12 +75,12 @@ namespace Metadata {
                                 ms.comment.value ().Append (DocumentMetadata::Comment (String::FromNarrowSDKString (md->value ().toString ())));
                             }
                         }
-                        else if (strcmp (md->key ().c_str (), kDateKeyword) == 0) {
+                        else if (md->key() == kDateKeyword) {
                             if (md->value ().toString ().length () > 0) {
                                 foundDate = String::FromNarrowSDKString (md->value ().toString ());
                             }
                         }
-                        else if (strcmp (md->key ().c_str (), kTimeKeyword) == 0) {
+                        else if (md->key() == kTimeKeyword) {
                             if (md->value ().toString ().length () > 0) {
                                 foundTime = String::FromNarrowSDKString (md->value ().toString ());
                             }
@@ -109,14 +112,17 @@ namespace Metadata {
             {
                 Exiv2::XmpData& xmpData = image->xmpData ();
                 if (not xmpData.empty ()) {
-                    const char* kRatingKeyword    = "Xmp.MicrosoftPhoto.Rating";
-                    const char* kTitleKeyword     = "Xmp.acdsee.caption";
-                    const char* kCommentKeyword   = "Xmp.acdsee.notes";
-                    const char* kCommentAuthor    = "Xmp.acdsee.author";
-                    const char* kDateKeyword      = "Xmp.xmp.CreateDate";
-                    const char* kAltitudeKeyword  = "Xmp.exif.GPSAltitude";
-                    const char* kLatitudeKeyword  = "Xmp.exif.GPSLatitude";
-                    const char* kLongitudeKeyword = "Xmp.exif.GPSLongitude";
+                    const String kRatingKeyword    = L"Xmp.MicrosoftPhoto.Rating";
+                    const String kTitleKeyword     = L"Xmp.acdsee.caption";
+                    const String kCommentKeyword   = L"Xmp.acdsee.notes";
+                    const String kCommentAuthor    = L"Xmp.acdsee.author";
+                    const String kDateKeyword      = L"Xmp.xmp.CreateDate";
+                    const String kAltitudeKeyword  = L"Xmp.exif.GPSAltitude";
+                    const String kLatitudeKeyword  = L"Xmp.exif.GPSLatitude";
+                    const String kLongitudeKeyword = L"Xmp.exif.GPSLongitude";
+
+                    const String kRatingNearOne = L"99";
+
 
                     Characters::RegularExpression tagEntry{L"^Xmp\\.mwg-rs\\.Regions\\/mwg-rs:RegionList\\[(?:[0-9]*)?\\]\\/mwg-rs:Name"};
                     optional<String>              foundLongitude;
@@ -126,33 +132,33 @@ namespace Metadata {
                     optional<String>              foundAuthor;
                     for (Exiv2::XmpData::const_iterator md = xmpData.begin (); md != xmpData.end (); ++md) {
                         String key = String::FromNarrowSDKString (md->key ());
-                        if (strcmp (md->key ().c_str (), kRatingKeyword) == 0) {
-                            if (strcmp (md->value ().toString ().c_str (), "99") == 0) {
+                        if (key == kRatingKeyword) {
+                            if (String::FromNarrowSDKString(md->value().toString()) == kRatingNearOne) {
                                 ms.rating = 1.0; // metadata apparently only allows 2 digits
                             }
                             else {
                                 ms.rating = std::round ((stoi (md->value ().toString ()) / 100.0) * 100.0) / 100.0;
                             }
                         }
-                        else if (strcmp (md->key ().c_str (), kTitleKeyword) == 0) {
+                        else if (key == kTitleKeyword) {
                             ms.title = String::FromNarrowSDKString (md->value ().toString ());
                         }
-                        else if (strcmp (md->key ().c_str (), kCommentKeyword) == 0) {
+                        else if (key == kCommentKeyword) {
                             foundComment = String::FromNarrowSDKString (md->value ().toString ());
                         }
-                        else if (strcmp (md->key ().c_str (), kCommentAuthor) == 0) {
+                        else if (key == kCommentAuthor) {
                             foundAuthor = String::FromNarrowSDKString (md->value ().toString ());
                         }
-                        else if (strcmp (md->key ().c_str (), kAltitudeKeyword) == 0) {
+                        else if (key == kAltitudeKeyword) {
                             foundAltitude = String::FromNarrowSDKString (md->value ().toString ());
                         }
-                        else if (strcmp (md->key ().c_str (), kLatitudeKeyword) == 0) {
+                        else if (key == kLatitudeKeyword) {
                             foundLatitude = String::FromNarrowSDKString (md->value ().toString ());
                         }
-                        else if (strcmp (md->key ().c_str (), kLongitudeKeyword) == 0) {
+                        else if (key == kLongitudeKeyword) {
                             foundLongitude = String::FromNarrowSDKString (md->value ().toString ());
                         }
-                        else if (strcmp (md->key ().c_str (), kDateKeyword) == 0) {
+                        else if (key == kDateKeyword) {
                             ms.date = Time::DateTime::Parse (String::FromNarrowSDKString (md->value ().toString ()), Time::DateTime::kISO8601Format).AsUTC ().Format (Time::DateTime::kISO8601Format);
                         }
                         else {
@@ -220,7 +226,7 @@ namespace Metadata {
             outfile << "none found" << endl;
         }
         else {
-            const char*               kTagKeyword = "Iptc.Application2.Keywords";
+            constexpr string_view   kTagKeyword = "Iptc.Application2.Keywords";
             Exiv2::IptcData::iterator end         = iptcData.end ();
             for (Exiv2::IptcData::iterator md = iptcData.begin (); md != end; ++md) {
                 outfile << std::setw (44) << std::setfill (' ') << std::left
@@ -234,7 +240,7 @@ namespace Metadata {
                         << md->count () << "  "
                         << std::dec << md->value ()
                         << std::endl;
-                if (strcmp (md->key ().c_str (), kTagKeyword) == 0) {
+                if (md->key () == kTagKeyword) {
                     if (md->value ().toString ().length () > 0) {
                         tags.Add (String::FromNarrowSDKString (md->value ().toString ()));
                     }
@@ -271,12 +277,12 @@ namespace Metadata {
         return tags;
     }
 
-    void ReadImageMetaData (const path& pictFile, const char* outputDirectoryForSampleFiles)
+    void ReadImageMetaData (const path& pictFile, String outputDirectoryForSampleFiles)
     {
         try {
             Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (pictFile.string ());
             if (image.get () != 0) {
-                std::ofstream outfile (outputDirectoryForSampleFiles + pictFile.extension ().string ().substr (1) + ".txt");
+                std::ofstream outfile (outputDirectoryForSampleFiles.AsNarrowSDKString() + pictFile.extension().string().substr(1) + ".txt");
 
                 image->readMetadata ();
                 outfile << "metadata of " << pictFile.string () << endl;
@@ -303,7 +309,7 @@ namespace Metadata {
         }
     }
 
-    Containers::MultiSet<String> ImageMetadataExtractor::TallyExtensions (const std::filesystem::path& topDir, const char* outputDirectoryForSampleFiles)
+    Containers::MultiSet<String> ImageMetadataExtractor::TallyExtensions (const std::filesystem::path& topDir, String outputDirectoryForSampleFiles)
     {
         Containers::MultiSet<String> extTally;
         try {
@@ -322,7 +328,7 @@ namespace Metadata {
                     extTally.Add (ext);
                     if (extTally.OccurrencesOf (ext) == 1) {
                         DbgTrace (L"found '%s' at %s", ext.c_str (), p.c_str ());
-                        if (outputDirectoryForSampleFiles != nullptr) {
+                        if (outputDirectoryForSampleFiles.length () > 0) {
                             ReadImageMetaData (p, outputDirectoryForSampleFiles);
                         }
                     }
