@@ -19,6 +19,8 @@ using Characters::String;
 */
 namespace IPAM::LibIPAM::Metadata {
 
+    /**
+     */
     class Document {
     public:
         struct Comment {
