@@ -48,7 +48,8 @@ using Characters::String;
     arbitrary text describing a document, with an (optional) associated author. The author is not assumed to be part of the IPAM system, and is not part of the 
     security model (rather the person who records the comment and is the 'owner' of the document controls access to all of the comments in their documents). But 
     the author can still be valuable, since someone can solicit comments from people such as their relatives who are not interested in setting up IPAM but 
-    may have valuable information about documents that are being shared
+    may have valuable information about documents that are being shared. Metadata (and digikam) only support a single comment. We instead want a collection of them, 
+    as it is natural for everyone to share a collection of comments with different people for the same document. 
 
     tag:
     a set of strings associated with the document. Traditionally most tags in image metadata have a recording rectangle within the image. We do not save that here, to
@@ -72,9 +73,7 @@ using Characters::String;
 
 namespace IPAM::LibIPAM::Metadata {
 
-    /**
-     */
-    class Document {
+class Document {
     public:
         struct Comment {
             Comment (const String& comment_, const optional<String>& author_);
@@ -99,14 +98,6 @@ namespace IPAM::LibIPAM::Metadata {
         optional<String>        date;
         optional<String>        location;
 
-        /*
-         * Metadata (and digikam) only support a single comment. We instead want a collection of them, as it is natural for
-         * everyone to share a collection of comments with different people for the same document. This is true even for an individual
-         * metadata creator, who may solicit comments from people who are not IPAM users. These comments are more valuable when they
-         * can be traced back to an individual person (but the person is just a name here, since they are not necessarily part of the IPAM 
-         * system in any other way). Because of the limitation of a single comment in image metadata we will probably have to write out own UI 
-         to support adding additional comments (and adding comments to non-photos which don't have metadata)
-         */
         optional<Containers::Sequence<Comment>> comment;
         optional<String>                        title;
         optional<double>                        rating; // 0->1.0, mapped to/from various software rating styles
@@ -118,7 +109,7 @@ namespace IPAM::LibIPAM::Metadata {
         static void ReadFromJSONFile (Containers::Mapping<String, Document>* mds, const std::filesystem::path& filePath);
     };
 
-}
+}   //namespace IPAM::LibIPAM::Metadata
 
 /*
  ********************************************************************************
