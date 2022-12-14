@@ -159,3 +159,26 @@ image, not subject to future updates from Sterling.
 Simply create a new ID, and create some kind of annotation in the document instance to make clear though it is
 BASED on a common document, its not to be treated as such for updates/future merges of new information purposes. MAYBE
 using a differnt name than BasedOn?
+
+
+### Tie in to IPFS
+
+Each document-instance will be stored as an IPFS document.
+(so has a corresponding CID).
+
+TBD - we will use IPNS to track some sort of notion of lastest version for each 'document'.
+
+Each document containss a BASED_ON field whose value is in IPFS CID.
+
+API-Server will maintain local cache/database of indexed info for documents (indexed metadata) for queries.
+
+API-Server will monitor/poll changes in content from IPFS to keep its indexes up to date.
+
+Most apps wil NOT communiate with IPFS directly, but with API-Server to get or upload data/images/galleries/queries etc.
+The API-Server does NO image storage EXCEPT in its role as a CACHE (and maybe configuraiton/control information).
+
+Each SECTION MAYBE also be implemented as an IPFS document, having its own CID. The reason for this is to make
+ACTUAL document instances small, and able to retain/re-use large sections/chunks just by pointer.
+
+Also - since sections can (and typically will be) encrypted, the API-Server can store in its cache database decryped 
+copies of this section information (be it thumbnails, or indexed sets of tags, or whatever).
