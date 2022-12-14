@@ -27,14 +27,28 @@ handle the publishing/sharing.
 
 ### ** Terminology **
 
-- File (here FILE refers to what the person originally adds to the system, NOT an IPAM document
-- document
+- File
+  here FILE refers to what the person originally adds to the system, NOT an IPAM document
+- Document
   - the unit IPAM considers the basic item being indexed. This is versioned, has many 'sections'
-    and sub-parts, but its the level at which the indexer has decided (undecided ) FILE which represnets teh tneitre docuemnt)
-- section
-  A section is a portion of a document.
+    and sub-parts, but its the level at which the indexer has decided (undecided) FILE will be grouped/considered.
+  A document is a conceptual thing - not an actual file anyplace. The 'document' consists of all past and future
+  versions of the data (maybe?).
+- Versioned-Document-Instance
+  The document conceptually has many versions. But at any point in time, you may examine a single version
+  of the document. In fact, thats really mostly what the system operates on - is versioned document instances.
+- Section
+  A section is a portion of a Versioned-Document-Instance. Examples of sections include
+  - Raw File
+  - Metadata
+    E.G.
+    - Thumbnails (@todo could lump as part of metadata)
+    - Version information
+    - Tags
 
-- metadata -- defined xxx, associated with individual documents
+  Each section maybe separately permissioned, and encoded.
+- Metadata
+  - defined xxx, associated with individual documents
 - actor
   - sub-types
     - person
@@ -49,6 +63,31 @@ handle the publishing/sharing.
 - thumbnail
   - a section providing a small summary (sometimes automatically derived) data about a document
   - e.g. small image
+- tag
+  - something that can be marked as relevant to a document, and they have an associated thumbmail
+  - a (schema-)typed string about a document
+    EXPLAINER
+    A typical 'tag' you might person in an image.
+    Tags have two parts: KEY and VALUE. The KEY in this case would be "Person" - but not the STRING - person. Rather, a
+    predefined open enumeration of values. So we predefine things like Person, and what they mean. But thie list of things
+    that can be the KEY for the tag is open. ANYONE can add ANY to that list. This is like with Microsoft COM, and the IID.
+
+    THe interpretation of the VALUE, depends on the KEY. This is why its critical there be universal agreement about 
+    some set of predefined KEYS (like Person).
+- set of metadata properties (LGP calls them tag-like things) that Sterling believes should not be lumped together with tags
+  - e.g. Date, Rating, Comments, Title, FileName, Albums
+  - **aside - this represents an area of disagreement, LGP leans towards merging these concepts as kinds of tags, and
+    am open to any other name besides tag, for this generalized thing**
+  - Metadata is the best name for this.
+    ** I THINK WE ARE CLOSE TO A RESOLUTION HERE - MERGE TAG and these other metadata propties and just call them metadata properties - not tags **
+    ** The objection sterling has to this is that ALL tags need a 'thumbnail' and NONE of the otehr properties do; and the set of enumerated known meaningful metadata keys
+       are well formed for some of these and he wants them treated specially**
+- person
+  is a human (possibly lump in other animals here). Often they will have an email address
+  and ability to login/authenticate with OAUTH2.
+
+  - Each person, will have a current personal-thumbnail, which is an image which can be used in user interfaces
+    to represent that person. It can be an avatar. (???)
 
 ### Document model
 
@@ -96,3 +135,27 @@ The API-Server is what talks to IPFS nodes.
 You will install on your iphone or PC an agent, that watches directories, and PUSHES any file changes to the API-Server
 
 In this way, the agents have a simple problem of finding data locally, and pushing/publishing it to the API-Server in the cloud.
+
+
+## Operations/Use Case Scenarios
+
+### Merging two Versioned-Document-Instance into a single Document
+
+Imagine two different users enter Alabama.png and Alabama2.jpg into the system.
+At some point, someone receives both through sharing. They notice they are the same and want
+them treated as the same (they both show up in a gallery view next to one another and are indistinguishable).
+
+How to handle this problem? One idea is DELETE one (but which?). And what about immutability didn't you understand?
+Another approach is to create a MERGE record, saying this image SUBSUMES this other image. And indexes and futurue
+queries can then tell that a merge has happened (and undo if they wish or accept if they wish). This can be done with 
+BasedOn: having potentially MULTIPLE values (the versioning scheme).
+
+### Splitting a Versioned-Document-Instance into a two (orphaning)
+
+This can happen if Sterling has added tags to our mutual photo of Croatia, and insists  on dumb names. I dont
+like his names. So I want to mark those as unintertesting for me, and going forward think of this as my own
+image, not subject to future updates from Sterling.
+
+Simply create a new ID, and create some kind of annotation in the document instance to make clear though it is
+BASED on a common document, its not to be treated as such for updates/future merges of new information purposes. MAYBE
+using a differnt name than BasedOn?
