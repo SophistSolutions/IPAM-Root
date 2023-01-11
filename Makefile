@@ -37,6 +37,7 @@ else
 	@$(StroikaRoot)/ScriptsLib/CheckValidConfiguration $(CONFIGURATION)
 	@$(MAKE) --directory=LibIPAM --no-print-directory MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all
 	@$(MAKE) --directory=Tools --no-print-directory MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all
+	@$(MAKE) --directory=Tests --no-print-directory MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all
 	@$(MAKE) --directory=API-Server --no-print-directory MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all
 endif
 
