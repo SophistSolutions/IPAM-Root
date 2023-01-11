@@ -41,7 +41,7 @@ namespace IPAM::LibIPAM::Common {
 
         protected:
             static constexpr double _kBase      = 60.0;
-            static constexpr double _kPrecision = 100000.0;
+            static constexpr double _kPrecision = 1000000.0;
             double                  _value;
 
             nonvirtual String ToISOString_ (const wchar_t* degreeSpecification);
