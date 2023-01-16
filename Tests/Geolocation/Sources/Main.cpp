@@ -3,6 +3,7 @@
  */
 
 #include "Stroika/Foundation/Characters/ToString.h"
+#include "Stroika/Foundation/Configuration/StroikaVersion.h"
 #include "Stroika/Foundation/Debug/TimingTrace.h"
 #include "Stroika/Foundation/Debug/Trace.h"
 
@@ -50,12 +51,16 @@ namespace {
     }
     void FatalErrorHandler_(const Characters::SDKChar* msg) noexcept
     {
+#if kStroika_Version_FullVersion >= Stroika_Make_FULL_VERSION(3, 0, kStroika_Version_Stage_Dev, 1, 0)
+        cerr << "FAILED: " << String::FromSDKString (msg).AsNarrowSDKString () << endl;
+#else
 #if qTargetPlatformSDKUseswchar_t
         cerr << "FAILED: " << Characters::WideStringToNarrowSDKString(msg) << endl;
 #else
         cerr << "FAILED: " << msg << endl;
 #endif
-        Debug::DropIntoDebuggerIfPresent();
+#endif
+        Debug::DropIntoDebuggerIfPresent ();
         _Exit(EXIT_FAILURE); // skip
     }
     void FatalSignalHandler_(Execution::SignalID signal) noexcept

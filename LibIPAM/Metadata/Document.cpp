@@ -30,7 +30,7 @@ String Document::Comment::ToString () const
     sb += L"{";
     sb += L"comment: " + comment + L", ";
     sb += L"author: ";
-    sb += (author.has_value ()) ? author.value ().c_str () : L"";
+    sb += (author.has_value ()) ? author.value ().As<wstring> ().c_str () : L"";
     sb += L"}";
     return sb.str ();
 }

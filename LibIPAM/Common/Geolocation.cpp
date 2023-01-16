@@ -210,7 +210,7 @@ Geolocation::Geolocation (const String& lat, const String& lon, const optional<S
     , longitude{lon}
 {
     if (alt != std::nullopt) {
-        altitude = std::stod (alt->c_str ());
+        altitude = std::stod (alt->As<wstring> ().c_str ());
     }
 }
 
