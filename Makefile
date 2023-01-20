@@ -158,6 +158,11 @@ else
 	@$(MAKE) --directory ThirdPartyComponents --no-print-directory $@ MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 endif
 
+## @todo cleanup - fix configs etc
+run-tests:
+	make --directory Tests run-tests
+	
+
 ifneq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
 # This mechanism isn't strictly necessary, and slows builds slightly on windows. BUT, it can be very confusing the
 # errors you get out of the box with visual studio projects without doing a make project-files, so include
