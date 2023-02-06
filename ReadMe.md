@@ -20,3 +20,9 @@ or for a quicker build
 ~~~
 make CONFIGURATION=Debug all -j10
 ~~~
+
+## Testing
+
+~~~
+make run-tests
+~~~
