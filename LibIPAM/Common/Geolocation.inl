@@ -33,14 +33,6 @@ namespace IPAM::LibIPAM::Common {
         : Coordinate{s, kLatitudeExp_}
     {
     }
-    inline Geolocation::Latitude::Latitude (const Latitude& rhs)
-        : Coordinate{rhs._value}
-    {
-    }
-    inline void Geolocation::Latitude::operator= (const Latitude& rhs)
-    {
-        _value = rhs._value;
-    }
     inline String Geolocation::Latitude::ToISOString ()
     {
         return ToISOString_ (L"%02d");
@@ -58,14 +50,6 @@ namespace IPAM::LibIPAM::Common {
     inline Geolocation::Longitude::Longitude (const String& s)
         : Coordinate{s, kLongitudeExp_}
     {
-    }
-    inline Geolocation::Longitude::Longitude (const Longitude& rhs)
-        : Coordinate{rhs._value}
-    {
-    }
-    inline void Geolocation::Longitude::operator= (const Longitude& rhs)
-    {
-        _value = rhs._value;
     }
     inline String Geolocation::Longitude::ToISOString ()
     {

@@ -34,8 +34,8 @@ namespace IPAM::LibIPAM::Common {
 
         public:
             /**
-                     *  \note comparisons not exact - but with within _kPrecision
-                     */
+             *  \note comparisons not exact - but with within _kPrecision
+             */
             nonvirtual bool operator== (const Coordinate& rhs) const;
             nonvirtual auto operator<=> (const Coordinate& rhs) const;
 
@@ -53,9 +53,9 @@ namespace IPAM::LibIPAM::Common {
         public:
             Latitude (double d = 0);
             Latitude (const String& s);
-            Latitude (const Latitude& rhs);
+            Latitude (const Latitude& rhs) = default;
 
-            nonvirtual void   operator= (const Latitude& rhs);
+            nonvirtual Latitude& operator= (const Latitude& rhs) = default;
             nonvirtual String ToISOString ();
 
         private:
@@ -63,7 +63,7 @@ namespace IPAM::LibIPAM::Common {
             // sign followed by 2,4 or 6 digits
             // followed by optional decimal point and further digits
             // ^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\.[0-9]+)?
-            static inline Characters::RegularExpression kLatitudeExp_{L"^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\\.[0-9]+)?"};
+            static inline Characters::RegularExpression kLatitudeExp_{"^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\\.[0-9]+)?"sv};
 
 #if qDebug
         public:
@@ -77,9 +77,9 @@ namespace IPAM::LibIPAM::Common {
         public:
             Longitude (double d = 0);
             Longitude (const String& s);
-            Longitude (const Longitude& rhs);
+            Longitude (const Longitude& rhs) = default;
 
-            nonvirtual void operator= (const Longitude& rhs);
+            nonvirtual Longitude& operator= (const Longitude& rhs) = default;
 
             nonvirtual String ToISOString ();
 
@@ -88,7 +88,7 @@ namespace IPAM::LibIPAM::Common {
             // sign followed by 3,5 or 7 digits
             // followed by optional decimal point and further digits
             // ^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\.[0-9]+)?
-            static inline Characters::RegularExpression kLongitudeExp_{L"^([+-])([0-9]{3})([0-9]{2})?([0-9]{2})?(\\.[0-9]+)?"};
+            static inline Characters::RegularExpression kLongitudeExp_{"^([+-])([0-9]{3})([0-9]{2})?([0-9]{2})?(\\.[0-9]+)?"sv};
 #if qDebug
         public:
             static void TestSuite ();
@@ -117,7 +117,7 @@ namespace IPAM::LibIPAM::Common {
         static void TestSuite ();
 #endif
     private:
-        static inline Characters::RegularExpression kExp_{L"^(?:([+-][0-9]{2,6}(?:\\.[0-9]+)?)([+-][0-9]{3,7}(?:\\.[0-9]+)?))(?:([+-][0-9]+(?:\\.[0-9]+)?)(?:CRSWGS_84))?\\/"};
+        static inline Characters::RegularExpression kExp_{"^(?:([+-][0-9]{2,6}(?:\\.[0-9]+)?)([+-][0-9]{3,7}(?:\\.[0-9]+)?))(?:([+-][0-9]+(?:\\.[0-9]+)?)(?:CRSWGS_84))?\\/"sv};
     };
 
 }
