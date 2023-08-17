@@ -91,7 +91,7 @@ namespace Metadata {
                         // DbgTrace (L"foundDate =%s, foundTime=%s", Characters::ToString (foundDate).c_str (), Characters::ToString (foundTime).c_str ());
                         DateTime dt = [&] () {
                             if (foundTime) {
-                                return DateTime::Parse (foundDate.value () + L"T" + foundTime.value (), Time::DateTime::kISO8601Format);
+                                return DateTime::Parse (foundDate.value () + "T"sv + foundTime.value (), Time::DateTime::kISO8601Format);
                             }
                             else {
                                 return DateTime{Date::Parse (foundDate.value ())};
@@ -111,18 +111,18 @@ namespace Metadata {
             {
                 Exiv2::XmpData& xmpData = image->xmpData ();
                 if (not xmpData.empty ()) {
-                    const String kRatingKeyword    = L"Xmp.MicrosoftPhoto.Rating";
-                    const String kTitleKeyword     = L"Xmp.acdsee.caption";
-                    const String kCommentKeyword   = L"Xmp.acdsee.notes";
-                    const String kCommentAuthor    = L"Xmp.acdsee.author";
-                    const String kDateKeyword      = L"Xmp.xmp.CreateDate";
-                    const String kAltitudeKeyword  = L"Xmp.exif.GPSAltitude";
-                    const String kLatitudeKeyword  = L"Xmp.exif.GPSLatitude";
-                    const String kLongitudeKeyword = L"Xmp.exif.GPSLongitude";
+                    static const String kRatingKeyword    = "Xmp.MicrosoftPhoto.Rating"sv;
+                    static const String kTitleKeyword     = "Xmp.acdsee.caption"sv;
+                    static const String kCommentKeyword   = "Xmp.acdsee.notes"sv;
+                    static const String kCommentAuthor    = "Xmp.acdsee.author"sv;
+                    static const String kDateKeyword      = "Xmp.xmp.CreateDate"sv;
+                    static const String kAltitudeKeyword  = "Xmp.exif.GPSAltitude"sv;
+                    static const String kLatitudeKeyword  = "Xmp.exif.GPSLatitude"sv;
+                    static const String kLongitudeKeyword = "Xmp.exif.GPSLongitude"sv;
 
-                    const String kRatingNearOne = L"99";
+                    static const String kRatingNearOne = "99"sv;
 
-                    Characters::RegularExpression tagEntry{L"^Xmp\\.mwg-rs\\.Regions\\/mwg-rs:RegionList\\[(?:[0-9]*)?\\]\\/mwg-rs:Name"};
+                    static const Characters::RegularExpression tagEntry{"^Xmp\\.mwg-rs\\.Regions\\/mwg-rs:RegionList\\[(?:[0-9]*)?\\]\\/mwg-rs:Name"sv};
                     optional<String>              foundLongitude;
                     optional<String>              foundLatitude;
                     optional<String>              foundAltitude;
@@ -173,10 +173,10 @@ namespace Metadata {
                             ms.location = Geolocation (Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()), Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ())).ToISOString ();
                         }
                     }
-                    if (foundComment.has_value () and foundComment.value () != L"Ignored") {
+                    if (foundComment.has_value () and foundComment.value () != "Ignored") {
                         // only one comment supported by metadata so don't need to check if already created
                         ms.comment = Containers::Sequence<Metadata::Document::Comment> ();
-                        ms.comment.value ().Append (Metadata::Document::Comment (String (foundComment.value ().c_str ()), foundAuthor));
+                        ms.comment.value ().Append (Metadata::Document::Comment{foundComment.value (), foundAuthor});
                     }
                 }
             }
@@ -360,8 +360,8 @@ namespace Metadata {
                 if (is_regular_file (p)) {
                     try {
                         Metadata::Document ms = Extract (p);
-                        ms.album              = IO::FileSystem::FromPath (path (p).remove_filename ()).SubString (topDirLength).SubString (0, -1).ReplaceAll (L"\\", L"/");
-                        imageMetaData.Add (IO::FileSystem::FromPath (p).ReplaceAll (L"\\", L"/"), ms);
+                        ms.album              = IO::FileSystem::FromPath (path (p).remove_filename ()).SubString (topDirLength).SubString (0, -1).ReplaceAll ("\\"sv, "/"sv);
+                        imageMetaData.Add (IO::FileSystem::FromPath (p).ReplaceAll ("\\"sv, "/"sv), ms);
                     }
                     catch (...) {
                         DbgTrace (L"failed to find metadata for  %s", p.c_str ());

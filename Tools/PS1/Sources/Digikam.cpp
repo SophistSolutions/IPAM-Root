@@ -23,6 +23,11 @@
 using namespace Stroika::Foundation;
 using namespace Stroika::Foundation::Characters;
 using namespace Stroika::Foundation::Containers;
+using namespace Stroika::Foundation::Database;
+using namespace Stroika::Foundation::Database::SQL;
+
+using IO::FileSystem::FromPath;
+using IO::FileSystem::ToPath;
 
 using namespace IPAM;
 
@@ -43,14 +48,12 @@ using namespace LibIPAM;
 
 namespace digikam {
 
-    using namespace Stroika::Foundation::Database;
-    using namespace Stroika::Foundation::Database::SQL;
 
     Mapping<String, Metadata::Document> ScrapeDigikamDB (String dbPath)
     {
         Mapping<String, Metadata::Document> scrapedMetadata;
         try {
-            auto conn = SQLite::Connection::New (SQLite::Options{.fDBPath = dbPath.c_str (), .fThreadingMode = SQLite::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
+            auto conn = SQLite::Connection::New (SQLite::Options{.fDBPath = ToPath (dbPath), .fThreadingMode = SQLite::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
 
             // step one: build imageID map to image path (so can access in masterListOfTags and because is our primary key)
             // album paths are done by reference so first need to build map of those
@@ -97,8 +100,7 @@ namespace digikam {
                     //DbgTrace (L"got: %d, %d, %s, %s", id, album, name.c_str (), imagePath.c_str ());
                     imageIDToImagePath.Add (id, imagePath);
                     Metadata::Document ms;
-                    ms.album =
-                        (IO::FileSystem::FromPath (std::filesystem::path{imagePath.c_str ()}.remove_filename ())).SubString (rootPathLength).SubString (0, -1);
+                    ms.album = (FromPath (ToPath (imagePath).remove_filename ())).SubString (rootPathLength).SubString (0, -1);
                     scrapedMetadata.Add (imagePath, ms);
                 };
             }
