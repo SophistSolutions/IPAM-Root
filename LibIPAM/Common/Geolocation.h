@@ -56,7 +56,7 @@ namespace IPAM::LibIPAM::Common {
             Latitude (const Latitude& rhs) = default;
 
             nonvirtual Latitude& operator= (const Latitude& rhs) = default;
-            nonvirtual String ToISOString ();
+            nonvirtual String    ToISOString ();
 
         private:
             // ISO 6709
@@ -117,7 +117,8 @@ namespace IPAM::LibIPAM::Common {
         static void TestSuite ();
 #endif
     private:
-        static inline Characters::RegularExpression kExp_{"^(?:([+-][0-9]{2,6}(?:\\.[0-9]+)?)([+-][0-9]{3,7}(?:\\.[0-9]+)?))(?:([+-][0-9]+(?:\\.[0-9]+)?)(?:CRSWGS_84))?\\/"sv};
+        static inline Characters::RegularExpression kExp_{
+            "^(?:([+-][0-9]{2,6}(?:\\.[0-9]+)?)([+-][0-9]{3,7}(?:\\.[0-9]+)?))(?:([+-][0-9]+(?:\\.[0-9]+)?)(?:CRSWGS_84))?\\/"sv};
     };
 
 }

@@ -48,12 +48,12 @@ using namespace LibIPAM;
 
 namespace digikam {
 
-
     Mapping<String, Metadata::Document> ScrapeDigikamDB (String dbPath)
     {
         Mapping<String, Metadata::Document> scrapedMetadata;
         try {
-            auto conn = SQLite::Connection::New (SQLite::Options{.fDBPath = ToPath (dbPath), .fThreadingMode = SQLite::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
+            auto conn = SQLite::Connection::New (SQLite::Options{
+                .fDBPath = ToPath (dbPath), .fThreadingMode = SQLite::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
 
             // step one: build imageID map to image path (so can access in masterListOfTags and because is our primary key)
             // album paths are done by reference so first need to build map of those
@@ -107,9 +107,9 @@ namespace digikam {
 
             // comments
             for (const auto& ii : conn.mkStatement (L"Select imageid,comment,author from ImageComments;").GetAllRows (0, 1, 2)) {
-                int                                 id      = std::get<0> (ii).As<int> ();
-                String                              comment = std::get<1> (ii).As<String> ();
-                String                              author  = std::get<2> (ii).As<String> ();
+                int               id              = std::get<0> (ii).As<int> ();
+                String            comment         = std::get<1> (ii).As<String> ();
+                String            author          = std::get<2> (ii).As<String> ();
                 static const auto kIgnoreComment_ = "^(\\n*|Screenshot|AppleMark|Maker.*E-ve|CREATOR:.*)"_RegEx;
                 if (comment.length () > 0 and not comment.Matches (kIgnoreComment_)) {
                     String path;
@@ -133,7 +133,8 @@ namespace digikam {
             // not sure how to get titles -- perhaps in metadata?
 
             // location
-            for (const auto& ii : conn.mkStatement ("Select imageid,latitudeNumber,longitudeNumber/*,altitude*/ from ImagePositions;"sv).GetAllRows (0, 1, 2)) {
+            for (const auto& ii :
+                 conn.mkStatement ("Select imageid,latitudeNumber,longitudeNumber/*,altitude*/ from ImagePositions;"sv).GetAllRows (0, 1, 2)) {
                 int    id    = std::get<0> (ii).As<int> ();
                 double lat   = std::get<1> (ii).As<double> ();
                 double longi = std::get<2> (ii).As<double> ();

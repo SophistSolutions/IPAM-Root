@@ -50,7 +50,7 @@ namespace Metadata {
         DataExchange::ObjectVariantMapper mapper;
         TagInfo::SupportVariantMapping (mapper);
         mapper.AddCommonType<Containers::Mapping<String, TagInfo_Serialize>> ();
-        DataExchange::VariantValue                     xxx = DataExchange::Variant::JSON::Reader{}.Read (IO::FileSystem::FileInputStream::New (filePath));
+        DataExchange::VariantValue xxx = DataExchange::Variant::JSON::Reader{}.Read (IO::FileSystem::FileInputStream::New (filePath));
         Containers::Mapping<String, TagInfo_Serialize> mds;
         mapper.ToObject (xxx, &mds);
         return mds;

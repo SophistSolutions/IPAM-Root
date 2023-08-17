@@ -70,10 +70,9 @@ using Characters::String;
         How to handle tag thumbnails?
 */
 
-
 namespace IPAM::LibIPAM::Metadata {
 
-class Document {
+    class Document {
     public:
         struct Comment {
             Comment (const String& comment_, const optional<String>& author_);
@@ -109,7 +108,7 @@ class Document {
         static void ReadFromJSONFile (Containers::Mapping<String, Document>* mds, const std::filesystem::path& filePath);
     };
 
-}   //namespace IPAM::LibIPAM::Metadata
+} //namespace IPAM::LibIPAM::Metadata
 
 /*
  ********************************************************************************

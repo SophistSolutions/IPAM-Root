@@ -15,11 +15,11 @@ namespace Metadata {
         Containers::Set<String>      photosContaining;
         Containers::MultiSet<String> siblingTagsCount;
 
-        static void                                           SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper);
-        static void                                           WriteToFileAsJSON (Containers::Mapping<String, TagInfo_Serialize> mds, const std::filesystem::path filePath);
+        static void SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper);
+        static void WriteToFileAsJSON (Containers::Mapping<String, TagInfo_Serialize> mds, const std::filesystem::path filePath);
         static Containers::Mapping<String, TagInfo_Serialize> ReadFromJSONFile (const std::filesystem::path filePath);
 
-        static Containers::Mapping<String, TagInfo*>          ProcessMetadata (Containers::Mapping<String, DocumentMetadata> dm);
+        static Containers::Mapping<String, TagInfo*> ProcessMetadata (Containers::Mapping<String, DocumentMetadata> dm);
         static Containers::Mapping<String, TagInfo_Serialize> PrepareForSerialization (Containers::Mapping<String, TagInfo*> fullTagInfo_ptr);
     };
 
@@ -30,7 +30,7 @@ namespace Metadata {
         unsigned int value;
     };
 
-    inline bool operator<(const TagInfoHelper& lhs, const TagInfoHelper& rhs)
+    inline bool operator< (const TagInfoHelper& lhs, const TagInfoHelper& rhs)
     {
         if (lhs.value > rhs.value) {
             return true;

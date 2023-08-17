@@ -123,11 +123,11 @@ namespace Metadata {
                     static const String kRatingNearOne = "99"sv;
 
                     static const Characters::RegularExpression tagEntry{"^Xmp\\.mwg-rs\\.Regions\\/mwg-rs:RegionList\\[(?:[0-9]*)?\\]\\/mwg-rs:Name"sv};
-                    optional<String>              foundLongitude;
-                    optional<String>              foundLatitude;
-                    optional<String>              foundAltitude;
-                    optional<String>              foundComment;
-                    optional<String>              foundAuthor;
+                    optional<String> foundLongitude;
+                    optional<String> foundLatitude;
+                    optional<String> foundAltitude;
+                    optional<String> foundComment;
+                    optional<String> foundAuthor;
                     for (Exiv2::XmpData::const_iterator md = xmpData.begin (); md != xmpData.end (); ++md) {
                         String key = String::FromNarrowSDKString (md->key ());
                         if (key == kRatingKeyword) {
@@ -157,7 +157,9 @@ namespace Metadata {
                             foundLongitude = String::FromNarrowSDKString (md->value ().toString ());
                         }
                         else if (key == kDateKeyword) {
-                            ms.date = Time::DateTime::Parse (String::FromNarrowSDKString (md->value ().toString ()), Time::DateTime::kISO8601Format).AsUTC ().Format (Time::DateTime::kISO8601Format);
+                            ms.date = Time::DateTime::Parse (String::FromNarrowSDKString (md->value ().toString ()), Time::DateTime::kISO8601Format)
+                                          .AsUTC ()
+                                          .Format (Time::DateTime::kISO8601Format);
                         }
                         else {
                             if (key.Matches (tagEntry)) {
@@ -167,10 +169,14 @@ namespace Metadata {
                     }
                     if (foundLatitude.has_value () and foundLongitude.has_value ()) {
                         if (foundAltitude.has_value ()) {
-                            ms.location = Geolocation (Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()), Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ()) /*, double _altitude*/).ToISOString ();
+                            ms.location = Geolocation (Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()),
+                                                       Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ()) /*, double _altitude*/)
+                                              .ToISOString ();
                         }
                         else {
-                            ms.location = Geolocation (Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()), Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ())).ToISOString ();
+                            ms.location = Geolocation (Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()),
+                                                       Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ()))
+                                              .ToISOString ();
                         }
                     }
                     if (foundComment.has_value () and foundComment.value () != "Ignored") {
@@ -198,17 +204,10 @@ namespace Metadata {
             Exiv2::ExifData::const_iterator end = exifData.end ();
             for (Exiv2::ExifData::const_iterator i = exifData.begin (); i != end; ++i) {
                 const char* tn = i->typeName ();
-                outfile << std::setw (44) << std::setfill (' ') << std::left
-                        << i->key () << " "
-                        << "0x" << std::setw (4) << std::setfill ('0') << std::right
-                        << std::hex << i->tag () << " "
-                        << std::setw (9) << std::setfill (' ') << std::left
-                        << (tn ? tn : "Unknown") << " "
-                        << std::dec << std::setw (3)
-                        << std::setfill (' ') << std::right
-                        << i->count () << "  "
-                        << std::dec << i->value ()
-                        << "\n";
+                outfile << std::setw (44) << std::setfill (' ') << std::left << i->key () << " "
+                        << "0x" << std::setw (4) << std::setfill ('0') << std::right << std::hex << i->tag () << " " << std::setw (9)
+                        << std::setfill (' ') << std::left << (tn ? tn : "Unknown") << " " << std::dec << std::setw (3)
+                        << std::setfill (' ') << std::right << i->count () << "  " << std::dec << i->value () << "\n";
             }
         }
         return tags;
@@ -227,17 +226,10 @@ namespace Metadata {
             constexpr string_view           kTagKeyword = "Iptc.Application2.Keywords";
             Exiv2::IptcData::const_iterator end         = iptcData.end ();
             for (Exiv2::IptcData::const_iterator md = iptcData.begin (); md != end; ++md) {
-                outfile << std::setw (44) << std::setfill (' ') << std::left
-                        << md->key () << " "
-                        << "0x" << std::setw (4) << std::setfill ('0') << std::right
-                        << std::hex << md->tag () << " "
-                        << std::setw (9) << std::setfill (' ') << std::left
-                        << md->typeName () << " "
-                        << std::dec << std::setw (3)
-                        << std::setfill (' ') << std::right
-                        << md->count () << "  "
-                        << std::dec << md->value ()
-                        << std::endl;
+                outfile << std::setw (44) << std::setfill (' ') << std::left << md->key () << " "
+                        << "0x" << std::setw (4) << std::setfill ('0') << std::right << std::hex << md->tag () << " " << std::setw (9)
+                        << std::setfill (' ') << std::left << md->typeName () << " " << std::dec << std::setw (3) << std::setfill (' ')
+                        << std::right << md->count () << "  " << std::dec << md->value () << std::endl;
                 if (md->key () == kTagKeyword) {
                     if (md->value ().toString ().length () > 0) {
                         tags.Add (String::FromNarrowSDKString (md->value ().toString ()));
@@ -260,16 +252,9 @@ namespace Metadata {
         }
         else {
             for (Exiv2::XmpData::const_iterator md = xmpData.begin (); md != xmpData.end (); ++md) {
-                outfile << std::setfill (' ') << std::left
-                        << std::setw (44)
-                        << md->key () << " "
-                        << std::setw (9) << std::setfill (' ') << std::left
-                        << md->typeName () << " "
-                        << std::dec << std::setw (3)
-                        << std::setfill (' ') << std::right
-                        << md->count () << "  "
-                        << std::dec << md->value ()
-                        << std::endl;
+                outfile << std::setfill (' ') << std::left << std::setw (44) << md->key () << " " << std::setw (9) << std::setfill (' ')
+                        << std::left << md->typeName () << " " << std::dec << std::setw (3) << std::setfill (' ') << std::right
+                        << md->count () << "  " << std::dec << md->value () << std::endl;
             }
         }
         return tags;
@@ -303,7 +288,8 @@ namespace Metadata {
             }
         }
         catch (...) {
-            DbgTrace (L"got exception=%s, file=%s", Characters::ToString (current_exception ()).c_str (), String::FromNarrowSDKString (pictFile.string ()).c_str ());
+            DbgTrace (L"got exception=%s, file=%s", Characters::ToString (current_exception ()).c_str (),
+                      String::FromNarrowSDKString (pictFile.string ()).c_str ());
         }
     }
 
@@ -360,7 +346,8 @@ namespace Metadata {
                 if (is_regular_file (p)) {
                     try {
                         Metadata::Document ms = Extract (p);
-                        ms.album              = IO::FileSystem::FromPath (path (p).remove_filename ()).SubString (topDirLength).SubString (0, -1).ReplaceAll ("\\"sv, "/"sv);
+                        ms.album =
+                            IO::FileSystem::FromPath (path (p).remove_filename ()).SubString (topDirLength).SubString (0, -1).ReplaceAll ("\\"sv, "/"sv);
                         imageMetaData.Add (IO::FileSystem::FromPath (p).ReplaceAll ("\\"sv, "/"sv), ms);
                     }
                     catch (...) {

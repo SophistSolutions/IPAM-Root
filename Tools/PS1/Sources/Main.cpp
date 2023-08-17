@@ -43,7 +43,8 @@ using namespace std::filesystem;
 
 int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {
-    Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
+    Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (
+        L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
 
     path digikamScrapeFilePath = (kOutputDirectory + kDigikamScrapeFileName).c_str ();
     path fileScrapeFilePath    = (kOutputDirectory + kFileScrapeFileName).c_str ();
@@ -53,7 +54,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     Containers::Mapping<String, Metadata::Document> fileScrape;
     if (kScrapeFileSystem) {
         {
-            DbgTrace (L"scraping file system directory at %s", kSourceDirectory.As<wstring>().c_str ());
+            DbgTrace (L"scraping file system directory at %s", kSourceDirectory.As<wstring> ().c_str ());
             Debug::TimingTrace ttrc;
             fileScrape = Metadata::ImageMetadataExtractor ().ExtractAll (path (kSourceDirectory.As<wstring> ().c_str ()));
         }
@@ -69,7 +70,8 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         DbgTrace (L"tallying extenstions for directory = %s", kSourceDirectory.As<wstring> ().c_str ());
         Debug::TimingTrace ttrc;
 
-        Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (path (kSourceDirectory.As<wstring> ().c_str ()), kSampleExtractionFilesDirectory);
+        Containers::MultiSet<String> extTally =
+            Metadata::ImageMetadataExtractor ().TallyExtensions (path (kSourceDirectory.As<wstring> ().c_str ()), kSampleExtractionFilesDirectory);
 
         DataExchange::ObjectVariantMapper mapper;
         mapper.AddCommonType<Containers::MultiSet<String>> ();
@@ -114,25 +116,29 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
             Metadata::Document dmd = it.fValue;
             Metadata::Document digikamDmd;
             if (dbScrape.Lookup (it.fKey, &digikamDmd)) {
-                String ext                               = String{path (it.fKey.As<wstring> ().c_str ()).extension ().wstring ()}.ToLowerCase ();
+                String ext = String{path (it.fKey.As<wstring> ().c_str ()).extension ().wstring ()}.ToLowerCase ();
                 bool   ignoreMissingFromFileScrapeForNow = (ext == L".nef" or ext == L".heic" or ext == L".mov" or ext == L".bmp");
 
                 dmd.album = digikamDmd.album; // digikam does better here at capture correct top of collection when you don't do full file scan
                 if (digikamDmd.comment.has_value ()) {
                     if (dmd.comment.has_value ()) {
                         if (dmd.comment.value () != digikamDmd.comment.value ()) { // should just be assert
-                            DbgTrace (L"COMMENT disagreement for %s (%s vs %s)", it.fKey.As<wstring> ().c_str (), Metadata::Document::Comment::ToString (dmd.comment.value ()).As<wstring> ().c_str (), Metadata::Document::Comment::ToString (digikamDmd.comment.value ()).As<wstring> ().c_str ());
+                            DbgTrace (L"COMMENT disagreement for %s (%s vs %s)", it.fKey.As<wstring> ().c_str (),
+                                      Metadata::Document::Comment::ToString (dmd.comment.value ()).As<wstring> ().c_str (),
+                                      Metadata::Document::Comment::ToString (digikamDmd.comment.value ()).As<wstring> ().c_str ());
                         }
                     }
                     else {
-                        DbgTrace (L"adding missing comment for %s (adding %s)", it.fKey.As<wstring> ().c_str (), Metadata::Document::Comment::ToString (digikamDmd.comment.value ()).c_str ());
+                        DbgTrace (L"adding missing comment for %s (adding %s)", it.fKey.As<wstring> ().c_str (),
+                                  Metadata::Document::Comment::ToString (digikamDmd.comment.value ()).c_str ());
                         dmd.comment = digikamDmd.comment;
                     }
                 }
                 if (digikamDmd.date.has_value ()) {
                     if (dmd.date.has_value ()) {
                         if (dmd.date.value () != digikamDmd.date.value ()) {
-                            DbgTrace (L"DATE disagreement for %s (%s vs %s)", it.fKey.As<wstring> ().c_str (), dmd.date.value ().c_str (), digikamDmd.date.value ().c_str ());
+                            DbgTrace (L"DATE disagreement for %s (%s vs %s)", it.fKey.As<wstring> ().c_str (), dmd.date.value ().c_str (),
+                                      digikamDmd.date.value ().c_str ());
                         }
                     }
                     else {
@@ -143,7 +149,8 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                 if (digikamDmd.location.has_value ()) {
                     if (dmd.location.has_value ()) {
                         if (dmd.location.value () != digikamDmd.location.value ()) { // should just be assert
-                            DbgTrace (L"LOCATION disagreement for %s (%s vs %s)", it.fKey.As<wstring> ().c_str (), dmd.location.value ().c_str (), digikamDmd.location.value ().c_str ());
+                            DbgTrace (L"LOCATION disagreement for %s (%s vs %s)", it.fKey.As<wstring> ().c_str (),
+                                      dmd.location.value ().c_str (), digikamDmd.location.value ().c_str ());
                         }
                     }
                     else {
@@ -154,7 +161,8 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                 if (digikamDmd.rating.has_value ()) {
                     if (dmd.rating.has_value ()) {
                         if (dmd.rating.value () != digikamDmd.rating.value ()) { // should just be assert
-                            DbgTrace (L"RATING DISAGREEMENT for %s %f : %f", it.fKey.As<wstring> ().c_str (), dmd.rating.value (), digikamDmd.rating.value ());
+                            DbgTrace (L"RATING DISAGREEMENT for %s %f : %f", it.fKey.As<wstring> ().c_str (), dmd.rating.value (),
+                                      digikamDmd.rating.value ());
                         }
                     }
                     else {

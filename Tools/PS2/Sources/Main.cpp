@@ -127,7 +127,8 @@ namespace {
                 });
                 tagInfoMapper.AddCommonType<Containers::Mapping<String, TagInfo_Serialize>> ();
 
-                DataExchange::Variant::JSON::Writer{}.Write (tagInfoMapper.FromObject (fullTagInfo), IO::FileSystem::FileOutputStream::New (kTagInfoOutputFile));
+                DataExchange::Variant::JSON::Writer{}.Write (tagInfoMapper.FromObject (fullTagInfo),
+                                                             IO::FileSystem::FileOutputStream::New (kTagInfoOutputFile));
             }
         }
         catch (...) {
@@ -138,7 +139,8 @@ namespace {
 
 int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {
-    Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
+    Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (
+        L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
 #if qDebug
     Geolocation::TestSuite ();
 #endif
