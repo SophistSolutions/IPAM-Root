@@ -52,8 +52,8 @@ namespace digikam {
     {
         Mapping<String, Metadata::Document> scrapedMetadata;
         try {
-            auto conn = SQLite::Connection::New (SQLite::Options{
-                .fDBPath = ToPath (dbPath), .fThreadingMode = SQLite::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
+            auto conn = SQLite::Connection::New (SQLite::Connection::Options{
+                .fDBPath = ToPath (dbPath), .fThreadingMode = SQLite::Connection::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
 
             // step one: build imageID map to image path (so can access in masterListOfTags and because is our primary key)
             // album paths are done by reference so first need to build map of those
