@@ -16,14 +16,14 @@ CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)In
 
 
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
-LIB_DEPENDENCIES += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX))
+LinkerArgs_LibDependencies += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX))
 
 
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-LIB_DEPENDENCIES += exiv2.lib
-LIB_DEPENDENCIES += libexpat.lib psapi.lib
+LinkerArgs_LibDependencies += exiv2.lib
+LinkerArgs_LibDependencies += libexpat.lib psapi.lib
 else
-LIB_DEPENDENCIES += -lexiv2 -lexpat -lz
+LinkerArgs_LibDependencies += -lexiv2 -lexpat -lz
 endif
 
 # From https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4286?view=msvc-170
