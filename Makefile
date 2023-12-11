@@ -160,7 +160,7 @@ endif
 
 ## @todo cleanup - fix configs etc
 run-tests:
-	make --directory Tests run-tests
+	make --directory Tests --no-print-directory run-tests
 	
 
 ifneq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
@@ -188,3 +188,4 @@ format-code:
 	@$(MAKE) --directory=LibIPAM --no-print-directory format-code
 	@$(MAKE) --directory=API-Server --no-print-directory format-code
 	@$(MAKE) --directory=Tools --no-print-directory format-code
+	@$(MAKE) --directory=Tests --no-print-directory format-code
