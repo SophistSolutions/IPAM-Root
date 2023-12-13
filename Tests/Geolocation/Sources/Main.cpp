@@ -23,112 +23,109 @@ using Characters::String;
 
 using namespace IPAM::LibIPAM::Common;
 
+#if qHasFeature_GoogleTest
 namespace {
-    void Latitude_Tests_ ()
+    GTEST_TEST (Geolocation, Latitude_Tests_)
     {
         Geolocation::Latitude a{30.6};
-        VerifyTestResult (a.degrees () == 30);
-        VerifyTestResult (a.minutes () == 36);
-        VerifyTestResult ((abs (a.seconds ()) - 0) < 0.00001);
+        EXPECT_TRUE (a.degrees () == 30);
+        EXPECT_TRUE (a.minutes () == 36);
+        EXPECT_TRUE ((abs (a.seconds ()) - 0) < 0.00001);
 
         Geolocation::Latitude b{-30.634343};
-        VerifyTestResult (b.degrees () == -30);
-        VerifyTestResult (b.minutes () == -38);
-        VerifyTestResult ((abs (b.seconds ()) - 3.6348) < 0.00001);
+        EXPECT_TRUE (b.degrees () == -30);
+        EXPECT_TRUE (b.minutes () == -38);
+        EXPECT_TRUE ((abs (b.seconds ()) - 3.6348) < 0.00001);
 
         Geolocation::Latitude c{5655};
-        VerifyTestResult (c.degrees () == 5655 % 360);
-        VerifyTestResult (c.minutes () == 0);
-        VerifyTestResult ((abs (c.seconds ()) - 0) < 0.00001);
+        EXPECT_TRUE (c.degrees () == 5655 % 360);
+        EXPECT_TRUE (c.minutes () == 0);
+        EXPECT_TRUE ((abs (c.seconds ()) - 0) < 0.00001);
 
-        VerifyTestResult (a != b);
-        VerifyTestResult (b != c);
+        EXPECT_TRUE (a != b);
+        EXPECT_TRUE (b != c);
 
         Geolocation::Latitude d{"+1234.23"};
-        VerifyTestResult (d.degrees () == 12);
-        VerifyTestResult (d.minutes () == 34);
-        VerifyTestResult ((abs (d.seconds ()) - .23) < 0.00001);
+        EXPECT_TRUE (d.degrees () == 12);
+        EXPECT_TRUE (d.minutes () == 34);
+        EXPECT_TRUE ((abs (d.seconds ()) - .23) < 0.00001);
 
         Geolocation::Latitude e{"-1234.23"};
-        VerifyTestResult (e.degrees () == -12);
-        VerifyTestResult (e.minutes () == -34);
-        VerifyTestResult ((abs (e.seconds ()) - .23) < 0.00001);
+        EXPECT_TRUE (e.degrees () == -12);
+        EXPECT_TRUE (e.minutes () == -34);
+        EXPECT_TRUE ((abs (e.seconds ()) - .23) < 0.00001);
 
-        VerifyTestResult (Geolocation::Latitude{"+10"}.ToISOString () == "+10");
-        VerifyTestResult (Geolocation::Latitude{"+1245"}.ToISOString () == "+1245");
-        VerifyTestResult (Geolocation::Latitude{"+124543"}.ToISOString () == "+124543");
-        VerifyTestResult (Geolocation::Latitude{"-2134.23"}.ToISOString () == "-2134.23");
-        VerifyTestResult (Geolocation::Latitude{"+124543.891234"}.ToISOString () == "+124543.891234");
+        EXPECT_TRUE (Geolocation::Latitude{"+10"}.ToISOString () == "+10");
+        EXPECT_TRUE (Geolocation::Latitude{"+1245"}.ToISOString () == "+1245");
+        EXPECT_TRUE (Geolocation::Latitude{"+124543"}.ToISOString () == "+124543");
+        EXPECT_TRUE (Geolocation::Latitude{"-2134.23"}.ToISOString () == "-2134.23");
+        EXPECT_TRUE (Geolocation::Latitude{"+124543.891234"}.ToISOString () == "+124543.891234");
     }
 
-    void Longitude_Tests_ ()
+    GTEST_TEST (Geolocation, Longitude_Tests_)
     {
         Geolocation::Longitude a{30.6};
-        VerifyTestResult (a.degrees () == 30);
-        VerifyTestResult (a.minutes () == 36);
-        VerifyTestResult ((abs (a.seconds ()) - 0) < 0.00001);
+        EXPECT_TRUE (a.degrees () == 30);
+        EXPECT_TRUE (a.minutes () == 36);
+        EXPECT_TRUE ((abs (a.seconds ()) - 0) < 0.00001);
 
         Geolocation::Longitude b{-30.634343};
-        VerifyTestResult (b.degrees () == -30);
-        VerifyTestResult (b.minutes () == -38);
-        VerifyTestResult ((abs (b.seconds ()) - 3.6348) < 0.00001);
+        EXPECT_TRUE (b.degrees () == -30);
+        EXPECT_TRUE (b.minutes () == -38);
+        EXPECT_TRUE ((abs (b.seconds ()) - 3.6348) < 0.00001);
 
         Geolocation::Longitude c{5655};
-        VerifyTestResult (c.degrees () == 5655 % 360);
-        VerifyTestResult (c.minutes () == 0);
-        VerifyTestResult ((abs (c.seconds ()) - 0) < 0.00001);
+        EXPECT_TRUE (c.degrees () == 5655 % 360);
+        EXPECT_TRUE (c.minutes () == 0);
+        EXPECT_TRUE ((abs (c.seconds ()) - 0) < 0.00001);
 
-        VerifyTestResult (a != b);
-        VerifyTestResult (b != c);
+        EXPECT_TRUE (a != b);
+        EXPECT_TRUE (b != c);
 
         Geolocation::Longitude d{"+21234.23"};
-        VerifyTestResult (d.degrees () == 212);
-        VerifyTestResult (d.minutes () == 34);
-        VerifyTestResult ((abs (d.seconds ()) - .23) < 0.00001);
+        EXPECT_TRUE (d.degrees () == 212);
+        EXPECT_TRUE (d.minutes () == 34);
+        EXPECT_TRUE ((abs (d.seconds ()) - .23) < 0.00001);
 
         Geolocation::Longitude e{"-21234.23"};
-        VerifyTestResult (e.degrees () == -212);
-        VerifyTestResult (e.minutes () == -34);
-        VerifyTestResult ((abs (e.seconds ()) - .23) < 0.00001);
+        EXPECT_TRUE (e.degrees () == -212);
+        EXPECT_TRUE (e.minutes () == -34);
+        EXPECT_TRUE ((abs (e.seconds ()) - .23) < 0.00001);
 
-        VerifyTestResult (Geolocation::Longitude{"+100"}.ToISOString () == L"+100");
-        VerifyTestResult (Geolocation::Longitude{"+12345"}.ToISOString () == L"+12345");
-        VerifyTestResult (Geolocation::Longitude{"+1234543"}.ToISOString () == L"+1234543");
-        VerifyTestResult (Geolocation::Longitude{"-21234.23"}.ToISOString () == L"-21234.23");
-        VerifyTestResult (Geolocation::Longitude{"+1234543.891234"}.ToISOString () == L"+1234543.891234");
+        EXPECT_TRUE (Geolocation::Longitude{"+100"}.ToISOString () == L"+100");
+        EXPECT_TRUE (Geolocation::Longitude{"+12345"}.ToISOString () == L"+12345");
+        EXPECT_TRUE (Geolocation::Longitude{"+1234543"}.ToISOString () == L"+1234543");
+        EXPECT_TRUE (Geolocation::Longitude{"-21234.23"}.ToISOString () == L"-21234.23");
+        EXPECT_TRUE (Geolocation::Longitude{"+1234543.891234"}.ToISOString () == L"+1234543.891234");
     }
 
-    void TestOne_ ()
+    GTEST_TEST (Geolocation, TestOne_)
     {
         Geolocation a{String{"+1245"}, String{"+100"}};
-        VerifyTestResult (a.latitude == Geolocation::Latitude{"+1245"});
-        VerifyTestResult (a.longitude == Geolocation::Longitude{"+100"});
-        VerifyTestResult (a.ToISOString () = "+1245+100/");
+        EXPECT_TRUE (a.latitude == Geolocation::Latitude{"+1245"});
+        EXPECT_TRUE (a.longitude == Geolocation::Longitude{"+100"});
+        EXPECT_TRUE (a.ToISOString () = "+1245+100/");
 
-        VerifyTestResult (Geolocation (String{"-2134.23"}, String{"+1234543.891234"}).ToISOString () = "-2134.23+1234543.891234/");
+        EXPECT_TRUE (Geolocation (String{"-2134.23"}, String{"+1234543.891234"}).ToISOString () = "-2134.23+1234543.891234/");
 
         // examples from https://en.wikipedia.org/wiki/ISO_6709
-        VerifyTestResult (Geolocation{"+00-025/"}.ToISOString () = "+00-025/");                   // Atlantic Ocean
-        VerifyTestResult (Geolocation{"+48.8577+002.295/"}.ToISOString () = "+48.8577+002.295/"); // Eiffel Tower
-        VerifyTestResult (Geolocation{"+27.5916+086.5640+8850CRSWGS_84/"}.ToISOString () = "+27.5916+086.5640+8850CRSWGS_84/"); // Mount Everest
-        VerifyTestResult (Geolocation{"-90+000+2800CRSWGS_84/"}.ToISOString () = "-90+000+2800CRSWGS_84/"); // South Pole
-        VerifyTestResult (Geolocation{"+40.6894-074.0447/"}.ToISOString () = "+40.6894-074.0447/");         // Statue of Liberty
+        EXPECT_TRUE (Geolocation{"+00-025/"}.ToISOString () = "+00-025/");                   // Atlantic Ocean
+        EXPECT_TRUE (Geolocation{"+48.8577+002.295/"}.ToISOString () = "+48.8577+002.295/"); // Eiffel Tower
+        EXPECT_TRUE (Geolocation{"+27.5916+086.5640+8850CRSWGS_84/"}.ToISOString () = "+27.5916+086.5640+8850CRSWGS_84/"); // Mount Everest
+        EXPECT_TRUE (Geolocation{"-90+000+2800CRSWGS_84/"}.ToISOString () = "-90+000+2800CRSWGS_84/"); // South Pole
+        EXPECT_TRUE (Geolocation{"+40.6894-074.0447/"}.ToISOString () = "+40.6894-074.0447/");         // Statue of Liberty
     }
 }
-
-namespace {
-    void RegressionTests_ ()
-    {
-        Latitude_Tests_ ();
-        Longitude_Tests_ ();
-        TestOne_ ();
-    }
-}
+#endif
 
 int main (int argc, const char* argv[])
 {
     Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (
         L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
     Test::Setup (argc, argv);
-    return Test::PrintPassOrFail (RegressionTests_);
+#if qHasFeature_GoogleTest
+    return RUN_ALL_TESTS ();
+#else
+    cerr << "IPAM regression tests require building with google test feature" << endl;
+#endif
 }
