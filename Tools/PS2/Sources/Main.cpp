@@ -117,13 +117,13 @@ namespace {
                 ObjectVariantMapper tagInfoMapper;
                 tagInfoMapper.AddCommonType<Containers::Set<String>> ();
                 tagInfoMapper.AddClass<TagInfoHelper> ({
-                    ObjectVariantMapper::StructFieldInfo{L"key", StructFieldMetaInfo{&TagInfoHelper::key}},
-                    ObjectVariantMapper::StructFieldInfo{L"value", StructFieldMetaInfo{&TagInfoHelper::value}},
+                    ObjectVariantMapper::StructFieldInfo{"key", StructFieldMetaInfo{&TagInfoHelper::key}},
+                    ObjectVariantMapper::StructFieldInfo{"value", StructFieldMetaInfo{&TagInfoHelper::value}},
                 });
                 tagInfoMapper.AddCommonType<Containers::SortedCollection<TagInfoHelper>> ();
                 tagInfoMapper.AddClass<TagInfo_Serialize> ({
-                    ObjectVariantMapper::StructFieldInfo{L"photosContaining", StructFieldMetaInfo{&TagInfo_Serialize::photosContaining}},
-                    ObjectVariantMapper::StructFieldInfo{L"siblingTagsCount", StructFieldMetaInfo{&TagInfo_Serialize::siblingTagsCount}},
+                    ObjectVariantMapper::StructFieldInfo{"photosContaining", StructFieldMetaInfo{&TagInfo_Serialize::photosContaining}},
+                    ObjectVariantMapper::StructFieldInfo{"siblingTagsCount", StructFieldMetaInfo{&TagInfo_Serialize::siblingTagsCount}},
                 });
                 tagInfoMapper.AddCommonType<Containers::Mapping<String, TagInfo_Serialize>> ();
 

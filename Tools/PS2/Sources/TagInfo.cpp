@@ -26,13 +26,13 @@ namespace Metadata {
         using DataExchange::StructFieldMetaInfo;
         mapper.AddCommonType<Containers::Set<String>> ();
         mapper.AddClass<TagInfoHelper> ({
-            ObjectVariantMapper::StructFieldInfo{L"key", StructFieldMetaInfo{&TagInfoHelper::key}},
-            ObjectVariantMapper::StructFieldInfo{L"value", StructFieldMetaInfo{&TagInfoHelper::value}},
+            ObjectVariantMapper::StructFieldInfo{"key", StructFieldMetaInfo{&TagInfoHelper::key}},
+            ObjectVariantMapper::StructFieldInfo{"value", StructFieldMetaInfo{&TagInfoHelper::value}},
         });
         mapper.AddCommonType<Containers::SortedCollection<TagInfoHelper>> ();
         mapper.AddClass<TagInfo_Serialize> ({
-            ObjectVariantMapper::StructFieldInfo{L"photosContaining", StructFieldMetaInfo{&TagInfo_Serialize::photosContaining}},
-            ObjectVariantMapper::StructFieldInfo{L"siblingTagsCount", StructFieldMetaInfo{&TagInfo_Serialize::siblingTagsCount}},
+            ObjectVariantMapper::StructFieldInfo{"photosContaining", StructFieldMetaInfo{&TagInfo_Serialize::photosContaining}},
+            ObjectVariantMapper::StructFieldInfo{"siblingTagsCount", StructFieldMetaInfo{&TagInfo_Serialize::siblingTagsCount}},
         });
     }
 
