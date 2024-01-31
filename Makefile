@@ -18,7 +18,7 @@ APPLY_CONFIGS=$(or \
 				$(if $(CONFIGURATION_TAGS), \
 					$(shell $(StroikaRoot)ScriptsLib/GetConfigurations --config-tags "$(CONFIGURATION_TAGS)"),\
 					$(if $(filter clobber, $(MAKECMDGOALS)),\
-						$(shell $(StroikaRoot)ScriptsLib/GetConfigurations --all),\
+						$(shell $(StroikaRoot)ScriptsLib/GetConfigurations --all --quiet),\
 						$(shell $(StroikaRoot)ScriptsLib/GetConfigurations --all-default)\
 					)\
 				)\
@@ -136,8 +136,9 @@ distclean:
 ifneq ($(CONFIGURATION),)
 	$(error "make distclean applies to all configurations - and deletes all configurations")
 endif
-	@rm -rf Builds/ ConfigurationFiles/ IntermediateFiles/
+	@rm -rf Builds ConfigurationFiles IntermediateFiles
 	@$(MAKE) --no-print-directory clobber MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
+	-@$(MAKE) --no-print-directory --directory $(StroikaRoot) --silent $@ MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 
 clean clobber:
 ifeq ($(CONFIGURATION),)
@@ -184,13 +185,11 @@ endif
 update-submodules:
 	git submodule update --init --recursive
 
+STROIKA_COMMIT?=v3-Release
 latest-submodules:
-ifeq ($(BRANCH),)
-	(cd $(StroikaRoot) && git checkout V2.1-Release && git pull)
-else
-	(cd $(StroikaRoot) && git checkout $(BRANCH) && git pull)
-endif
-
+	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "IPAM $(call FUNCTION_CAPITALIZE_WORD,$@):"
+	@$(StroikaRoot)ScriptsLib/PrintProgressLine $$(($(MAKE_INDENT_LEVEL)+1)) "Checkout Latest Stroika (STROIKA_COMMIT=${STROIKA_COMMIT})"
+	@(cd $(StroikaRoot) && git checkout $(STROIKA_COMMIT) --quiet && git pull --quiet)
 
 format-code:
 	@$(MAKE) --directory=LibIPAM --no-print-directory format-code
