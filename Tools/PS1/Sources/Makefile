@@ -1,12 +1,12 @@
-export TOP_ROOT=$(abspath ../../../)/
-StroikaRoot=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
+export TOP_ROOT:=$(abspath ../../../)/
+StroikaRoot:=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
 
 ifneq ($(CONFIGURATION),)
 	-include $(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/Configuration.mk
 endif
 
-SrcDir				=	$(TOP_ROOT)Tools/PS1/Sources/
-ObjDir				=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/
+SrcDir		:=	$(TOP_ROOT)Tools/PS1/Sources/
+ObjDir		:=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/
 
 include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
 include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
@@ -33,24 +33,24 @@ ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
 EXTRA_SUFFIX_LINKER_ARGS+= -ignore:4286 
 endif
 
-TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS1/
-TARGETEXE				=	$(TARGETEXEDir)PS1${EXE_SUFFIX}
+TARGETEXEDir	:=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS1/
+TARGETEXE		:=	$(TARGETEXEDir)PS1${EXE_SUFFIX}
 
 
-SubDirs=\
+SubDirs:=\
 
 
 
 SUBDIR_OBJS := $(foreach dir, $(SubDirs), $(shell $(MAKE) CONFIGURATION=$(CONFIGURATION) --directory $(dir) -s list-objs))
 
 
-Objs	=	\
+Objs	:=	\
 	$(ObjDir)Main${OBJ_SUFFIX}\
 	$(ObjDir)Digikam${OBJ_SUFFIX}\
 	$(ObjDir)ImageMetadataExtraction${OBJ_SUFFIX}\
 
-VERSION_FILE_IN=$(TOP_ROOT)VERSION
-VERSION_FILE_OUT=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/AppVersion.h
+VERSION_FILE_IN:=$(TOP_ROOT)VERSION
+VERSION_FILE_OUT:=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/AppVersion.h
 $(VERSION_FILE_OUT):	$(VERSION_FILE_IN)
 	@mkdir -p $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1
 	@$(StroikaRoot)ScriptsLib/MakeVersionFile $(VERSION_FILE_IN) $(VERSION_FILE_OUT) AppCPlusPlusVersion kAppVersion __PS1_AppVersion_H__

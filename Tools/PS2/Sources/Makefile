@@ -1,12 +1,12 @@
-export TOP_ROOT=$(abspath ../../../)/
-StroikaRoot=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
+export TOP_ROOT:=$(abspath ../../../)/
+StroikaRoot:=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
 
 ifneq ($(CONFIGURATION),)
 	-include $(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/Configuration.mk
 endif
 
-SrcDir				=	$(TOP_ROOT)IPAM/Tools/PS2/Sources/
-ObjDir				=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS2/
+SrcDir		:=	$(TOP_ROOT)IPAM/Tools/PS2/Sources/
+ObjDir		:=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS2/
 
 include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
 include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
@@ -18,18 +18,18 @@ CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
 LinkerArgs_LibDependencies += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX))
 
 
-TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS2/
-TARGETEXE				=	$(TARGETEXEDir)PS2${EXE_SUFFIX}
+TARGETEXEDir	:=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS2/
+TARGETEXE		:=	$(TARGETEXEDir)PS2${EXE_SUFFIX}
 
 
-SubDirs=\
+SubDirs:=\
 
 
 
 SUBDIR_OBJS := $(foreach dir, $(SubDirs), $(shell $(MAKE) CONFIGURATION=$(CONFIGURATION) --directory $(dir) -s list-objs))
 
 
-Objs	=	\
+Objs	:=	\
 	$(ObjDir)Main${OBJ_SUFFIX}\
 
 

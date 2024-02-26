@@ -1,5 +1,5 @@
-export TOP_ROOT=$(shell realpath ../)/
-export StroikaRoot=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
+export TOP_ROOT:=$(shell realpath ../)/
+export StroikaRoot:=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
 
 include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
 

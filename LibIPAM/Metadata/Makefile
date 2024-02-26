@@ -1,12 +1,12 @@
-export TOP_ROOT=$(abspath ../../)/
-StroikaRoot=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
+export TOP_ROOT:=$(abspath ../../)/
+StroikaRoot:=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
 
 ifneq ($(CONFIGURATION),)
 	-include $(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/Configuration.mk
 endif
 
-SrcDir				=	$(TOP_ROOT)LibIPAM/
-ObjDir				=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/LibIPAM/Metadata/
+SrcDir		:=	$(TOP_ROOT)LibIPAM/
+ObjDir		:=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/LibIPAM/Metadata/
 
 include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
 include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
@@ -16,10 +16,10 @@ include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 
 
 
-SubDirs=\
+SubDirs:=\
 
 
-Objs	=	\
+Objs	:=	\
 	$(ObjDir)Document${OBJ_SUFFIX}\
 
 
