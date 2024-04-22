@@ -11,6 +11,7 @@
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Writer.h"
 #include "Stroika/Foundation/Debug/TimingTrace.h"
 #include "Stroika/Foundation/Debug/Trace.h"
+#include "Stroika/Foundation/Execution/CommandLine.h"
 #include "Stroika/Foundation/IO/FileSystem/FileOutputStream.h"
 
 #include "LibIPAM/Common/Geolocation.h"
@@ -19,11 +20,10 @@
 using namespace std::filesystem;
 
 using namespace Stroika::Foundation;
+using namespace Stroika::Foundation::Characters;
 
 using namespace IPAM::LibIPAM;
 using namespace IPAM::LibIPAM::Common;
-
-using Characters::String;
 
 const path kDocumentMetaDataFile = L"c:\\ssw\\mdResults\\DocumentMetaData.json";
 const path kTagInfoOutputFile    = L"c:\\ssw\\mdResults\\DocumentMetaDataTagInfo.json";
@@ -50,13 +50,13 @@ namespace {
             Containers::Mapping<String, shared_ptr<TagInfo>> fullTagInfo_ptr;
 
             {
-                DbgTrace (L"about to read metadata");
+                DbgTrace ("about to read metadata"_f);
                 Containers::Mapping<String, Metadata::Document> pt1;
                 {
                     Debug::TimingTrace ttrc;
                     Metadata::Document::ReadFromJSONFile (&pt1, kDocumentMetaDataFile);
                 }
-                DbgTrace (L"found %d photos metadata", pt1.Keys ().length ());
+                DbgTrace ("found {} photos metadata"_f, pt1.Keys ().length ());
 
                 for (const auto& pi : pt1) {
                     String key = pi.fKey;
@@ -91,7 +91,7 @@ namespace {
 
             Containers::Mapping<String, TagInfo_Serialize> fullTagInfo;
             {
-                DbgTrace (L"processing tag info");
+                DbgTrace ("processing tag info"_f);
                 Debug::TimingTrace ttrc;
 
                 // sorted multiset doesn't currently do what I want (sorts by key, not value)
@@ -109,7 +109,7 @@ namespace {
             }
 
             {
-                DbgTrace (L"writing processed tag info to %s", kTagInfoOutputFile.c_str ());
+                DbgTrace ("writing processed tag info to {}"_f, kTagInfoOutputFile);
                 Debug::TimingTrace ttrc;
 
                 using DataExchange::ObjectVariantMapper;
@@ -132,15 +132,14 @@ namespace {
             }
         }
         catch (...) {
-            DbgTrace (L"got exception=%s", Characters::ToString (current_exception ()).c_str ());
+            DbgTrace ("got exception={}"_f, current_exception ());
         }
     }
 }
 
 int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {
-    Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (
-        L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
+    Debug::TraceContextBumper ctx{"main", "argv={}"_f, Execution::CommandLine{argc, argv}};
 #if qDebug
     Geolocation::TestSuite ();
 #endif

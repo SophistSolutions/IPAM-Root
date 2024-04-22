@@ -181,7 +181,7 @@ namespace digikam {
                             ms.rating = 1.0;
                             break;
                         default:
-                            DbgTrace (L"rating, unknown value = : %d for %s", id, path.c_str ());
+                            DbgTrace ("rating, unknown value = : {} for {}"_f, id, path);
                     }
                     if (date.length () > 0) {
                         date = Time::DateTime::Parse (date, Time::DateTime::kISO8601Format).AsUTC ().Format (Time::DateTime::kISO8601Format);
@@ -236,7 +236,7 @@ namespace digikam {
             }
         }
         catch (...) {
-            DbgTrace (L"ScrapeDigikamDB: got exception=%s", Characters::ToString (current_exception ()).c_str ());
+            DbgTrace ("ScrapeDigikamDB: got exception={}"_f, current_exception ());
         }
         return scrapedMetadata;
     }

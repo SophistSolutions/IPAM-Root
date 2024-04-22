@@ -10,16 +10,15 @@
 #include "Stroika/Foundation/Configuration/StroikaVersion.h"
 #include "Stroika/Foundation/Debug/TimingTrace.h"
 #include "Stroika/Foundation/Debug/Trace.h"
+#include "Stroika/Foundation/Execution/CommandLine.h"
 
 #include "Stroika/Frameworks/Test/TestHarness.h"
 
 #include "LibIPAM/Common/Geolocation.h"
 
 using namespace Stroika::Foundation;
+using namespace Stroika::Foundation::Characters;
 using namespace Stroika::Frameworks;
-
-using Characters::RegularExpression;
-using Characters::String;
 
 using namespace IPAM::LibIPAM::Common;
 
@@ -28,8 +27,8 @@ namespace {
     GTEST_TEST (Geolocation, Latitude_Tests_)
     {
         Geolocation::Latitude a{30.6};
-        EXPECT_TRUE (a.degrees () == 30);
-        EXPECT_TRUE (a.minutes () == 36);
+        EXPECT_EQ (a.degrees (), 30);
+        EXPECT_EQ (a.minutes (), 36);
         EXPECT_TRUE ((abs (a.seconds ()) - 0) < 0.00001);
 
         Geolocation::Latitude b{-30.634343};
@@ -109,19 +108,18 @@ namespace {
         EXPECT_TRUE (Geolocation (String{"-2134.23"}, String{"+1234543.891234"}).ToISOString () = "-2134.23+1234543.891234/");
 
         // examples from https://en.wikipedia.org/wiki/ISO_6709
-        EXPECT_TRUE (Geolocation{"+00-025/"}.ToISOString () = "+00-025/");                   // Atlantic Ocean
-        EXPECT_TRUE (Geolocation{"+48.8577+002.295/"}.ToISOString () = "+48.8577+002.295/"); // Eiffel Tower
+        EXPECT_TRUE (Geolocation{"+00-025/"}.ToISOString () = "+00-025/");                                                 // Atlantic Ocean
+        EXPECT_TRUE (Geolocation{"+48.8577+002.295/"}.ToISOString () = "+48.8577+002.295/");                               // Eiffel Tower
         EXPECT_TRUE (Geolocation{"+27.5916+086.5640+8850CRSWGS_84/"}.ToISOString () = "+27.5916+086.5640+8850CRSWGS_84/"); // Mount Everest
-        EXPECT_TRUE (Geolocation{"-90+000+2800CRSWGS_84/"}.ToISOString () = "-90+000+2800CRSWGS_84/"); // South Pole
-        EXPECT_TRUE (Geolocation{"+40.6894-074.0447/"}.ToISOString () = "+40.6894-074.0447/");         // Statue of Liberty
+        EXPECT_TRUE (Geolocation{"-90+000+2800CRSWGS_84/"}.ToISOString () = "-90+000+2800CRSWGS_84/");                     // South Pole
+        EXPECT_TRUE (Geolocation{"+40.6894-074.0447/"}.ToISOString () = "+40.6894-074.0447/"); // Statue of Liberty
     }
 }
 #endif
 
 int main (int argc, const char* argv[])
 {
-    Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (
-        L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
+    Debug::TraceContextBumper ctx{"main", "argv={}"_f, Execution::CommandLine{argc, argv}};
     Test::Setup (argc, argv);
 #if qHasFeature_GoogleTest
     return RUN_ALL_TESTS ();

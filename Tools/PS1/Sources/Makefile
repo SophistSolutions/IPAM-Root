@@ -30,7 +30,7 @@ endif
 #		Sounds like fix needed in exiv2.lib
 # LINK : warning LNK4286: symbol 'XML_Parse' defined in 'libexpat.lib(xmlparse.obj)' is imported by 'exiv2.lib(xmp.obj)'
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
-EXTRA_SUFFIX_LINKER_ARGS+= -ignore:4286 
+LinkerArgs_ExtraSuffix+= -ignore:4217 
 endif
 
 TARGETEXEDir	:=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS1/

@@ -8,15 +8,14 @@
 #include "Stroika/Foundation/Characters/Format.h"
 #include "Stroika/Foundation/Characters/RegularExpression.h"
 #include "Stroika/Foundation/Characters/String2Int.h"
+#include "Stroika/Foundation/Characters/StringBuilder.h"
 #include "Stroika/Foundation/DataExchange/BadFormatException.h"
 #include "Stroika/Foundation/Debug/Trace.h"
 
 #include "Geolocation.h"
 
 using namespace Stroika::Foundation;
-
-using Characters::RegularExpression;
-using Characters::String;
+using namespace Stroika::Foundation::Characters;
 
 using namespace IPAM::LibIPAM::Common;
 
@@ -95,25 +94,25 @@ double Geolocation::Coordinate::seconds () const
     return std::round (result * _kBase * _kPrecision) / _kPrecision;
 }
 
-String Geolocation::Coordinate::ToISOString_ (const wchar_t* degreeSpecification)
+String Geolocation::Coordinate::ToISOString_ (const Characters::FormatString<char> degreeSpecification)
 {
-    String result;
+    StringBuilder result;
     if (_value >= 0) {
-        result += L'+';
+        result << '+';
     }
     result += Characters::Format (degreeSpecification, degrees ());
     if (minutes () != 0) {
-        result += Characters::Format (L"%02d", abs (minutes ()));
+        result << Characters::Format ("{:02}"_f, abs (minutes ()));
     }
     if ((abs (seconds ()) - 0) > 0.00001) {
         double _integral;
         double fractional = std::modf (abs (seconds ()), &_integral);
         int    xxx        = int (abs (_integral));
         if (xxx != 0) {
-            result += Characters::Format (L"%02d", xxx);
+            result << Characters::Format ("{:02}"_f, xxx);
         }
         if (abs (fractional) > 0.000001) {
-            result += Characters::Format (L"%.6g", abs (fractional)).SubString (1);
+            result << Characters::Format ("{:.6g}"_f, abs (fractional)).SubString (1);
         }
     }
     return result;
@@ -236,7 +235,7 @@ String Geolocation::ToISOString ()
         if (altitude.value () >= 0) {
             result += L'+';
         }
-        result += Characters::Format (L"%.6g", altitude.value ());
+        result += Characters::Format ("{:.6g}"_f, altitude.value ());
         result += L"CRSWGS_84"; // need a CRS identifier, this is what is used in example (probably need to always require specification of one if height is specified)
     }
     return result + L"/";

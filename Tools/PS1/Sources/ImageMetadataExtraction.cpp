@@ -23,7 +23,7 @@ DISABLE_COMPILER_MSC_WARNING_END (4127)
 using namespace std::filesystem;
 
 using namespace Stroika::Foundation;
-using Characters::String;
+using namespace Stroika::Foundation::Characters;
 
 using namespace IPAM::LibIPAM::Common;
 
@@ -31,7 +31,7 @@ namespace Metadata {
     ImageMetadataExtractor::ImageMetadataExtractor ()
     {
         bool bmffSupported = Exiv2::enableBMFF (true);
-        DbgTrace (L"bmffSupported = %s", (bmffSupported) ? L"true" : L"false");
+        DbgTrace ("bmffSupported = {}"_f, bmffSupported);
     }
 
     Metadata::Document ImageMetadataExtractor::Extract (const path& pictFile)
@@ -288,8 +288,7 @@ namespace Metadata {
             }
         }
         catch (...) {
-            DbgTrace (L"got exception=%s, file=%s", Characters::ToString (current_exception ()).c_str (),
-                      String::FromNarrowSDKString (pictFile.string ()).c_str ());
+            DbgTrace ("got exception={}, file={}"_f, current_exception (), String::FromNarrowSDKString (pictFile.string ()));
         }
     }
 
@@ -311,7 +310,7 @@ namespace Metadata {
                     String ext = String{p.extension ().wstring ()}.ToLowerCase ();
                     extTally.Add (ext);
                     if (extTally.OccurrencesOf (ext) == 1) {
-                        DbgTrace (L"found '%s' at %s", ext.c_str (), p.c_str ());
+                        DbgTrace ("found '{}' at {}"_f, ext, p);
                         if (outputDirectoryForSampleFiles.length () > 0) {
                             ReadImageMetaData (p, outputDirectoryForSampleFiles);
                         }
@@ -320,7 +319,7 @@ namespace Metadata {
             }
         }
         catch (...) {
-            DbgTrace (L"got exception=%s", Characters::ToString (current_exception ()).c_str ());
+            DbgTrace ("got exception={}"_f, current_exception ());
         }
 
         return extTally;
@@ -351,13 +350,13 @@ namespace Metadata {
                         imageMetaData.Add (IO::FileSystem::FromPath (p).ReplaceAll ("\\"sv, "/"sv), ms);
                     }
                     catch (...) {
-                        DbgTrace (L"failed to find metadata for  %s", p.c_str ());
+                        DbgTrace ("failed to find metadata for  {}"_f, p);
                     }
                 }
             }
         }
         catch (...) {
-            DbgTrace (L"got exception=%s", Characters::ToString (current_exception ()).c_str ());
+            DbgTrace ("got exception={}"_f, current_exception ());
         }
 
         return imageMetaData;

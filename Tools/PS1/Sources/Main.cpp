@@ -11,6 +11,7 @@
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Writer.h"
 #include "Stroika/Foundation/Debug/TimingTrace.h"
 #include "Stroika/Foundation/Debug/Trace.h"
+#include "Stroika/Foundation/Execution/CommandLine.h"
 #include "Stroika/Foundation/IO/FileSystem/FileOutputStream.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
@@ -18,20 +19,22 @@
 #include "ImageMetadataExtraction.h"
 #include "LibIPAM/Metadata/Document.h"
 
+using namespace Stroika::Foundation::Characters::Literals;
+
 namespace {
     constexpr wstring_view kMyTopLevelDirectory = L"P:/";
 
-    const bool kTallyExtensions  = true;
-    const bool kScrapeFileSystem = true;
-    const bool kScrapeDigikamDB  = true;
-    const bool kCreateMasterFile = true;
+    constexpr bool kTallyExtensions  = true;
+    constexpr bool kScrapeFileSystem = true;
+    constexpr bool kScrapeDigikamDB  = true;
+    constexpr bool kCreateMasterFile = true;
 
     //const String kSourceDirectory = L"P:/2022/May/Costa Rica";
-    const String kSourceDirectory = L"P:/1900-1909"sv;
+    const String kSourceDirectory = "P:/1900-1909"sv;
     //String    kSourceDirectory                = L"P:/";
-    const String kOutputDirectory                = L"c:/ssw/mdResults/"sv;
+    const String kOutputDirectory                = "c:/ssw/mdResults/"sv;
     const String kSampleExtractionFilesDirectory = kOutputDirectory;
-    const String kDigikamDatabase                = L"c:/Digikam/digikam4.db"sv;
+    const String kDigikamDatabase                = "c:/Digikam/digikam4.db"sv;
 
     const wstring kDigikamScrapeFileName  = L"DigikamScrape.json";
     const wstring kFileScrapeFileName     = L"FileScrape.json";
@@ -43,8 +46,7 @@ using namespace std::filesystem;
 
 int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {
-    Debug::TraceContextBumper ctx{Stroika_Foundation_Debug_OptionalizeTraceArgs (
-        L"main", L"argv=%s", Characters::ToString (vector<const char*>{argv, argv + argc}).c_str ())};
+    Debug::TraceContextBumper ctx{"main", "argv={}"_f, Execution::CommandLine{argc, argv}};
 
     path digikamScrapeFilePath = (kOutputDirectory + kDigikamScrapeFileName).c_str ();
     path fileScrapeFilePath    = (kOutputDirectory + kFileScrapeFileName).c_str ();
@@ -54,12 +56,12 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     Containers::Mapping<String, Metadata::Document> fileScrape;
     if (kScrapeFileSystem) {
         {
-            DbgTrace (L"scraping file system directory at %s", kSourceDirectory.As<wstring> ().c_str ());
+            DbgTrace ("scraping file system directory at {}"_f, kSourceDirectory);
             Debug::TimingTrace ttrc;
             fileScrape = Metadata::ImageMetadataExtractor ().ExtractAll (path (kSourceDirectory.As<wstring> ().c_str ()));
         }
         {
-            DbgTrace (L"writing file system scrape to %s", fileScrapeFilePath.c_str ());
+            DbgTrace ("writing file system scrape to {}"_f, fileScrapeFilePath);
             Debug::TimingTrace ttrc;
             Metadata::Document::WriteToFileAsJSON (fileScrape, fileScrapeFilePath);
         }
@@ -67,7 +69,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     }
 
     if (kTallyExtensions) {
-        DbgTrace (L"tallying extenstions for directory = %s", kSourceDirectory.As<wstring> ().c_str ());
+        DbgTrace ("tallying extenstions for directory = {}"_f, kSourceDirectory);
         Debug::TimingTrace ttrc;
 
         Containers::MultiSet<String> extTally =
@@ -85,12 +87,12 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     Containers::Mapping<String, Metadata::Document> dbScrape;
     if (kScrapeDigikamDB) {
         {
-            DbgTrace (L"scraping digikam database at %s", kDigikamDatabase.As<wstring> ().c_str ());
+            DbgTrace ("scraping digikam database at {}"_f, kDigikamDatabase);
             Debug::TimingTrace ttrc;
             dbScrape = digikam::ScrapeDigikamDB (kDigikamDatabase);
         }
         {
-            DbgTrace (L"writing digikam scrape to %s", digikamScrapeFilePath.c_str ());
+            DbgTrace ("writing digikam scrape to {}"_f, digikamScrapeFilePath);
             Debug::TimingTrace ttrc;
             Metadata::Document::WriteToFileAsJSON (dbScrape, digikamScrapeFilePath);
         }
@@ -99,18 +101,18 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     if (kCreateMasterFile) {
         if (not kScrapeFileSystem) {
             // read in an old copy
-            DbgTrace (L"about to read file system metadata");
+            DbgTrace ("about to read file system metadata"_f);
             Debug::TimingTrace ttrc;
             Metadata::Document::ReadFromJSONFile (&fileScrape, fileScrapeFilePath);
         }
         if (not kScrapeDigikamDB) {
             // read in an old copy
-            DbgTrace (L"about to read digikam metadata from %s", digikamScrapeFilePath.c_str ());
+            DbgTrace ("about to read digikam metadata from {}"_f, digikamScrapeFilePath);
             Debug::TimingTrace ttrc;
             Metadata::Document::ReadFromJSONFile (&dbScrape, digikamScrapeFilePath);
         }
 
-        DbgTrace (L"merging file and database sources, files length = %d, db length = %d", fileScrape.Keys ().length (), dbScrape.Keys ().length ());
+        DbgTrace ("merging file and database sources, files length = {}, db length = {}"_f, fileScrape.Keys ().length (), dbScrape.Keys ().length ());
         Containers::Mapping<String, Metadata::Document> masterList;
         for (const auto& it : fileScrape) {
             Metadata::Document dmd = it.fValue;
@@ -123,22 +125,21 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                 if (digikamDmd.comment.has_value ()) {
                     if (dmd.comment.has_value ()) {
                         if (dmd.comment.value () != digikamDmd.comment.value ()) { // should just be assert
-                            DbgTrace (L"COMMENT disagreement for %s (%s vs %s)", it.fKey.As<wstring> ().c_str (),
-                                      Metadata::Document::Comment::ToString (dmd.comment.value ()).As<wstring> ().c_str (),
-                                      Metadata::Document::Comment::ToString (digikamDmd.comment.value ()).As<wstring> ().c_str ());
+                            DbgTrace ("COMMENT disagreement for {} ({} vs {})"_f, it.fKey,
+                                      Metadata::Document::Comment::ToString (dmd.comment.value ()),
+                                      Metadata::Document::Comment::ToString (digikamDmd.comment.value ()));
                         }
                     }
                     else {
-                        DbgTrace (L"adding missing comment for %s (adding %s)", it.fKey.As<wstring> ().c_str (),
-                                  Metadata::Document::Comment::ToString (digikamDmd.comment.value ()).c_str ());
+                        DbgTrace ("adding missing comment for {} (adding {})"_f, it.fKey,
+                                  Metadata::Document::Comment::ToString (digikamDmd.comment.value ()));
                         dmd.comment = digikamDmd.comment;
                     }
                 }
                 if (digikamDmd.date.has_value ()) {
                     if (dmd.date.has_value ()) {
                         if (dmd.date.value () != digikamDmd.date.value ()) {
-                            DbgTrace (L"DATE disagreement for %s (%s vs %s)", it.fKey.As<wstring> ().c_str (), dmd.date.value ().c_str (),
-                                      digikamDmd.date.value ().c_str ());
+                            DbgTrace ("DATE disagreement for {} ({} vs {}"_f, it.fKey, dmd.date.value (), digikamDmd.date.value ());
                         }
                     }
                     else {
@@ -149,8 +150,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                 if (digikamDmd.location.has_value ()) {
                     if (dmd.location.has_value ()) {
                         if (dmd.location.value () != digikamDmd.location.value ()) { // should just be assert
-                            DbgTrace (L"LOCATION disagreement for %s (%s vs %s)", it.fKey.As<wstring> ().c_str (),
-                                      dmd.location.value ().c_str (), digikamDmd.location.value ().c_str ());
+                            DbgTrace ("LOCATION disagreement for {} ({} vs {})"_f, it.fKey, dmd.location.value (), digikamDmd.location.value ());
                         }
                     }
                     else {
@@ -161,12 +161,11 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                 if (digikamDmd.rating.has_value ()) {
                     if (dmd.rating.has_value ()) {
                         if (dmd.rating.value () != digikamDmd.rating.value ()) { // should just be assert
-                            DbgTrace (L"RATING DISAGREEMENT for %s %f : %f", it.fKey.As<wstring> ().c_str (), dmd.rating.value (),
-                                      digikamDmd.rating.value ());
+                            DbgTrace ("RATING DISAGREEMENT for {} {} : {}"_f, it.fKey, dmd.rating.value (), digikamDmd.rating.value ());
                         }
                     }
                     else {
-                        DbgTrace (L"adding missing rating for %s (adding %f)", it.fKey.As<wstring> ().c_str (), digikamDmd.rating.value ());
+                        DbgTrace ("adding missing rating for {} (adding {})"_f, it.fKey, digikamDmd.rating.value ());
                         dmd.rating = digikamDmd.rating;
                     }
                 }
@@ -174,25 +173,25 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                 if (dmd.tags != digikamDmd.tags) { // should be assert but can only do release build
                     for (String tag : dmd.tags) {
                         if (not digikamDmd.tags.Contains (tag)) {
-                            DbgTrace (L"FOUND TAG MISSING FROM DIGIKAM %s : %s", it.fKey.As<wstring> ().c_str (), tag.As<wstring> ().c_str ());
+                            DbgTrace ("FOUND TAG MISSING FROM DIGIKAM {} : {}"_f, it.fKey, tag);
                         }
                     }
 
                     for (String tag : digikamDmd.tags) {
                         if (not dmd.tags.Contains (tag) and not ignoreMissingFromFileScrapeForNow) {
-                            DbgTrace (L"found tag missing from file scrape %s : %s", it.fKey.As<wstring> ().c_str (), tag.As<wstring> ().c_str ());
+                            DbgTrace ("found tag missing from file scrape {} : {}"_f, it.fKey, tag);
                             dmd.tags.Add (tag);
                         }
                     }
                 }
             }
             else {
-                DbgTrace (L"missing digikam dmd for : %s", it.fKey.As<wstring> ().c_str ());
+                DbgTrace ("missing digikam dmd for : {}"_f, it.fKey);
             }
             masterList.Add (it.fKey, dmd);
         }
         if ((kSourceDirectory == kMyTopLevelDirectory) and true) {
-            DbgTrace (L"adding digikam only info to master list");
+            DbgTrace ("adding digikam only info to master list"_f);
             Debug::TimingTrace ttrc;
             for (const auto& it : dbScrape) {
                 Metadata::Document digikamDmd = it.fValue;
@@ -206,7 +205,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 
         {
             auto outputPath = filesystem::path ((kOutputDirectory + kMergedTagsFileName).c_str ());
-            DbgTrace (L"writing processed tag info to %s", outputPath.c_str ());
+            DbgTrace ("writing processed tag info to {}"_f, outputPath);
             Debug::TimingTrace ttrc;
             Metadata::Document::WriteToFileAsJSON (fileScrape, outputPath);
         }
