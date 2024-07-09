@@ -19,7 +19,7 @@ CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
 LinkerArgs_LibDependencies += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX))
 
 
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 LinkerArgs_LibDependencies += exiv2.lib
 LinkerArgs_LibDependencies += libexpat.lib psapi.lib
 else
@@ -29,7 +29,7 @@ endif
 # From https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4286?view=msvc-170
 #		Sounds like fix needed in exiv2.lib
 # LINK : warning LNK4286: symbol 'XML_Parse' defined in 'libexpat.lib(xmlparse.obj)' is imported by 'exiv2.lib(xmp.obj)'
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 EXTRA_SUFFIX_LINKER_ARGS+= -ignore:4286 
 endif
 

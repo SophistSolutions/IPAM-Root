@@ -53,11 +53,11 @@ FETCHURLS+=https://github.com/Exiv2/exiv2/archive/$(VERSION).zip
 PRODUCED_OUTPUT_ARTIFACTS=	\
 	$(PER_CONFIGURATION_BUILDS_DIR)include/exiv2/value.hpp
 
-ifeq (Unix,$(ProjectPlatformSubdir))
+ifeq (Unix,$(BuildPlatform))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
 	$(PER_CONFIGURATION_BUILDS_DIR)lib/libexiv2.a
 endif
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 PRODUCED_OUTPUT_ARTIFACTS+=	\
 	$(PER_CONFIGURATION_BUILDS_DIR)lib/exiv2${LIB_SUFFIX}
 endif
@@ -69,7 +69,7 @@ CMAKE_CURRENT_SOURCE_DIR:=$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(
 endif
 
 # Avoid having warnings leak from here to linking code when Exiv is used (linktime codegen) --LGP 2022-01-18
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 # C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Release\ThirdPartyComponents\Exiv2\src\basicio.cpp(746) : warning C4706: assignment within conditional expression
 # C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Release\ThirdPartyComponents\Exiv2\src\basicio.cpp(321) : warning C4706: assignment within conditional expression
 # C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Release\ThirdPartyComponents\Exiv2\src\xmp.cpp(389) : warning C4702: unreachable code
@@ -93,7 +93,7 @@ else
 	@$(MAKE) --silent MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) $(ZIPPEDFILE)
 	@$(StroikaRoot)ScriptsLib/CheckValidConfiguration $(CONFIGURATION)
 ifeq ($(PRODUCED_OUTPUT_ARTIFACTS),)
-	$(error This makefile requires a recognized ProjectPlatformSubdir)
+	$(error This makefile requires a recognized BuildPlatform)
 endif
 	@$(MAKE) --no-print-directory --silent MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) $(PRODUCED_OUTPUT_ARTIFACTS)
 ifneq ($(QUICK_BUILD), 1)
@@ -137,7 +137,7 @@ ifeq ($(CONFIGURATION),)
 	$(error This makefile requires a CONFIGURATION= parameter, or environment variable set)
 endif
 ifeq ($(PRODUCED_OUTPUT_ARTIFACTS),)
-	$(error This makefile requires a recognized ProjectPlatformSubdir)
+	$(error This makefile requires a recognized BuildPlatform)
 endif
 	@$(StroikaRoot)ScriptsLib/CheckFileExists $(PRODUCED_OUTPUT_ARTIFACTS)
 	@$(ECHO) " ThirdPartyComponents/Exiv2 -  [Succeeded]";
@@ -155,7 +155,7 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 	@unzip -q $(ZIPPEDFILE) -d FRED
 	@mv FRED/exiv2-$(VERSION)/* $@
 	@rm -rf FRED
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 ifeq ($(VERSION),3dd881fb122835605ba011413ec86c121101d131)
 	if [ "$@" != "ORIGs" ] ; then \
 		$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Exiv2 ${VERSION} - Patching ($@/PATCHING.OUT)... ";\
@@ -179,7 +179,7 @@ CMAKE_ARGS+= -DBUILD_SHARED_LIBS=OFF
 ## Should not be needed but finding stuff in wrong place - mingw - instead...
 ##  SB mingw only hack at least
 ## https://github.com/SophistSolutions/IPAM-Root/issues/9
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 X_=$(call FUNCTION_CONVERT_FILES_TO_COMPILER_NATIVE,$(PER_CONFIGURATION_BUILDS_DIR))
 CMAKE_ARGS+= -DPC_EXPAT_INCLUDE_DIRS=$(X_)/include/
 CMAKE_ARGS+= -DPC_EXPAT_LIBRARY_DIRS=$(X_)/lib/
@@ -201,7 +201,7 @@ endif
 # C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPCore_Impl.hpp(29,11): fatal  error C1083: Cannot open include file: 'pthread.h': No such file or directory (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPMeta.cpp) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\exiv2-xmp.vcxproj]
 # C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\XMPCore_Impl.hpp(29,11): fatal  error C1083: Cannot open include file: 'pthread.h': No such file or directory (compiling source file C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\src\WXMPUtils.cpp) [C:\Sandbox\IPAM\DevRoot\IntermediateFiles\Debug\ThirdPartyComponents\Exiv2\xmpsdk\exiv2-xmp.vcxproj]
 ###  -- LGP 2022-12=07
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 CFLAGS += /DWIN32
 CXXFLAGS += /DWIN32
 endif
@@ -224,10 +224,10 @@ JOBSERVER_INFO=$(filter -j --jobserver-fds=% --jobserver-auth=%, $(shell echo $$
 CMAKE_BUILD_EXTRAS_=
 CMAKE_BUILD_EXTRAS_+= -v
 ifneq ($(JOBSERVER_INFO),)
-ifeq (Unix,$(ProjectPlatformSubdir))
+ifeq (Unix,$(BuildPlatform))
 # Not perfect, but maybe OK - best if cmake supported same job-server
 CMAKE_BUILD_EXTRAS_ += -j10
-else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 # closest we can easily get to approximating support for job-server
 export CL+=/MP
 endif
@@ -245,8 +245,8 @@ doBuilds_:
 	@echo CXX='$(CXX)' >>  $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt
 	@echo CFLAGS='$(CFLAGS)' >>  $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt
 	@echo CXXFLAGS='$(CXXFLAGS)' >>  $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt
-	@echo 'cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) ; $(TOOLSET_CMD_ENV_SETS_)cmake -G "$(CMAKE_USE_GENERATOR)" $(CMAKE_ARGS) $(CMAKE_CURRENT_SOURCE_DIR)' >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt 2>&1
-	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) ; $(TOOLSET_CMD_ENV_SETS_)cmake -G "$(CMAKE_USE_GENERATOR)" $(CMAKE_ARGS) $(CMAKE_CURRENT_SOURCE_DIR) >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt 2>&1
+	@echo 'cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) ; $(TOOLSET_CMD_ENV_SETS_)cmake $(CMAKE_ARGS) $(CMAKE_CURRENT_SOURCE_DIR)' >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt 2>&1
+	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) ; $(TOOLSET_CMD_ENV_SETS_)cmake $(CMAKE_ARGS) $(CMAKE_CURRENT_SOURCE_DIR) >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/CONFIGURE-OUT.txt 2>&1
 	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) `$(StroikaRoot)ScriptsLib/SubstituteBackVariables "Exiv2 ${VERSION} - Compiling (See $(OUTPUT_WORKDIR_PRETTYNAME)BUILD-OUT.txt)"` "... "
 	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(ECHO) $(TOOLSET_CMD_ENV_SETS_)"cmake --build . --config $(CMAKE_CONFIGURATION) $(CMAKE_BUILD_EXTRAS_)" > $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/BUILD-OUT.txt 2>&1
 	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(TOOLSET_CMD_ENV_SETS_)cmake --build . --config $(CMAKE_CONFIGURATION) $(CMAKE_BUILD_EXTRAS_)>> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/BUILD-OUT.txt 2>&1
@@ -254,8 +254,8 @@ doBuilds_:
 	@#NB: Set MAKEFLAGS= to silence warnings about -j jobserver when run with -j N (probaly bug with Exiv2 3.2 cmake makefile but didnt dig cuz not important)
 	@cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(ECHO) $(TOOLSET_CMD_ENV_SETS_)"cmake --build . --config $(CMAKE_CONFIGURATION) --target install" > $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
 	@MAKEFLAGS= && cd $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_) && $(TOOLSET_CMD_ENV_SETS_)cmake --build . --config $(CMAKE_CONFIGURATION) --target install >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
-ifeq (Unix,$(ProjectPlatformSubdir))
-else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(ProjectPlatformSubdir)))
+ifeq (Unix,$(BuildPlatform))
+else ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 	@#We get warnings about a missing pdb file when linking otherwise...(not sure why since symbol info sb in the .lib)
 	@$(ECHO) "cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/exiv2s-c.dir/$(CMAKE_CONFIGURATION)/exiv2s*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :" >> $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/INSTALL.OUT
 	@cp $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_)/src/exiv2s-c.dir/$(CMAKE_CONFIGURATION)/exiv2s*.pdb ${PER_CONFIGURATION_BUILDS_DIR}lib/ 2>/dev/null || :
