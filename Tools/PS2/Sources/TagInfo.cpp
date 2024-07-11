@@ -16,32 +16,30 @@
 #include "TagInfo.h"
 
 using namespace Stroika::Foundation;
-using Characters::String;
+using namespace Stroika::Foundation::Characters;
+using namespace Stroika::Foundation::DataExchange;
 
 namespace Metadata {
 
-    void TagInfo::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
+    void TagInfo::SupportVariantMapping (ObjectVariantMapper& mapper)
     {
-        using DataExchange::ObjectVariantMapper;
-        using DataExchange::StructFieldMetaInfo;
         mapper.AddCommonType<Containers::Set<String>> ();
         mapper.AddClass<TagInfoHelper> ({
-            ObjectVariantMapper::StructFieldInfo{"key", StructFieldMetaInfo{&TagInfoHelper::key}},
-            ObjectVariantMapper::StructFieldInfo{"value", StructFieldMetaInfo{&TagInfoHelper::value}},
+            StructFieldInfo{"key"sv, StructFieldMetaInfo{&TagInfoHelper::key}},
+            StructFieldInfo{"value"sv, StructFieldMetaInfo{&TagInfoHelper::value}},
         });
         mapper.AddCommonType<Containers::SortedCollection<TagInfoHelper>> ();
         mapper.AddClass<TagInfo_Serialize> ({
-            ObjectVariantMapper::StructFieldInfo{"photosContaining", StructFieldMetaInfo{&TagInfo_Serialize::photosContaining}},
-            ObjectVariantMapper::StructFieldInfo{"siblingTagsCount", StructFieldMetaInfo{&TagInfo_Serialize::siblingTagsCount}},
+            StructFieldInfo{"photosContaining"sv, StructFieldMetaInfo{&TagInfo_Serialize::photosContaining}},
+            StructFieldInfo{"siblingTagsCount"sv, StructFieldMetaInfo{&TagInfo_Serialize::siblingTagsCount}},
         });
     }
 
     void TagInfo::WriteToFileAsJSON (Containers::Mapping<String, TagInfo_Serialize> mds, const std::filesystem::path filePath)
     {
-        DataExchange::ObjectVariantMapper mapper;
+        ObjectVariantMapper mapper;
         TagInfo::SupportVariantMapping (mapper);
         mapper.AddCommonType<Containers::Mapping<String, TagInfo_Serialize>> ();
-
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (mds), IO::FileSystem::FileOutputStream::New (filePath));
     }
 
@@ -97,7 +95,7 @@ namespace Metadata {
             TagInfo_Serialize ti;
             ti.photosContaining = it->fValue->photosContaining;
             for (auto it1 : it->fValue->siblingTagsCount) {
-                ti.siblingTagsCount.Add (TagInfoHelper (it1.fValue, it1.fCount));
+                ti.siblingTagsCount.Add (TagInfoHelper{it1.fValue, it1.fCount});
             }
 
             fullTagInfo.Add (it->fKey, ti);

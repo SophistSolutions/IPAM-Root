@@ -19,12 +19,15 @@ namespace Metadata {
         static void WriteToFileAsJSON (Containers::Mapping<String, TagInfo_Serialize> mds, const std::filesystem::path filePath);
         static Containers::Mapping<String, TagInfo_Serialize> ReadFromJSONFile (const std::filesystem::path filePath);
 
+        // @todo discuss with sterl - why TagInfo* instead of shared_ptr<TagInfo>? Or unique_ptr<TagInfo>
         static Containers::Mapping<String, TagInfo*> ProcessMetadata (Containers::Mapping<String, DocumentMetadata> dm);
         static Containers::Mapping<String, TagInfo_Serialize> PrepareForSerialization (Containers::Mapping<String, TagInfo*> fullTagInfo_ptr);
     };
 
     // sorted multiset doesn't currently do what I want (sorts by key, not value)
     // so do the sorting by hand
+
+    // @todo NOTE STERL - See Multiset::Top(n) - see if that does what you are looking for
     struct TagInfoHelper {
         String       key;
         unsigned int value;

@@ -1,8 +1,8 @@
 /*
  * Copyright(c) Sophist Solutions, Inc. 2022.  All rights reserved
  */
-#ifndef __IPAM_LibIPAM_Common_Geolocation_inl__
-#define __IPAM_LibIPAM_Common_Geolocation_inl__ 1
+
+#include "Stroika/Foundation/Math/Common.h"
 
 namespace IPAM::LibIPAM::Common {
 
@@ -13,11 +13,12 @@ namespace IPAM::LibIPAM::Common {
      */
     inline bool Geolocation::Coordinate::operator== (const Geolocation::Coordinate& rhs) const
     {
-        return abs (rhs._value - _value) <= .00001; // @todo REWRITE using kPrecision
+        return Math::NearlyEquals (rhs._value, _value, 1 / _kPrecision);
     }
     inline auto Geolocation::Coordinate::operator<=> (const Geolocation::Coordinate& rhs) const
     {
-        return abs (rhs._value - _value) <=> .00001;
+        // @todo - this is not clearly right - and probably wrong... at least document why its true/correct
+        return abs (rhs._value - _value) <=> 1 / _kPrecision;
     }
 
     /*
@@ -71,5 +72,3 @@ namespace IPAM::LibIPAM::Common {
     }
 
 }
-
-#endif /*__IPAM_LibIPAM_Common_Geolocation_inl__*/

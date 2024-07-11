@@ -108,7 +108,7 @@ namespace IPAM::LibIPAM::Metadata {
         static void ReadFromJSONFile (Containers::Mapping<String, Document>* mds, const std::filesystem::path& filePath);
     };
 
-} //namespace IPAM::LibIPAM::Metadata
+}
 
 /*
  ********************************************************************************

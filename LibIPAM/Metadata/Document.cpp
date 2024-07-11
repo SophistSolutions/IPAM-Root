@@ -15,7 +15,8 @@
 #include "Document.h"
 
 using namespace Stroika::Foundation;
-using Characters::String;
+using namespace Stroika::Foundation::Characters;
+using namespace Stroika::Foundation::DataExchange;
 
 using namespace IPAM::LibIPAM::Metadata;
 
@@ -26,7 +27,7 @@ using namespace IPAM::LibIPAM::Metadata;
  */
 String Document::Comment::ToString () const
 {
-    Characters::StringBuilder sb;
+    StringBuilder sb;
     sb << "{"sv;
     sb << "comment: "sv + comment + L", "sv;
     sb << "author: "sv << author;
@@ -36,7 +37,7 @@ String Document::Comment::ToString () const
 
 String Document::Comment::ToString (Containers::Sequence<Comment> comments)
 {
-    Characters::StringBuilder sb;
+    StringBuilder sb;
     sb << "{"sv;
     for (auto it : comments) {
         sb << it.ToString () << ", "sv;
@@ -52,8 +53,6 @@ String Document::Comment::ToString (Containers::Sequence<Comment> comments)
  */
 void Document::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
 {
-    using DataExchange::ObjectVariantMapper;
-    using DataExchange::StructFieldMetaInfo;
     mapper.AddCommonType<Containers::Set<String>> ();
 
     mapper.AddClass<Document::Comment> ({
@@ -76,19 +75,17 @@ void Document::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
 
 void Document::WriteToFileAsJSON (Containers::Mapping<String, Document> mds, const std::filesystem::path& filePath)
 {
-    using DataExchange::ObjectVariantMapper;
     ObjectVariantMapper mapper;
     Document::SupportVariantMapping (mapper);
     mapper.AddCommonType<Containers::Mapping<String, Document>> ();
-    DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (mds), IO::FileSystem::FileOutputStream::New (filePath));
+    Variant::JSON::Writer{}.Write (mapper.FromObject (mds), IO::FileSystem::FileOutputStream::New (filePath));
 }
 
 void Document::ReadFromJSONFile (Containers::Mapping<String, Document>* mds, const std::filesystem::path& filePath)
 {
-    using DataExchange::ObjectVariantMapper;
     ObjectVariantMapper mapper;
     Document::SupportVariantMapping (mapper);
     mapper.AddCommonType<Containers::Mapping<String, Document>> ();
-    DataExchange::VariantValue xxx = DataExchange::Variant::JSON::Reader{}.Read (IO::FileSystem::FileInputStream::New (filePath));
+    VariantValue xxx = Variant::JSON::Reader{}.Read (IO::FileSystem::FileInputStream::New (filePath));
     mapper.ToObject (xxx, mds);
 }

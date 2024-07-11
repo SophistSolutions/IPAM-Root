@@ -362,4 +362,4 @@ namespace Metadata {
         return imageMetaData;
     }
 
-} // namespace
+}

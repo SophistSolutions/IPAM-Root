@@ -1,8 +1,6 @@
 /*
  * Copyright(c) Sophist Solutions, Inc. 2022.  All rights reserved
  */
-#ifndef __IPAM_LibIPAM_Metadata_Document_inl__
-#define __IPAM_LibIPAM_Metadata_Document_inl__ 1
 
 namespace IPAM::LibIPAM::Metadata {
 
@@ -22,5 +20,3 @@ namespace IPAM::LibIPAM::Metadata {
     }
 
 }
-
-#endif /*__IPAM_LibIPAM_Metadata_Document_inl__*/

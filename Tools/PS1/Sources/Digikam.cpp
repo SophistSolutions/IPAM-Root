@@ -106,7 +106,7 @@ namespace digikam {
             }
 
             // comments
-            for (const auto& ii : conn.mkStatement (L"Select imageid,comment,author from ImageComments;").GetAllRows (0, 1, 2)) {
+            for (const auto& ii : conn.mkStatement ("Select imageid,comment,author from ImageComments;").GetAllRows (0, 1, 2)) {
                 int               id              = std::get<0> (ii).As<int> ();
                 String            comment         = std::get<1> (ii).As<String> ();
                 String            author          = std::get<2> (ii).As<String> ();

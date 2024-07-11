@@ -119,7 +119,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
             Metadata::Document digikamDmd;
             if (dbScrape.Lookup (it.fKey, &digikamDmd)) {
                 String ext = String{path (it.fKey.As<wstring> ().c_str ()).extension ().wstring ()}.ToLowerCase ();
-                bool   ignoreMissingFromFileScrapeForNow = (ext == L".nef" or ext == L".heic" or ext == L".mov" or ext == L".bmp");
+                bool   ignoreMissingFromFileScrapeForNow = (ext == ".nef" or ext == ".heic" or ext == ".mov" or ext == ".bmp");
 
                 dmd.album = digikamDmd.album; // digikam does better here at capture correct top of collection when you don't do full file scan
                 if (digikamDmd.comment.has_value ()) {
