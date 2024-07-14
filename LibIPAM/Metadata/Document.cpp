@@ -6,7 +6,6 @@
 #include "Stroika/Foundation/Containers/Mapping.h"
 #include "Stroika/Foundation/Containers/MultiSet.h"
 #include "Stroika/Foundation/Containers/Set.h"
-#include "Stroika/Foundation/DataExchange/StructFieldMetaInfo.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Reader.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Writer.h"
 #include "Stroika/Foundation/IO/FileSystem/FileInputStream.h"
@@ -56,20 +55,20 @@ void Document::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
     mapper.AddCommonType<Containers::Set<String>> ();
 
     mapper.AddClass<Document::Comment> ({
-        ObjectVariantMapper::StructFieldInfo{"comment"sv, StructFieldMetaInfo{&Document::Comment::comment}},
-        ObjectVariantMapper::StructFieldInfo{"author"sv, StructFieldMetaInfo{&Document::Comment::author}},
+        {"comment"sv, &Document::Comment::comment},
+        {"author"sv, &Document::Comment::author},
     });
     mapper.AddCommonType<Containers::Sequence<Document::Comment>> ();
     mapper.AddCommonType<optional<Containers::Sequence<Document::Comment>>> ();
 
     mapper.AddClass<Document> ({
-        ObjectVariantMapper::StructFieldInfo{"tags"sv, StructFieldMetaInfo{&Document::tags}},
-        ObjectVariantMapper::StructFieldInfo{"date"sv, StructFieldMetaInfo{&Document::date}},
-        ObjectVariantMapper::StructFieldInfo{"location"sv, StructFieldMetaInfo{&Document::location}},
-        ObjectVariantMapper::StructFieldInfo{"comment"sv, StructFieldMetaInfo{&Document::comment}},
-        ObjectVariantMapper::StructFieldInfo{"title"sv, StructFieldMetaInfo{&Document::title}},
-        ObjectVariantMapper::StructFieldInfo{"rating"sv, StructFieldMetaInfo{&Document::rating}},
-        ObjectVariantMapper::StructFieldInfo{"album"sv, StructFieldMetaInfo{&Document::album}},
+        {"tags"sv, &Document::tags},
+        {"date"sv, &Document::date},
+        {"location"sv, &Document::location},
+        {"comment"sv, &Document::comment},
+        {"title"sv, &Document::title},
+        {"rating"sv, &Document::rating},
+        {"album"sv, &Document::album},
     });
 }
 

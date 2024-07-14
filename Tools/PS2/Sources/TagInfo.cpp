@@ -6,7 +6,6 @@
 #include "Stroika/Foundation/Containers/Mapping.h"
 #include "Stroika/Foundation/Containers/MultiSet.h"
 #include "Stroika/Foundation/Containers/Set.h"
-#include "Stroika/Foundation/DataExchange/StructFieldMetaInfo.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Reader.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Writer.h"
 #include "Stroika/Foundation/IO/FileSystem/FileInputStream.h"
@@ -25,13 +24,13 @@ namespace Metadata {
     {
         mapper.AddCommonType<Containers::Set<String>> ();
         mapper.AddClass<TagInfoHelper> ({
-            StructFieldInfo{"key"sv, StructFieldMetaInfo{&TagInfoHelper::key}},
-            StructFieldInfo{"value"sv, StructFieldMetaInfo{&TagInfoHelper::value}},
+            {"key"sv, &TagInfoHelper::key},
+            {"value"sv, &TagInfoHelper::value},
         });
         mapper.AddCommonType<Containers::SortedCollection<TagInfoHelper>> ();
         mapper.AddClass<TagInfo_Serialize> ({
-            StructFieldInfo{"photosContaining"sv, StructFieldMetaInfo{&TagInfo_Serialize::photosContaining}},
-            StructFieldInfo{"siblingTagsCount"sv, StructFieldMetaInfo{&TagInfo_Serialize::siblingTagsCount}},
+            {"photosContaining"sv, &TagInfo_Serialize::photosContaining},
+            {"siblingTagsCount"sv, &TagInfo_Serialize::siblingTagsCount},
         });
     }
 

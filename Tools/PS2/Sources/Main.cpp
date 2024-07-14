@@ -7,7 +7,6 @@
 #include "Stroika/Foundation/Containers/Mapping.h"
 #include "Stroika/Foundation/Containers/SortedMultiSet.h"
 #include "Stroika/Foundation/DataExchange/ObjectVariantMapper.h"
-#include "Stroika/Foundation/DataExchange/StructFieldMetaInfo.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Writer.h"
 #include "Stroika/Foundation/Debug/TimingTrace.h"
 #include "Stroika/Foundation/Debug/Trace.h"
@@ -113,17 +112,16 @@ namespace {
                 Debug::TimingTrace ttrc;
 
                 using DataExchange::ObjectVariantMapper;
-                using DataExchange::StructFieldMetaInfo;
                 ObjectVariantMapper tagInfoMapper;
                 tagInfoMapper.AddCommonType<Containers::Set<String>> ();
                 tagInfoMapper.AddClass<TagInfoHelper> ({
-                    ObjectVariantMapper::StructFieldInfo{"key", StructFieldMetaInfo{&TagInfoHelper::key}},
-                    ObjectVariantMapper::StructFieldInfo{"value", StructFieldMetaInfo{&TagInfoHelper::value}},
+                    {"key"sv, &TagInfoHelper::key},
+                    {"value"sv, &TagInfoHelper::value},
                 });
                 tagInfoMapper.AddCommonType<Containers::SortedCollection<TagInfoHelper>> ();
                 tagInfoMapper.AddClass<TagInfo_Serialize> ({
-                    ObjectVariantMapper::StructFieldInfo{"photosContaining", StructFieldMetaInfo{&TagInfo_Serialize::photosContaining}},
-                    ObjectVariantMapper::StructFieldInfo{"siblingTagsCount", StructFieldMetaInfo{&TagInfo_Serialize::siblingTagsCount}},
+                    {"photosContaining"sv, &TagInfo_Serialize::photosContaining},
+                    {"siblingTagsCount"sv, &TagInfo_Serialize::siblingTagsCount},
                 });
                 tagInfoMapper.AddCommonType<Containers::Mapping<String, TagInfo_Serialize>> ();
 
