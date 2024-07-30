@@ -13,13 +13,20 @@
 #include "Stroika/Foundation/Debug/Trace.h"
 #include "Stroika/Foundation/Execution/CommandLine.h"
 #include "Stroika/Foundation/IO/FileSystem/FileOutputStream.h"
+#include "Stroika/Foundation/IO/FileSystem/PathName.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
 #include "Digikam.h"
 #include "ImageMetadataExtraction.h"
 #include "LibIPAM/Metadata/Document.h"
 
+using namespace std::filesystem;
+
 using namespace Stroika::Foundation::Characters::Literals;
+
+using Execution::CommandLine;
+using IO::FileSystem::ToPath;
+using IO::FileSystem::FromPath;
 
 namespace {
     constexpr wstring_view kMyTopLevelDirectory = L"P:/";
@@ -31,10 +38,6 @@ namespace {
 
     //const String kSourceDirectory = L"P:/2022/May/Costa Rica";
     const String kSourceDirectory = "P:/1900-1909"sv;
-    //String    kSourceDirectory                = L"P:/";
-    const String kOutputDirectory                = "c:/ssw/mdResults/"sv;
-    const String kSampleExtractionFilesDirectory = kOutputDirectory;
-    const String kDigikamDatabase                = "c:/Digikam/digikam4.db"sv;
 
     const wstring kDigikamScrapeFileName  = L"DigikamScrape.json";
     const wstring kFileScrapeFileName     = L"FileScrape.json";
@@ -42,14 +45,24 @@ namespace {
     const wstring kExtensionTallyFileName = L"ExtenstionTally.json";
 }
 
-using namespace std::filesystem;
 
 int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {
-    Debug::TraceContextBumper ctx{"main", "argv={}"_f, Execution::CommandLine{argc, argv}};
+    CommandLine commandLine {argc, argv};
+    Debug::TraceContextBumper ctx{"main", "argv={}"_f, commandLine};
 
-    path digikamScrapeFilePath = (kOutputDirectory + kDigikamScrapeFileName).c_str ();
-    path fileScrapeFilePath    = (kOutputDirectory + kFileScrapeFileName).c_str ();
+    const CommandLine::Option   kOutputDirectoryOption_ = CommandLine::Option{.fSingleCharName = 'o', .fSupportsArgument = true };
+    // @todo add more arguments, and maybe make some of these args REQUIRED? And add call to commandline.Validate()...
+
+    // @todo - begin process of removing hardwired paths from app - and using command-line args...
+    path outputDirectory = ToPath (commandLine.GetArgument (kOutputDirectoryOption_).value_or ("c:/ssw/mdResults/"sv));
+    path sampleExtractionFilesDirectory = outputDirectory;
+
+    const path kDigikamDatabase                = "c:/Digikam/digikam4.db"sv;    // get from cmdline arg! @todo
+
+
+    path digikamScrapeFilePath = outputDirectory / kDigikamScrapeFileName;
+    path fileScrapeFilePath    = outputDirectory /  kFileScrapeFileName;
 
     Containers::Mapping<String, Metadata::Document> mergedMetaData;
 
@@ -73,13 +86,13 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         Debug::TimingTrace ttrc;
 
         Containers::MultiSet<String> extTally =
-            Metadata::ImageMetadataExtractor ().TallyExtensions (path (kSourceDirectory.As<wstring> ().c_str ()), kSampleExtractionFilesDirectory);
+            Metadata::ImageMetadataExtractor ().TallyExtensions (path (kSourceDirectory.As<wstring> ().c_str ()), FromPath (sampleExtractionFilesDirectory));
 
         DataExchange::ObjectVariantMapper mapper;
         mapper.AddCommonType<Containers::MultiSet<String>> ();
         mapper.AddCommonType<Containers::CountedValue<String>> ();
 
-        path extenstionTallyPath = (kOutputDirectory + kExtensionTallyFileName).c_str ();
+        path extenstionTallyPath = outputDirectory /kExtensionTallyFileName;
 
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (extTally), IO::FileSystem::FileOutputStream::New (extenstionTallyPath));
     }
@@ -204,7 +217,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         }
 
         {
-            auto outputPath = filesystem::path ((kOutputDirectory + kMergedTagsFileName).c_str ());
+            auto outputPath = outputDirectory / kMergedTagsFileName;
             DbgTrace ("writing processed tag info to {}"_f, outputPath);
             Debug::TimingTrace ttrc;
             Metadata::Document::WriteToFileAsJSON (fileScrape, outputPath);

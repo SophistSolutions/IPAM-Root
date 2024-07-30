@@ -8,5 +8,5 @@
 #include "LibIPAM/Metadata/Document.h"
 
 namespace digikam {
-    Containers::Mapping<String, IPAM::LibIPAM::Metadata::Document> ScrapeDigikamDB (String dbPath);
+    Containers::Mapping<String, IPAM::LibIPAM::Metadata::Document> ScrapeDigikamDB (std::filesystem::path dbPath);
 }

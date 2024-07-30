@@ -48,12 +48,12 @@ using namespace LibIPAM;
 
 namespace digikam {
 
-    Mapping<String, Metadata::Document> ScrapeDigikamDB (String dbPath)
+    Mapping<String, Metadata::Document> ScrapeDigikamDB (std::filesystem::path dbPath)
     {
         Mapping<String, Metadata::Document> scrapedMetadata;
         try {
             auto conn = SQLite::Connection::New (SQLite::Connection::Options{
-                .fDBPath = ToPath (dbPath), .fThreadingMode = SQLite::Connection::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
+                .fDBPath = dbPath, .fThreadingMode = SQLite::Connection::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
 
             // step one: build imageID map to image path (so can access in masterListOfTags and because is our primary key)
             // album paths are done by reference so first need to build map of those
