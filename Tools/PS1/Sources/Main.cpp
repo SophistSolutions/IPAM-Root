@@ -25,8 +25,8 @@ using namespace std::filesystem;
 using namespace Stroika::Foundation::Characters::Literals;
 
 using Execution::CommandLine;
-using IO::FileSystem::ToPath;
 using IO::FileSystem::FromPath;
+using IO::FileSystem::ToPath;
 
 namespace {
     constexpr wstring_view kMyTopLevelDirectory = L"P:/";
@@ -45,24 +45,22 @@ namespace {
     const wstring kExtensionTallyFileName = L"ExtenstionTally.json";
 }
 
-
 int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {
-    CommandLine commandLine {argc, argv};
+    CommandLine               commandLine{argc, argv};
     Debug::TraceContextBumper ctx{"main", "argv={}"_f, commandLine};
 
-    const CommandLine::Option   kOutputDirectoryOption_ = CommandLine::Option{.fSingleCharName = 'o', .fSupportsArgument = true };
+    const CommandLine::Option kOutputDirectoryOption_ = CommandLine::Option{.fSingleCharName = 'o', .fSupportsArgument = true};
     // @todo add more arguments, and maybe make some of these args REQUIRED? And add call to commandline.Validate()...
 
     // @todo - begin process of removing hardwired paths from app - and using command-line args...
-    path outputDirectory = ToPath (commandLine.GetArgument (kOutputDirectoryOption_).value_or ("c:/ssw/mdResults/"sv));
+    path outputDirectory                = ToPath (commandLine.GetArgument (kOutputDirectoryOption_).value_or ("c:/ssw/mdResults/"sv));
     path sampleExtractionFilesDirectory = outputDirectory;
 
-    const path kDigikamDatabase                = "c:/Digikam/digikam4.db"sv;    // get from cmdline arg! @todo
-
+    const path kDigikamDatabase = "c:/Digikam/digikam4.db"sv; // get from cmdline arg! @todo
 
     path digikamScrapeFilePath = outputDirectory / kDigikamScrapeFileName;
-    path fileScrapeFilePath    = outputDirectory /  kFileScrapeFileName;
+    path fileScrapeFilePath    = outputDirectory / kFileScrapeFileName;
 
     Containers::Mapping<String, Metadata::Document> mergedMetaData;
 
@@ -85,14 +83,14 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         DbgTrace ("tallying extenstions for directory = {}"_f, kSourceDirectory);
         Debug::TimingTrace ttrc;
 
-        Containers::MultiSet<String> extTally =
-            Metadata::ImageMetadataExtractor ().TallyExtensions (path (kSourceDirectory.As<wstring> ().c_str ()), FromPath (sampleExtractionFilesDirectory));
+        Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (
+            path (kSourceDirectory.As<wstring> ().c_str ()), FromPath (sampleExtractionFilesDirectory));
 
         DataExchange::ObjectVariantMapper mapper;
         mapper.AddCommonType<Containers::MultiSet<String>> ();
         mapper.AddCommonType<Containers::CountedValue<String>> ();
 
-        path extenstionTallyPath = outputDirectory /kExtensionTallyFileName;
+        path extenstionTallyPath = outputDirectory / kExtensionTallyFileName;
 
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (extTally), IO::FileSystem::FileOutputStream::New (extenstionTallyPath));
     }

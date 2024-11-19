@@ -64,11 +64,6 @@ namespace IPAM::LibIPAM::Common {
             // followed by optional decimal point and further digits
             // ^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\.[0-9]+)?
             static inline Characters::RegularExpression kLatitudeExp_{"^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\\.[0-9]+)?"sv};
-
-#if qDebug
-        public:
-            static void TestSuite ();
-#endif
         };
 
         /**
@@ -89,10 +84,6 @@ namespace IPAM::LibIPAM::Common {
             // followed by optional decimal point and further digits
             // ^([+-])([0-9]{2})([0-9]{2})?([0-9]{2})?(\.[0-9]+)?
             static inline Characters::RegularExpression kLongitudeExp_{"^([+-])([0-9]{3})([0-9]{2})?([0-9]{2})?(\\.[0-9]+)?"sv};
-#if qDebug
-        public:
-            static void TestSuite ();
-#endif
         };
 
     public:
@@ -112,10 +103,6 @@ namespace IPAM::LibIPAM::Common {
         Longitude        longitude;
         optional<double> altitude;
 
-#if qDebug
-    public:
-        static void TestSuite ();
-#endif
     private:
         static inline Characters::RegularExpression kExp_{
             "^(?:([+-][0-9]{2,6}(?:\\.[0-9]+)?)([+-][0-9]{3,7}(?:\\.[0-9]+)?))(?:([+-][0-9]+(?:\\.[0-9]+)?)(?:CRSWGS_84))?\\/"sv};

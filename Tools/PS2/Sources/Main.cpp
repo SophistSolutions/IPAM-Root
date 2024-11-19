@@ -42,10 +42,9 @@ namespace {
         auto operator<=> (const TagInfoHelper& rhs) const = default;
     };
 
-    void LoadMasterTagList ()
+    void LoadMasterTagList_ ()
     {
         try {
-
             Containers::Mapping<String, shared_ptr<TagInfo>> fullTagInfo_ptr;
 
             {
@@ -138,10 +137,6 @@ namespace {
 int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
 {
     Debug::TraceContextBumper ctx{"main", "argv={}"_f, Execution::CommandLine{argc, argv}};
-#if qDebug
-    Geolocation::TestSuite ();
-#endif
-
-    LoadMasterTagList ();
+    LoadMasterTagList_ ();
     return EXIT_SUCCESS;
 }
