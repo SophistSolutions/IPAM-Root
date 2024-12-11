@@ -328,8 +328,7 @@ namespace Metadata {
     Containers::Mapping<String, Metadata::Document> ImageMetadataExtractor::ExtractAll (const std::filesystem::path& topDir)
     {
         Containers::Mapping<String, Metadata::Document> imageMetaData;
-
-        size_t topDirLength = IO::FileSystem::FromPath (topDir).size ();
+        size_t topDirLength = String{topDir}.size ();
         try {
             for (recursive_directory_iterator end, dirEntry (topDir); dirEntry != end; ++dirEntry) {
                 const path& p    = dirEntry->path ();
@@ -346,8 +345,8 @@ namespace Metadata {
                     try {
                         Metadata::Document ms = Extract (p);
                         ms.album =
-                            IO::FileSystem::FromPath (path (p).remove_filename ()).SubString (topDirLength).SubString (0, -1).ReplaceAll ("\\"sv, "/"sv);
-                        imageMetaData.Add (IO::FileSystem::FromPath (p).ReplaceAll ("\\"sv, "/"sv), ms);
+                            String{path {p}.remove_filename ()}.SubString (topDirLength).SubString (0, -1).ReplaceAll ("\\"sv, "/"sv);
+                        imageMetaData.Add (String{p}.ReplaceAll ("\\"sv, "/"sv), ms);
                     }
                     catch (...) {
                         DbgTrace ("failed to find metadata for  {}"_f, p);

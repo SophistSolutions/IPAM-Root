@@ -26,8 +26,6 @@ using namespace Stroika::Foundation::Containers;
 using namespace Stroika::Foundation::Database;
 using namespace Stroika::Foundation::Database::SQL;
 
-using IO::FileSystem::FromPath;
-using IO::FileSystem::ToPath;
 
 using namespace IPAM;
 
@@ -100,7 +98,7 @@ namespace digikam {
                     //DbgTrace (L"got: %d, %d, %s, %s", id, album, name.c_str (), imagePath.c_str ());
                     imageIDToImagePath.Add (id, imagePath);
                     Metadata::Document ms;
-                    ms.album = (FromPath (ToPath (imagePath).remove_filename ())).SubString (rootPathLength).SubString (0, -1);
+                    ms.album = String{imagePath.As<filesystem::path> ().remove_filename ()}.SubString (rootPathLength).SubString (0, -1);
                     scrapedMetadata.Add (imagePath, ms);
                 };
             }

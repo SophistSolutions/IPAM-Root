@@ -25,8 +25,6 @@ using namespace std::filesystem;
 using namespace Stroika::Foundation::Characters::Literals;
 
 using Execution::CommandLine;
-using IO::FileSystem::FromPath;
-using IO::FileSystem::ToPath;
 
 namespace {
     constexpr wstring_view kMyTopLevelDirectory = L"P:/";
@@ -54,7 +52,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     // @todo add more arguments, and maybe make some of these args REQUIRED? And add call to commandline.Validate()...
 
     // @todo - begin process of removing hardwired paths from app - and using command-line args...
-    path outputDirectory                = ToPath (commandLine.GetArgument (kOutputDirectoryOption_).value_or ("c:/ssw/mdResults/"sv));
+    path outputDirectory                = commandLine.GetArgument (kOutputDirectoryOption_).value_or ("c:/ssw/mdResults/"sv).As<filesystem::path> ();
     path sampleExtractionFilesDirectory = outputDirectory;
 
     const path kDigikamDatabase = "c:/Digikam/digikam4.db"sv; // get from cmdline arg! @todo
@@ -84,7 +82,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         Debug::TimingTrace ttrc;
 
         Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (
-            path (kSourceDirectory.As<wstring> ().c_str ()), FromPath (sampleExtractionFilesDirectory));
+            kSourceDirectory.As<filesystem::path> (), String{sampleExtractionFilesDirectory});
 
         DataExchange::ObjectVariantMapper mapper;
         mapper.AddCommonType<Containers::MultiSet<String>> ();
@@ -142,15 +140,14 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                         }
                     }
                     else {
-                        DbgTrace ("adding missing comment for {} (adding {})"_f, it.fKey,
-                                  Metadata::Document::Comment::ToString (digikamDmd.comment.value ()));
+                        DbgTrace ("adding missing comment for {} (adding {})"_f, it.fKey, digikamDmd.comment);
                         dmd.comment = digikamDmd.comment;
                     }
                 }
                 if (digikamDmd.date.has_value ()) {
                     if (dmd.date.has_value ()) {
                         if (dmd.date.value () != digikamDmd.date.value ()) {
-                            DbgTrace ("DATE disagreement for {} ({} vs {}"_f, it.fKey, dmd.date.value (), digikamDmd.date.value ());
+                            DbgTrace ("DATE disagreement for {} ({} vs {}"_f, it.fKey, dmd.date.value (), digikamDmd.date);
                         }
                     }
                     else {
@@ -161,7 +158,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                 if (digikamDmd.location.has_value ()) {
                     if (dmd.location.has_value ()) {
                         if (dmd.location.value () != digikamDmd.location.value ()) { // should just be assert
-                            DbgTrace ("LOCATION disagreement for {} ({} vs {})"_f, it.fKey, dmd.location.value (), digikamDmd.location.value ());
+                            DbgTrace ("LOCATION disagreement for {} ({} vs {})"_f, it.fKey, dmd.location, digikamDmd.location);
                         }
                     }
                     else {
@@ -172,11 +169,11 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                 if (digikamDmd.rating.has_value ()) {
                     if (dmd.rating.has_value ()) {
                         if (dmd.rating.value () != digikamDmd.rating.value ()) { // should just be assert
-                            DbgTrace ("RATING DISAGREEMENT for {} {} : {}"_f, it.fKey, dmd.rating.value (), digikamDmd.rating.value ());
+                            DbgTrace ("RATING DISAGREEMENT for {} {} : {}"_f, it.fKey, dmd.rating, digikamDmd.rating);
                         }
                     }
                     else {
-                        DbgTrace ("adding missing rating for {} (adding {})"_f, it.fKey, digikamDmd.rating.value ());
+                        DbgTrace ("adding missing rating for {} (adding {})"_f, it.fKey, digikamDmd.rating);
                         dmd.rating = digikamDmd.rating;
                     }
                 }
