@@ -20,6 +20,7 @@ using namespace std::filesystem;
 
 using namespace Stroika::Foundation;
 using namespace Stroika::Foundation::Characters;
+using namespace Stroika::Foundation::Containers;
 
 using namespace IPAM::LibIPAM;
 using namespace IPAM::LibIPAM::Common;
@@ -29,8 +30,8 @@ const path kTagInfoOutputFile    = L"c:\\ssw\\mdResults\\DocumentMetaDataTagInfo
 
 namespace {
     struct TagInfo {
-        Containers::Set<String>      photosContaining;
-        Containers::MultiSet<String> siblingTagsCount;
+        Set<String>      photosContaining;
+        MultiSet<String> siblingTagsCount;
     };
 
     // sorted multiset doesn't currently do what I want (sorts by key, not value)
@@ -45,11 +46,11 @@ namespace {
     void LoadMasterTagList_ ()
     {
         try {
-            Containers::Mapping<String, shared_ptr<TagInfo>> fullTagInfo_ptr;
+            Mapping<String, shared_ptr<TagInfo>> fullTagInfo_ptr;
 
             {
                 DbgTrace ("about to read metadata"_f);
-                Containers::Mapping<String, Metadata::Document> pt1;
+                Mapping<String, Metadata::Document> pt1;
                 {
                     Debug::TimingTrace ttrc;
                     Metadata::Document::ReadFromJSONFile (&pt1, kDocumentMetaDataFile);
@@ -71,7 +72,7 @@ namespace {
                     for (auto it = pi.fValue.tags.begin (); it != pi.fValue.tags.end (); ++it) {
                         auto tinfo = fullTagInfo_ptr.LookupValue (*it);
                         tinfo->photosContaining.Add (key);
-                        Containers::Set<String> rest (pi.fValue.tags.begin () + skipCount, pi.fValue.tags.end ());
+                        Set<String> rest (pi.fValue.tags.begin () + skipCount, pi.fValue.tags.end ());
                         for (auto it1 : rest) {
                             //   DbgTrace (L"  matched pair (%s,%s)", it->c_str (), it1.c_str ());
                             tinfo->siblingTagsCount.Add (it1);
@@ -83,11 +84,11 @@ namespace {
                 }
             }
             struct TagInfo_Serialize {
-                Containers::Set<String>                     photosContaining;
-                Containers::SortedCollection<TagInfoHelper> siblingTagsCount;
+                Set<String>                     photosContaining;
+                SortedCollection<TagInfoHelper> siblingTagsCount;
             };
 
-            Containers::Mapping<String, TagInfo_Serialize> fullTagInfo;
+            Mapping<String, TagInfo_Serialize> fullTagInfo;
             {
                 DbgTrace ("processing tag info"_f);
                 Debug::TimingTrace ttrc;
@@ -112,17 +113,17 @@ namespace {
 
                 using DataExchange::ObjectVariantMapper;
                 ObjectVariantMapper tagInfoMapper;
-                tagInfoMapper.AddCommonType<Containers::Set<String>> ();
+                tagInfoMapper.AddCommonType<Set<String>> ();
                 tagInfoMapper.AddClass<TagInfoHelper> ({
                     {"key"sv, &TagInfoHelper::key},
                     {"value"sv, &TagInfoHelper::value},
                 });
-                tagInfoMapper.AddCommonType<Containers::SortedCollection<TagInfoHelper>> ();
+                tagInfoMapper.AddCommonType<SortedCollection<TagInfoHelper>> ();
                 tagInfoMapper.AddClass<TagInfo_Serialize> ({
                     {"photosContaining"sv, &TagInfo_Serialize::photosContaining},
                     {"siblingTagsCount"sv, &TagInfo_Serialize::siblingTagsCount},
                 });
-                tagInfoMapper.AddCommonType<Containers::Mapping<String, TagInfo_Serialize>> ();
+                tagInfoMapper.AddCommonType<Mapping<String, TagInfo_Serialize>> ();
 
                 DataExchange::Variant::JSON::Writer{}.Write (tagInfoMapper.FromObject (fullTagInfo),
                                                              IO::FileSystem::FileOutputStream::New (kTagInfoOutputFile));

@@ -22,9 +22,11 @@
 
 using namespace std::filesystem;
 
-using namespace Stroika::Foundation::Characters::Literals;
+using namespace Stroika::Foundation;
+using namespace Stroika::Foundation::Characters;
+using namespace Stroika::Foundation::Containers;
+using namespace Stroika::Foundation::Execution;
 
-using Execution::CommandLine;
 
 namespace {
     constexpr wstring_view kMyTopLevelDirectory = L"P:/";
@@ -60,9 +62,9 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     path digikamScrapeFilePath = outputDirectory / kDigikamScrapeFileName;
     path fileScrapeFilePath    = outputDirectory / kFileScrapeFileName;
 
-    Containers::Mapping<String, Metadata::Document> mergedMetaData;
+    Mapping<String, Metadata::Document> mergedMetaData;
 
-    Containers::Mapping<String, Metadata::Document> fileScrape;
+    Mapping<String, Metadata::Document> fileScrape;
     if (kScrapeFileSystem) {
         {
             DbgTrace ("scraping file system directory at {}"_f, kSourceDirectory);
@@ -81,19 +83,19 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         DbgTrace ("tallying extenstions for directory = {}"_f, kSourceDirectory);
         Debug::TimingTrace ttrc;
 
-        Containers::MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (
+        MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (
             kSourceDirectory.As<filesystem::path> (), String{sampleExtractionFilesDirectory});
 
         DataExchange::ObjectVariantMapper mapper;
-        mapper.AddCommonType<Containers::MultiSet<String>> ();
-        mapper.AddCommonType<Containers::CountedValue<String>> ();
+        mapper.AddCommonType<MultiSet<String>> ();
+        mapper.AddCommonType<CountedValue<String>> ();
 
         path extenstionTallyPath = outputDirectory / kExtensionTallyFileName;
 
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (extTally), IO::FileSystem::FileOutputStream::New (extenstionTallyPath));
     }
 
-    Containers::Mapping<String, Metadata::Document> dbScrape;
+    Mapping<String, Metadata::Document> dbScrape;
     if (kScrapeDigikamDB) {
         {
             DbgTrace ("scraping digikam database at {}"_f, kDigikamDatabase);
@@ -122,7 +124,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         }
 
         DbgTrace ("merging file and database sources, files length = {}, db length = {}"_f, fileScrape.Keys ().length (), dbScrape.Keys ().length ());
-        Containers::Mapping<String, Metadata::Document> masterList;
+        Mapping<String, Metadata::Document> masterList;
         for (const auto& it : fileScrape) {
             Metadata::Document dmd = it.fValue;
             Metadata::Document digikamDmd;
@@ -147,7 +149,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                 if (digikamDmd.date.has_value ()) {
                     if (dmd.date.has_value ()) {
                         if (dmd.date.value () != digikamDmd.date.value ()) {
-                            DbgTrace ("DATE disagreement for {} ({} vs {}"_f, it.fKey, dmd.date.value (), digikamDmd.date);
+                            DbgTrace ("DATE disagreement for {} ({} vs {}"_f, it.fKey, dmd.date, digikamDmd.date);
                         }
                     }
                     else {
