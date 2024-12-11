@@ -112,7 +112,9 @@
 			"*.tcc": "cpp",
 			"string_view": "cpp",
 			"slist": "cpp",
-			"cinttypes": "cpp"
+			"cinttypes": "cpp",
+			"*.inc": "cpp",
+			"*.ipp": "cpp"
 		}
 	}
 }

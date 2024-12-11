@@ -141,7 +141,7 @@ namespace digikam {
                 if (imageIDToImagePath.Lookup (id, &path)) {
                     Metadata::Document ms;
                     scrapedMetadata.Lookup (path, &ms);
-                    ms.location = Geolocation (lat, longi /*, alt*/).ToISOString ();
+                    ms.location = Geolocation{lat, longi /*, alt*/}.ToISOString ();
                     //   DbgTrace (L"geoloc: %d, %s", id, ms.location.value ().c_str ());
                     scrapedMetadata.Add (path, ms);
                 }
@@ -198,7 +198,7 @@ namespace digikam {
             for (const auto& ii : conn.mkStatement ("Select tagid,property from TagProperties;"sv).GetAllRows (0, 1)) {
                 int    id       = std::get<0> (ii).As<int> ();
                 String property = std::get<1> (ii).As<String> ();
-                if (property == L"person" or property == L"faceEngineId") {
+                if (property == "person" or property == "faceEngineId") {
                     //DbgTrace (L"meaningfulTags added: %d, %s", id, property.c_str ());
                     meaningfulTags.Add (id);
                     badTags.RemoveIf (id);
