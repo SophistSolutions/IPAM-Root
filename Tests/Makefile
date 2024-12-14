@@ -9,4 +9,4 @@ all clean clobber format-code:
 
 ## tmphack - fix to do configuration stuff
 run-tests:
-	../Builds/Debug/IPAM/Tests/Geolocation/Geolocation.exe
+	$(TOP_ROOT)/Builds/$(CONFIGURATION)/IPAM/Tests/Geolocation/Geolocation.exe
