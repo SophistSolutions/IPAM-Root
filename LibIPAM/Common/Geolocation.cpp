@@ -64,10 +64,10 @@ double Geolocation::Coordinate::GPSCoordStringToValue (const String& coor)
     static const RegularExpression kCoordinateExp_{"^([0-9]*)?,([0-9]*)(\\.[0-9]*)([NWES]?)"};
     Containers::Sequence<String>   matches;
     if (coor.Matches (kCoordinateExp_, &matches)) {
-        double degrees = std::stod (matches[0].c_str ());
-        double minutes = std::stod (matches[1].c_str ());
-        double seconds = std::stod (matches[2].c_str ());
-        double sign    = (matches[3] == "N" or matches[3] == "E") ? 1 : -1;
+        double degrees = std::stod (matches[0].As<wstring> ().c_str ());
+        double minutes = std::stod (matches[1].As<wstring> ().c_str ());
+        double seconds = std::stod (matches[2].As<wstring> ().c_str ());
+        double sign    = (matches[3] == "N"sv or matches[3] == "E"sv) ? 1 : -1;
         return sign * (degrees + (minutes + seconds) / 60);
     }
     Execution::Throw (DataExchange::BadFormatException{"Invalid coordinate specification"sv});
