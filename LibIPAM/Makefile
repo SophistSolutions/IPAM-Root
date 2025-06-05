@@ -28,7 +28,9 @@ all:
 	@$(StroikaRoot)/ScriptsLib/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "Building LibIPAM {$(CONFIGURATION)}:"
 	@$(StroikaRoot)/ScriptsLib/CheckValidConfiguration $(CONFIGURATION)
 	@for s in ${SubDirs}; do $(MAKE) --directory $${s} -s MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all; done
-	@$(MAKE) -s $(LibIPAM)
+	@#TODO DEBUG WHY THIS GENERATES  warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.
+	@#MAKEFLAGS= works around the problem, but its probably not safe --LGP 2025-06-05
+	@MAKEFLAGS= ${MAKE} --silent $(LibIPAM)
 
 
 $(LibIPAM):	$(Objs)

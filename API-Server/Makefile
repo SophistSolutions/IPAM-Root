@@ -22,7 +22,6 @@ all:
 
 clean clobber::
 	@$(StroikaRoot)/ScriptsLib/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "API-Server $(call FUNCTION_CAPITALIZE_WORD,$@) {$(CONFIGURATION)}:"
-	@$(StroikaRoot)/ScriptsLib/CheckValidConfiguration $(CONFIGURATION)
 	@$(MAKE) --directory=Sources --silent $@
 
 
