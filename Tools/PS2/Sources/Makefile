@@ -1,21 +1,17 @@
-export TOP_ROOT:=$(abspath ../../../)/
-StroikaRoot:=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
+export TOP_ROOT	:=	$(abspath ../../../)/
+StroikaRoot		:=	$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
+SrcDir			:=	$(TOP_ROOT)IPAM/Tools/PS2/Sources/
+ObjDir			:=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS2/
 
-ifneq ($(CONFIGURATION),)
-	-include $(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/Configuration.mk
-endif
-
-SrcDir		:=	$(TOP_ROOT)IPAM/Tools/PS2/Sources/
-ObjDir		:=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS2/
-
-include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
-include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
 include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
+
+include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
 
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS2/)"
 
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
-LinkerArgs_LibDependencies += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX))
+LDFLAGS=
+LDFLAGS += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX))
 
 
 TARGETEXEDir	:=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS2/
@@ -55,9 +51,9 @@ Objs += $(SUBDIR_OBJS)
 $(TARGETEXE):	$(Objs) $(StroikaLibs)
 	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Linking `$(StroikaRoot)ScriptsLib/SubstituteBackVariables $@`" "... "
 	@if [ $(ECHO_BUILD_LINES) -eq 1 ]; then\
-	    $(StroikaRoot)ScriptsLib/PrintProgressLine $$(($(MAKE_INDENT_LEVEL)+1)) '$(call DEFAULT_LINK_LINE,$@)';\
+	    $(StroikaRoot)ScriptsLib/PrintProgressLine $$(($(MAKE_INDENT_LEVEL)+1)) '$(call DEFAULT_LINK_LINE,$@,stroika-frameworks,,${LDFLAGS})';\
 	fi
-	@$(call DEFAULT_LINK_LINE,$@)
+	@$(call DEFAULT_LINK_LINE,$@,stroika-frameworks,,${LDFLAGS})
 
 
 clean::

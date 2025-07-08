@@ -1,7 +1,7 @@
 export TOP_ROOT:=$(shell realpath ../)/
 export StroikaRoot:=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
 
-include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
+include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 
 all clean clobber format-code:
 	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Tests $(call FUNCTION_CAPITALIZE_WORD,$@) {$(CONFIGURATION)}:"

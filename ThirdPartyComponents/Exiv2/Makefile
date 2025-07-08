@@ -1,16 +1,9 @@
 #
 #
-export TOP_ROOT?=$(shell realpath ../../)/
-StroikaRoot=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
-
-ifneq ($(CONFIGURATION),)
-	-include $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/Configuration.mk
-endif
-
-include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
+export TOP_ROOT	?=$(shell realpath ../../)/
+StroikaRoot		:=	$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
 
 include $(StroikaRoot)/ScriptsLib/SharedMakeVariables-Default.mk
-
 
 ifneq ($(CONFIGURATION),)
 include $(StroikaRoot)ScriptsLib/Makefile-CMake-Common.mk
@@ -29,9 +22,8 @@ VERSION=3dd881fb122835605ba011413ec86c121101d131
 ZIPPEDFILE=../Origs-Cache/Exiv2_$(VERSION).zip
 
 
-
-
-PER_CONFIGURATION_BUILDS_DIR:=$(shell realpath --canonicalize-missing ../../Builds/$(CONFIGURATION)/ThirdPartyComponents/)/
+PER_CONFIGURATION_BUILDS_DIR:=${StroikaPlatformTargetBuildDir}
+# PER_CONFIGURATION_BUILDS_DIR:=$(shell realpath --canonicalize-missing ../../Builds/$(CONFIGURATION)/)/
 
 #lose trailing / on PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_ because on macos make THATDIR doesn't work with trailing slash (old WEIRD_MACOS_MAKEFILE_DIR_BUG -  MacOS XCode 10 - GNU Make 3.81)
 PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_:=$(shell realpath --canonicalize-missing ../../IntermediateFiles/$(CONFIGURATION)/ThirdPartyComponents/Exiv2)

@@ -1,15 +1,11 @@
-export TOP_ROOT:=$(abspath ../../)/
-StroikaRoot:=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
+export TOP_ROOT	:=  $(abspath ../../)/
+StroikaRoot		:=	$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
+SrcDir			:=	$(TOP_ROOT)Tools/PS1/
 
-ifneq ($(CONFIGURATION),)
-	-include $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/Configuration.mk
-endif
-
-include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
-include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
 include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 
-SrcDir	:=	$(TOP_ROOT)Tools/PS1/
+include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
+
 
 
 SHELL=/bin/bash
@@ -22,7 +18,6 @@ all:
 
 clean clobber::
 	@$(StroikaRoot)/ScriptsLib/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "IPAM/Tools/PS1 $(call FUNCTION_CAPITALIZE_WORD,$@) {$(CONFIGURATION)}:"
-	@$(StroikaRoot)/ScriptsLib/CheckValidConfiguration $(CONFIGURATION)
 	@$(MAKE) --directory=Sources --silent $@
 
 

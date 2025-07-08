@@ -5,7 +5,6 @@ ifeq (,$(wildcard $(StroikaRoot)Makefile))
 $(warning "submodules missing: perhaps you should run `git submodule update --init --recursive`")
 endif
 
-include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
 include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
 
 

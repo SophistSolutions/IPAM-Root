@@ -1,36 +1,32 @@
-export TOP_ROOT:=$(abspath ../../../)/
-StroikaRoot:=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
+export TOP_ROOT	:=	$(abspath ../../../)/
+StroikaRoot		:=	$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
+SrcDir			:=	$(TOP_ROOT)Tools/PS1/Sources/
+ObjDir			:=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/
 
-ifneq ($(CONFIGURATION),)
-	-include $(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/Configuration.mk
-endif
-
-SrcDir		:=	$(TOP_ROOT)Tools/PS1/Sources/
-ObjDir		:=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/
-
-include $(StroikaRoot)ScriptsLib/Makefile-Common.mk
-include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
 include $(StroikaRoot)ScriptsLib/SharedMakeVariables-Default.mk
+
+include $(StroikaRoot)ScriptsLib/SharedBuildRules-Default.mk
 
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/)"
 
 
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
-LinkerArgs_LibDependencies += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX))
+LDFLAGS=
+LDFLAGS += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX))
 
 
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
-LinkerArgs_LibDependencies += exiv2.lib
-LinkerArgs_LibDependencies += libexpat.lib psapi.lib
+LDFLAGS += exiv2.lib
+LDFLAGS += libexpat.lib psapi.lib
 else
-LinkerArgs_LibDependencies += -lexiv2 -lexpat -lz
+LDFLAGS += -lexiv2 -lexpat -lz
 endif
 
 # From https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4286?view=msvc-170
 #		Sounds like fix needed in exiv2.lib
 # LINK : warning LNK4286: symbol 'XML_Parse' defined in 'libexpat.lib(xmlparse.obj)' is imported by 'exiv2.lib(xmp.obj)'
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
-LinkerArgs_ExtraSuffix+= -ignore:4217 
+LDFLAGS+= -ignore:4217 
 endif
 
 TARGETEXEDir	:=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS1/
@@ -71,10 +67,9 @@ Objs += $(SUBDIR_OBJS)
 $(TARGETEXE):	$(Objs) $(StroikaLibs)
 	@$(StroikaRoot)ScriptsLib/PrintProgressLine $(MAKE_INDENT_LEVEL) "Linking `$(StroikaRoot)ScriptsLib/SubstituteBackVariables $@`" "... "
 	@if [ $(ECHO_BUILD_LINES) -eq 1 ]; then\
-	    $(StroikaRoot)ScriptsLib/PrintProgressLine $$(($(MAKE_INDENT_LEVEL)+1)) '$(call DEFAULT_LINK_LINE,$@)';\
+	    $(StroikaRoot)ScriptsLib/PrintProgressLine $$(($(MAKE_INDENT_LEVEL)+1)) '$(call DEFAULT_LINK_LINE,$@,stroika-frameworks,,${LDFLAGS})';\
 	fi
-	@$(call DEFAULT_LINK_LINE,$@)
-
+	@$(call DEFAULT_LINK_LINE,$@,stroika-frameworks,,${LDFLAGS})
 
 clean::
 	@rm -f $(SUBDIR_OBJS)
