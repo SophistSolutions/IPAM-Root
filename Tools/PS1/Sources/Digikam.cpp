@@ -26,7 +26,6 @@ using namespace Stroika::Foundation::Containers;
 using namespace Stroika::Foundation::Database;
 using namespace Stroika::Foundation::Database::SQL;
 
-
 using namespace IPAM;
 
 using namespace LibIPAM::Common;

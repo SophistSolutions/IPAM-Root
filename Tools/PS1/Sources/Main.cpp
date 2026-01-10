@@ -27,7 +27,6 @@ using namespace Stroika::Foundation::Characters;
 using namespace Stroika::Foundation::Containers;
 using namespace Stroika::Foundation::Execution;
 
-
 namespace {
     constexpr wstring_view kMyTopLevelDirectory = L"P:/";
 
@@ -54,7 +53,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     // @todo add more arguments, and maybe make some of these args REQUIRED? And add call to commandline.Validate()...
 
     // @todo - begin process of removing hardwired paths from app - and using command-line args...
-    path outputDirectory                = commandLine.GetArgument (kOutputDirectoryOption_).value_or ("c:/ssw/mdResults/"sv).As<filesystem::path> ();
+    path outputDirectory = commandLine.GetArgument (kOutputDirectoryOption_).value_or ("c:/ssw/mdResults/"sv).As<filesystem::path> ();
     path sampleExtractionFilesDirectory = outputDirectory;
 
     const path kDigikamDatabase = "c:/Digikam/digikam4.db"sv; // get from cmdline arg! @todo
@@ -83,8 +82,8 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
         DbgTrace ("tallying extenstions for directory = {}"_f, kSourceDirectory);
         Debug::TimingTrace ttrc;
 
-        MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (
-            kSourceDirectory.As<filesystem::path> (), String{sampleExtractionFilesDirectory});
+        MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (kSourceDirectory.As<filesystem::path> (),
+                                                                                         String{sampleExtractionFilesDirectory});
 
         DataExchange::ObjectVariantMapper mapper;
         mapper.AddCommonType<MultiSet<String>> ();
