@@ -16,9 +16,10 @@ endif
 #
 #		NOTE - main not a real release number - so this isn't safe. Floating version
 #		But they dont appear to have done a release since fixing the auto_ptr stuff
-#VERSION=main
-VERSION=3dd881fb122835605ba011413ec86c121101d131
-#VERSION=0.27.5
+VERSION=0.28.8
+# VERSION=main
+# VERSION=3dd881fb122835605ba011413ec86c121101d131
+# VERSION=0.27.5
 ZIPPEDFILE=../Origs-Cache/Exiv2_$(VERSION).zip
 
 
@@ -36,8 +37,8 @@ OUTPUT_WORKDIR_PRETTYNAME="$(shell $(StroikaRoot)Build/Scripts/SubstituteBackVar
 #
 FETCHURLS=
 FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/tags/v$(VERSION).zip
-FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/heads/$(VERSION).zip
 FETCHURLS+=https://github.com/Exiv2/exiv2/archive/$(VERSION).zip
+FETCHURLS+=https://github.com/Exiv2/exiv2/archive/refs/heads/$(VERSION).zip
 
 
 
@@ -148,11 +149,19 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 	@mv FRED/exiv2-$(VERSION)/* $@
 	@rm -rf FRED
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
-ifeq ($(VERSION),3dd881fb122835605ba011413ec86c121101d131)
+	@#NB: this patch is NOT version-specific - every exiv2 we've used has cmake/compilerFlags.cmake
+	@#hard-OVERWRITE CMAKE_CXX_FLAGS_DEBUG with "/MDd /Zi /Ob0 /Ox /Zo", throwing away everything
+	@#Stroika passes in. Losing -MTd is caught by EXIV2_ENABLE_DYNAMIC_RUNTIME=OFF, but losing
+	@#-fsanitize=address is silent: exiv2 then compiles with no ASAN container annotations, and
+	@#linking it against IPAM fails with LNK2038 mismatch for annotate_string/vector/optional.
 	if [ "$@" != "ORIGs" ] ; then \
 		$(StroikaRoot)Build/Scripts/PrintProgressLine $(MAKE_INDENT_LEVEL) "Exiv2 ${VERSION} - Patching ($@/PATCHING.OUT)... ";\
-		patch -p0 $@/src/futils.cpp Patches/BeCompatibleWithUNICODEAPIDefines.Patch >> $@/PATCHING.OUT;\
 		patch -p0 $@/cmake/compilerFlags.cmake Patches/Patch-KillCompilerFlagChangeBreakingStaticLibsWindoze.Patch >> $@/PATCHING.OUT;\
+	fi
+	@#0.28.x calls GetModuleFileNameExA directly, so the TCHAR/UNICODE fixup is only for the older snapshot
+ifeq ($(VERSION),3dd881fb122835605ba011413ec86c121101d131)
+	if [ "$@" != "ORIGs" ] ; then \
+		patch -p0 $@/src/futils.cpp Patches/BeCompatibleWithUNICODEAPIDefines.Patch >> $@/PATCHING.OUT;\
 	fi
 endif
 endif
@@ -165,8 +174,20 @@ CMAKE_ARGS+= -DEXIV2_ENABLE_BROTLI=OFF
 # https://github.com/Exiv2/exiv2#BMFF
 CMAKE_ARGS+= -DEXIV2_ENABLE_BMFF=ON
 
+
+
+CMAKE_ARGS+= -DEXIV2_ENABLE_NLS=OFF
+CMAKE_ARGS+= -DEXIV2_ENABLE_INIH=OFF
+
 # I personally prefer static linking
 CMAKE_ARGS+= -DBUILD_SHARED_LIBS=OFF
+
+# Static libs must use the static CRT. Makefile-CMake-Common.mk already passes
+# -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebug; this just stops exiv2's own
+# cmake/compilerFlags.cmake from rewriting /MT back to /MD behind our back.
+# NB: expat MUST agree - see ThirdPartyComponents/expat/Makefile (EXPAT_MSVC_STATIC_CRT), or
+# linking exiv2.exe fails with unresolved __imp_rand_s / __imp__fdclass.
+CMAKE_ARGS+= -DEXIV2_ENABLE_DYNAMIC_RUNTIME=OFF
 
 ## Should not be needed but finding stuff in wrong place - mingw - instead...
 ##  SB mingw only hack at least
@@ -196,6 +217,12 @@ endif
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 CFLAGS += /DWIN32
 CXXFLAGS += /DWIN32
+# We link the STATIC libexpat, but exiv2 finds it via FindEXPAT/pkg-config rather than expat's
+# exported cmake target, so it never picks up expat's PUBLIC -DXML_STATIC. Without this, xmp.obj
+# declares the XML_* entrypoints __declspec(dllimport) and linking exiv2.exe emits a pile of
+# LNK4217 "symbol defined in libexpat.lib ... is imported by" warnings.
+CFLAGS += /DXML_STATIC
+CXXFLAGS += /DXML_STATIC
 endif
 
 

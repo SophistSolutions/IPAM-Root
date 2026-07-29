@@ -14,7 +14,8 @@ endif
 #
 # CHECK FOR UPDATED VERSIONS https://github.com/libexpat/libexpat/releases
 #
-VERSION=2_5_0
+VERSION=2_8_2
+# VERSION=2_5_0
 ZIPPEDFILE=../Origs-Cache/R_$(VERSION).zip
 
 
@@ -146,6 +147,17 @@ CMAKE_ARGS+= -DEXPAT_BUILD_PKGCONFIG=ON
 
 CMAKE_ARGS+= -DEXPAT_SHARED_LIBS=OFF
 CMAKE_ARGS+= -DEXPAT_BUILD_EXAMPLES=OFF
+
+# expat 2_8_2 (unlike 2_5_0) unconditionally overrides CMAKE_MSVC_RUNTIME_LIBRARY with the
+# "...DLL" (/MDd) variant unless EXPAT_MSVC_STATIC_CRT=ON - silently undoing the
+# -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreadedDebug we pass in. libexpat.lib then ends up
+# built /MDd while everything else is /MTd, and linking exiv2.exe dies with unresolved
+# __imp_rand_s / __imp__fdclass. See expat/CMakeLists.txt "Using static CRT".
+# NB: -DXML_STATIC=ON does NOT work here - expat has no such cache variable (cmake reports it
+# unused); it applies -DXML_STATIC itself as a PUBLIC compile definition on the static target.
+ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
+CMAKE_ARGS+= -DEXPAT_MSVC_STATIC_CRT=ON
+endif
 
 CMAKE_ARGS+= -DEXPAT_DEBUG_POSTFIX=
 CMAKE_ARGS+= -DEXPAT_RELEASE_POSTFIX=
