@@ -144,11 +144,18 @@ $(ZIPPEDFILE):
 
 ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPEDFILE)
 	@$(StroikaRoot)Build/Scripts/PrintProgressLine $(MAKE_INDENT_LEVEL) `$(StroikaRoot)Build/Scripts/SubstituteBackVariables "Exiv2 ${VERSION} - Extracting $(ZIPPEDFILE) to $@"` "... "
-	@rm -rf FRED $@
-	@mkdir $@
-	@unzip -q $(ZIPPEDFILE) -d FRED
-	@mv FRED/exiv2-$(VERSION)/* $@
-	@rm -rf FRED
+	@#NB: $@ must be created here - nothing else makes it, and mv/cp with a missing target dir just
+	@#says "target ... is not a directory". rm -rf first so a stale tree cannot merge into the new one.
+	@rm -rf $@ && mkdir -p $@
+	@#cp -a, NOT mv: renaming a directory on Windows requires delete-sharing on every file beneath
+	@#it, so any scanner holding one of the freshly-unzipped files fails the rename with EACCES
+	@#("Permission denied"), on a different random subdirectory each run. cp only needs read access.
+	@#Chain with && so a failed unzip/cp fails the recipe - with ';' the exit status came from the
+	@#trailing rm and make happily built on a partially extracted tree (and left TMP_DIR to inspect).
+	@TMP_DIR="$(shell mktemp -d ./tmp.XXXXXX)" ; \
+	unzip -q $(ZIPPEDFILE) -d $${TMP_DIR} && \
+	cp -a $${TMP_DIR}/exiv2-$(VERSION)/. $@/ && \
+	rm -rf $${TMP_DIR}
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 	@#NB: this patch is NOT version-specific - every exiv2 we've used has cmake/compilerFlags.cmake
 	@#hard-OVERWRITE CMAKE_CXX_FLAGS_DEBUG with "/MDd /Zi /Ob0 /Ox /Zo", throwing away everything
@@ -199,7 +206,16 @@ CMAKE_ARGS+= -DPC_EXPAT_INCLUDE_DIRS=$(X_)/include/
 CMAKE_ARGS+= -DPC_EXPAT_LIBRARY_DIRS=$(X_)/lib/
 CMAKE_ARGS+= -DZLIB_INCLUDE_DIR=$(X_)/include/
 CMAKE_ARGS+= -DZLIB_LIBRARY_DIR=$(X_)/lib/
-CMAKE_ARGS+= -DZLIB_LIBRARY_RELEASE=$(X_)/lib/zlib.lib
+# Stroika's zlib installs as zs[d].lib (zlibstatic[d].lib before zlib 1.3.2) - never zlib.lib, so
+# the old hard-coded name silently produced a nonexistent path (cmake's FindZLIB never checks) and
+# only blew up at link: LNK1181 cannot open input file ...\zlib.lib, building app/exiv2.exe.
+# Naming mirrors ThirdPartyComponents/zlib/Makefile in Stroika (MAYBED_ keyed off AssertionsEnabled).
+ifeq ($(AssertionsEnabled),1)
+ZLIB_MAYBED_=d
+else
+ZLIB_MAYBED_=
+endif
+CMAKE_ARGS+= -DZLIB_LIBRARY_RELEASE=$(X_)/lib/zs$(ZLIB_MAYBED_)$(LIB_SUFFIX)
 endif
 
 

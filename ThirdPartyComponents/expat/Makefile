@@ -116,10 +116,18 @@ $(ZIPPEDFILE):
 
 ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPEDFILE)
 	@$(StroikaRoot)Build/Scripts/PrintProgressLine $(MAKE_INDENT_LEVEL) `$(StroikaRoot)Build/Scripts/SubstituteBackVariables "expat ${VERSION} - Extracting $(ZIPPEDFILE) to $@"` "... "
-	@mkdir -p $@
-	unzip -q $(ZIPPEDFILE) -d FRED
-	mv FRED/libexpat-R_$(VERSION)/* $@
-	rm -rf FRED
+	@#rm -rf $@ first: without it a stale tree merges into the new one - same-named non-empty dirs
+	@#fail outright, and loose files just get overwritten, leaving old-version leftovers behind.
+	@rm -rf $@ && mkdir -p $@
+	@#cp -a, NOT mv: renaming a directory on Windows requires delete-sharing on every file beneath
+	@#it, so any scanner holding one of the freshly-unzipped files fails the rename with EACCES
+	@#("Permission denied"), on a different random subdirectory each run. cp only needs read access.
+	@#Chain with && so a failed unzip/cp fails the recipe - with ';' the exit status came from the
+	@#trailing rm and make happily built on a partially extracted tree (and left TMP_DIR to inspect).
+	@TMP_DIR="$(shell mktemp -d ./tmp.XXXXXX)" ; \
+	unzip -q $(ZIPPEDFILE) -d $${TMP_DIR} && \
+	cp -a $${TMP_DIR}/libexpat-R_$(VERSION)/. $@/ && \
+	rm -rf $${TMP_DIR}
 
 
 
