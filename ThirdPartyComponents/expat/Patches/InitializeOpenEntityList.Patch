@@ -1,0 +1,5 @@
+diff -r ORIGs/expat/lib/xmlparse.c CURRENT/expat/lib/xmlparse.c
+6378c6378
+<   OPEN_INTERNAL_ENTITY *openEntity, **openEntityList;
+---
+>   OPEN_INTERNAL_ENTITY *openEntity, **openEntityList = NULL; /*IPAM: init - see Makefile / C4701*/

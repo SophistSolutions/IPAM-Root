@@ -128,6 +128,18 @@ ORIGs CURRENT $(PER_CONFIGURATION_THIS_INTERMEDIATEFILES_DIR_NOSLASH_):	$(ZIPPED
 	unzip -q $(ZIPPEDFILE) -d $${TMP_DIR} && \
 	cp -a $${TMP_DIR}/libexpat-R_$(VERSION)/. $@/ && \
 	rm -rf $${TMP_DIR}
+	@#processEntity() assigns openEntityList in each real case of its switch, but the default: case is
+	@#guarded only by assert(0) - which NDEBUG deletes - so the compiler sees a path reaching the use
+	@#uninitialized: C4701/C4703 from MSVC, at LTCG ("Generating code") time in Release only. Not
+	@#reachable in practice (every caller passes one of the three EntityType literals).
+	@#Patching the declaration rather than -wd'ing the warnings keeps this to one line, leaves any
+	@#OTHER uninitialized-variable warning in expat reportable, and - the point - stops applying,
+	@#loudly, the moment upstream touches that line, which is how we find out the workaround can go.
+	@#Skip ORIGs so it stays a pristine copy of the release, exactly as Exiv2/Makefile does.
+	@if [ "$@" != "ORIGs" ] ; then \
+		$(StroikaRoot)Build/Scripts/PrintProgressLine $(MAKE_INDENT_LEVEL) "expat ${VERSION} - Patching ($@/PATCHING.OUT)... " && \
+		patch -p0 $@/expat/lib/xmlparse.c Patches/InitializeOpenEntityList.Patch >> $@/PATCHING.OUT ; \
+	fi
 
 
 
