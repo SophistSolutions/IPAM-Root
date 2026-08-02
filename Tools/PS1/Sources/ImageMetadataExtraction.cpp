@@ -20,6 +20,11 @@ DISABLE_COMPILER_MSC_WARNING_START (4127)
 #include "exiv2/exiv2.hpp"
 DISABLE_COMPILER_MSC_WARNING_END (4127)
 
+// PS1 depends on BMFF (HEIC/AVIF) metadata. 
+#ifndef EXV_ENABLE_BMFF
+#error "exiv2 must be built with EXIV2_ENABLE_BMFF=ON - see ThirdPartyComponents/Exiv2/Makefile"
+#endif
+
 using namespace std::filesystem;
 
 using namespace Stroika::Foundation;
@@ -28,12 +33,6 @@ using namespace Stroika::Foundation::Characters;
 using namespace IPAM::LibIPAM::Common;
 
 namespace Metadata {
-    ImageMetadataExtractor::ImageMetadataExtractor ()
-    {
-        bool bmffSupported = Exiv2::enableBMFF (true);
-        DbgTrace ("bmffSupported = {}"_f, bmffSupported);
-    }
-
     Metadata::Document ImageMetadataExtractor::Extract (const path& pictFile)
     {
         Metadata::Document ms;

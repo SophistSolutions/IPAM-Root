@@ -15,7 +15,7 @@ namespace Metadata {
     using Characters::String;
     class ImageMetadataExtractor {
     public:
-        ImageMetadataExtractor ();
+        ImageMetadataExtractor () = default;
 
         // extract relevant metadata from image file
         Metadata::Document Extract (const std::filesystem::path& pictFile);
