@@ -10,6 +10,13 @@ as they are done.
 - Add libIPAM.pc file support and use it in the executables (maybe .pc files for the support libraries too, or wrap them
   in libIPAM).
 
+- **IntelliSense takes `VERSION` for `<version>` - waits on Stroika
+  [#1252](https://github.com/SophistSolutions/Stroika/issues/1252)**. IPAM includes its own headers from its root
+  (`"LibIPAM/..."`), so the local, untracked `.vscode/c_cpp_properties.json` keeps `myDefaultIncludePath:
+  ["${workspaceFolder}"]` - which also puts `VERSION` ahead of the system `<version>` (the compile is fine: there the
+  system directories come first). Once a Stroika upgrade brings #1252's fix, set IPAM up as its upgrade note says, and
+  check IntelliSense opens a `Tools/PS1` source with no errors.
+
 - **PS1 writes the unmerged scrape** (found 2026-10-23): `Main.cpp` builds `masterList` - the file scrape with the
   digiKam data merged in (Tools/PS1/Sources/Main.cpp:200) - but writes `fileScrape` to `DocumentMetaData.json` (:219),
   so the merge is thrown away, and PS2 reads the unmerged data.
