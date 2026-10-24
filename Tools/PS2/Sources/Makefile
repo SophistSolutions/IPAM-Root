@@ -11,7 +11,6 @@ CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)In
 
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
 LDFLAGS=
-LDFLAGS += $(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)/Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX))
 
 
 TARGETEXEDir	:=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS2/
@@ -48,12 +47,12 @@ all:
 
 Objs += $(SUBDIR_OBJS)
 
-$(TARGETEXE):	$(Objs) $(StroikaLibs)
+$(TARGETEXE):	$(Objs) $(StroikaLibs) $(TOP_ROOT)Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX)
 	@$(StroikaRoot)Build/Scripts/PrintProgressLine $(MAKE_INDENT_LEVEL) "Linking `$(StroikaRoot)Build/Scripts/SubstituteBackVariables $@`" "... "
 	@if [ $(ECHO_BUILD_LINES) -eq 1 ]; then\
-	    $(StroikaRoot)Build/Scripts/PrintProgressLine $$(($(MAKE_INDENT_LEVEL)+1)) '$(call DEFAULT_LINK_LINE,$@,stroika-frameworks,,${LDFLAGS})';\
+	    $(StroikaRoot)Build/Scripts/PrintProgressLine $$(($(MAKE_INDENT_LEVEL)+1)) '$(call DEFAULT_LINK_LINE,$@,libIPAM,,${LDFLAGS})';\
 	fi
-	@$(call DEFAULT_LINK_LINE,$@,stroika-frameworks,,${LDFLAGS})
+	@$(call DEFAULT_LINK_LINE,$@,libIPAM,,${LDFLAGS})
 
 
 clean::

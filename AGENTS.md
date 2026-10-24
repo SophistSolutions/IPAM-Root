@@ -54,6 +54,9 @@ Stroika's build section applies. The IPAM-specific parts:
   Stroika".
 - A new `.cpp` is listed by hand: in its directory's Makefile `Objs` (a new `LibIPAM` directory also in `SubDirs` in
   `LibIPAM/Makefile`), and in its `.vcxproj` and `.vcxproj.filters`.
+- The executables link libIPAM through `Builds/<CONFIG>/lib/pkgconfig/libIPAM.pc`, which `LibIPAM/Makefile` writes:
+  named as `DEFAULT_LINK_LINE`'s 2nd argument, it goes ahead of Stroika's libraries, as GNU ld needs. A library passed in
+  the 4th argument (`LDFLAGS`) comes after them - fine with MSVC, undefined references on Linux.
 - expat and Exiv2: each Makefile pins `VERSION`, and names the page to check for newer releases. The zip is cached in
   `ThirdPartyComponents/Origs-Cache/`, then extracted and patched (`Patches/`) into
   `IntermediateFiles/<CONFIG>/ThirdPartyComponents/<name>/`, built with cmake, and installed into

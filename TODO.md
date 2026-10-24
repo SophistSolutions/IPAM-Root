@@ -7,8 +7,9 @@ as they are done.
 
 ## Open
 
-- Add libIPAM.pc file support and use it in the executables (maybe .pc files for the support libraries too, or wrap them
-  in libIPAM).
+- Link Exiv2 and expat through the `.pc` files their builds already install (`exiv2.pc`, `expat.pc`), in place of the
+  hand-written `-lexiv2 -lexpat -lz` / `exiv2.lib libexpat.lib psapi.lib` lines in PS1's and the Geolocation test's
+  Makefiles - or wrap them in libIPAM.pc.
 
 - **IntelliSense takes `VERSION` for `<version>` - waits on Stroika
   [#1252](https://github.com/SophistSolutions/Stroika/issues/1252)**. IPAM includes its own headers from its root
