@@ -33,7 +33,7 @@ all:
 ifeq ($(CONFIGURATION),)
 	@#Cannot use APPLY_CONFIGS here because ConfigurationFiles may have changed and evaluated before here
 	@for i in `$(StroikaRoot)Build/Scripts/GetConfigurations --config-tags "$(CONFIGURATION_TAGS)" --all-default` ; do\
-		$(MAKE) --no-print-directory --silent all CONFIGURATION=$$i MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1));\
+		$(MAKE) --no-print-directory --silent all CONFIGURATION=$$i MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) || exit $$?;\
 	done
 else
 	@$(MAKE) --directory=ThirdPartyComponents --no-print-directory all MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
@@ -134,9 +134,9 @@ list-configurations list-configuration-tags apply-configurations apply-configura
 
 project-files:
 	@$(MAKE) --directory $(StroikaRoot) --silent CONFIGURATION_TAGS="$(CONFIGURATION_TAGS)" $@
-	@#Workaround https://stroika.atlassian.net/browse/STK-943
-	@cd Workspaces/VisualStudio.Net; rm -f Microsoft.Cpp.stroika.ConfigurationBased.props; $(StroikaRoot)/Build/Scripts/MakeSymbolicLink ../../ThirdPartyComponents/Stroika/StroikaRoot/Workspaces/VisualStudio.Net/Microsoft.Cpp.stroika.ConfigurationBased.props
-	@cd Workspaces/VisualStudio.Net; rm -f Microsoft.Cpp.stroika.user.props; $(StroikaRoot)/Build/Scripts/MakeSymbolicLink ../../ThirdPartyComponents/Stroika/StroikaRoot/Workspaces/VisualStudio.Net/Microsoft.Cpp.stroika.user.props
+	@#Workaround https://github.com/SophistSolutions/Stroika/issues/1075
+	@cd Workspaces/VisualStudio.Net; rm -f Microsoft.Cpp.stroika.ConfigurationBased.props; $(StroikaRoot)/Build/Scripts/MakeFileLink ../../ThirdPartyComponents/Stroika/StroikaRoot/Workspaces/VisualStudio.Net/Microsoft.Cpp.stroika.ConfigurationBased.props
+	@cd Workspaces/VisualStudio.Net; rm -f Microsoft.Cpp.stroika.user.props; $(StroikaRoot)/Build/Scripts/MakeFileLink ../../ThirdPartyComponents/Stroika/StroikaRoot/Workspaces/VisualStudio.Net/Microsoft.Cpp.stroika.user.props
 
 distclean:
 	@$(StroikaRoot)Build/Scripts/PrintProgressLine $(MAKE_INDENT_LEVEL) "IPAM $(call FUNCTION_CAPITALIZE_WORD,$@):"
@@ -151,7 +151,7 @@ clean clobber:
 ifeq ($(CONFIGURATION),)
 	@$(StroikaRoot)Build/Scripts/PrintProgressLine $(MAKE_INDENT_LEVEL) "IPAM $(call FUNCTION_CAPITALIZE_WORD,$@):"
 ifeq ($(CONFIGURATION_TAGS),)
-	@if [ "$@"=="clobber" ] ; then \
+	@if [ "$@" = "clobber" ] ; then \
 		rm -rf IntermediateFiles/* Builds/*;\
 	fi
 	@if [ "$@" = "clean" ] ; then \
@@ -182,7 +182,7 @@ ifneq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
 # This mechanism isn't strictly necessary, and slows builds slightly on windows. BUT, it can be very confusing the
 # errors you get out of the box with visual studio projects without doing a make project-files, so include
 # this to make the out of box experience installing Stroika a little more seemless.
-# SEE https://stroika.atlassian.net/browse/STK-940
+# SEE https://github.com/SophistSolutions/Stroika/issues/1072
 Builds/__AUTOMATIC_MAKE_PROJECT_FILES__:
 	@$(MAKE) project-files
 	@touch Builds/__AUTOMATIC_MAKE_PROJECT_FILES__
