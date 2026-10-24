@@ -19,10 +19,6 @@ as they are done.
   below 3.6348 - meant `abs (b.seconds () - 3.6348)`. And three ISO 6709 examples are commented out, failing on zero
   padding (`+00-025/` prints `+00-25/`; :112-128).
 
-- **Linux configurations only with g++-11** (`--compiler-driver g++-11`, Makefile:111-112, since 36bbc87 in 2022): on a
-  box without it - Ubuntu 24.04 and 26.04 by default - `make default-configurations` makes none. Drop the pin, or pick
-  a newer compiler?
-
 - Small build leftovers (found 2026-10-23):
   - `make run-tests` runs `Geolocation.exe` (Tests/Makefile:12) - no such file on UNIX - and needs `CONFIGURATION=`.
   - expat's and Exiv2's `make all` with no `CONFIGURATION=` calls `$(StroikaRoot)GetConfigurations`, which does not exist

@@ -41,8 +41,9 @@ Stroika's build section applies. The IPAM-specific parts:
 - One build root: the first `make` (`make build-root`) points StroikaRoot's `Builds`, `ConfigurationFiles` and
   `IntermediateFiles` at IPAM's own, so Stroika and IPAM build into the same `Builds/<CONFIG>/`.
 - `make default-configurations` makes IPAM's list, from the top-level `Makefile`: on Windows Debug, Release,
-  Release-Logging and x86/x86_64 variants (Debug and Release are not built by default - name them); on Linux Debug and
-  Release with `g++-11` only (none if it is not installed); on macOS Debug and Release. All get `--ATLMFC no`.
+  Release-Logging and x86/x86_64 variants (Debug and Release are not built by default - name them); on Linux and macOS
+  Debug and Release, with the default compiler. All get `--ATLMFC no`. IPAM takes Stroika's configure defaults
+  (compiler, C++ standard, ...) - a flag here needs an IPAM reason (LGP, 2026-10-23).
 - `make CONFIGURATION=Debug all -j8` builds, in order: the Stroika libraries (with `QUICK_BUILD=1`, so libraries already
   there are not rebuilt), expat, Exiv2, `LibIPAM`, `Tools`, `Tests`, `API-Server`. `make all` alone builds every
   default configuration - slow.
@@ -93,8 +94,7 @@ The submodule follows Stroika's releases (`v3-Release`), or `v3-Dev` between the
    again): an incremental build links the old Stroika libraries (Stroika's `Documentation/Upgrading.md` says why).
 7. Fix the errors, and the deprecation warnings too: deprecated Stroika names go away at v3.0a1. A renamed macro cannot
    warn - search for each old name the notes list.
-8. Build Debug and Release with MSVC, and with g++ where a Linux box has g++-11; run the test; run PS1 and PS2 where
-   their data is.
+8. Build Debug and Release with MSVC, and with g++ on a Linux box; run the test; run PS1 and PS2 where their data is.
 9. Report every change IPAM needed that the upgrade notes do not mention, and every note that was wrong or unclear, so
    Stroika's Release-Notes can be fixed.
 10. The commit's headline names the Stroika version ("Stroika 3.0d25").
