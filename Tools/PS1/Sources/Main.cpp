@@ -216,7 +216,7 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
             auto outputPath = outputDirectory / kMergedTagsFileName;
             DbgTrace ("writing processed tag info to {}"_f, outputPath);
             Debug::TimingTrace ttrc;
-            Metadata::Document::WriteToFileAsJSON (fileScrape, outputPath);
+            Metadata::Document::WriteToFileAsJSON (masterList, outputPath);
         }
     }
 
