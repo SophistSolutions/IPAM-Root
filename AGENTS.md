@@ -71,8 +71,8 @@ Stroika's build section applies. The IPAM-specific parts:
 ## Run and check
 
 - A check is the build (with its warnings, as in Stroika), then the test, `Builds/<CONFIG>/IPAM/Tests/Geolocation/
-  Geolocation.exe`: count its `[  PASSED  ]` line as Stroika's AGENTS.md says. `make CONFIGURATION=X run-tests` runs it
-  (Windows only: the path it runs ends in `.exe`).
+  Geolocation` (`.exe` on Windows): count its `[  PASSED  ]` line as Stroika's AGENTS.md says. `make CONFIGURATION=X
+  run-tests` runs it - with no `CONFIGURATION=`, each default configuration's in turn. Unlike Stroika's, it builds nothing.
 - PS1 and PS2 need the photo collection and digiKam database at their hard-wired paths, so usually they can only be
   built. Say what you ran, and what you could not.
 - DbgTrace goes to a trace file in Debug and Release-Logging builds.

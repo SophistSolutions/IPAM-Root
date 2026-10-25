@@ -168,10 +168,14 @@ else
 	@$(MAKE) --directory ThirdPartyComponents --no-print-directory $@ MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 endif
 
-## @todo cleanup - fix configs etc
 run-tests:
-	@$(MAKE) --directory Tests --no-print-directory run-tests
-	
+ifeq ($(CONFIGURATION),)
+	@for i in `$(StroikaRoot)Build/Scripts/GetConfigurations --config-tags "$(CONFIGURATION_TAGS)" --all-default` ; do\
+		$(MAKE) --no-print-directory run-tests CONFIGURATION=$$i MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) || exit $$?;\
+	done
+else
+	@$(MAKE) --directory Tests --no-print-directory run-tests MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
+endif
 
 ifneq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
 # This mechanism isn't strictly necessary, and slows builds slightly on windows. BUT, it can be very confusing the
