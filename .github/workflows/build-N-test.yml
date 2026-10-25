@@ -1,0 +1,88 @@
+#
+# Docs on github action files: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions
+#
+# build-N-test - builds IPAM (Stroika included) and runs its tests, for each entry of build-N-test-Matrix.json that this
+# branch selects: "run_on_branch" is "always", a branch name, or "never" (not even with run_all).
+#
+
+name: build-N-test
+
+on:
+  push:
+  workflow_dispatch:
+    inputs:
+      run_all:
+        description: "run all"
+        required: false
+        default: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  LinuxMatrixPrep:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - uses: actions/checkout@v7
+    - id: set-matrix
+      run: |
+        branchName=$(echo '${{ github.ref }}' | sed 's,refs/heads/,,g')
+        matrix=$(jq --arg branchName "$branchName" 'map(
+            . | select((.run_on_branch==$branchName) or (.run_on_branch=="always") or ("${{github.event.inputs.run_all}}"=="true") and (.run_on_branch!="never")) | select(.build_job=="Linux")
+        )' .github/workflows/build-N-test-Matrix.json)
+        echo "matrix={\"include\":$(echo $matrix)}" >> $GITHUB_OUTPUT
+
+  Linux:
+    needs: LinuxMatrixPrep
+    name: ${{ matrix.displayTargetName }}
+    runs-on: ${{ matrix.runs_on }}
+    # GitHub's own bound is 6 hours, which lets a hung build hold a runner that long
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.LinuxMatrixPrep.outputs.matrix)}}
+    container: ${{ matrix.container_image }}
+    env:
+      # the runners have 4 virtual CPUs
+      MAKEFLAGS: "--jobs=4"
+      CONFIGURATION: ${{ matrix.config_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - name: Configure ${{ matrix.config_name }}
+        run: |
+          make build-root
+          cd ThirdPartyComponents/Stroika/StroikaRoot
+          ./configure ${{ matrix.config_name }} ${{ matrix.extra_config_args }}
+          cat ConfigurationFiles/${{ matrix.config_name }}.xml
+      # Stroika's third-party components first, on their own, so their intermediate files can go before the rest is built:
+      # a whole Debug build otherwise needs more disk than the runner has
+      - name: Make Stroika's third-party components
+        run: make --directory=ThirdPartyComponents/Stroika/StroikaRoot third-party-components
+      - name: Save space
+        run: |
+          make --directory=ThirdPartyComponents/Stroika/StroikaRoot/ThirdPartyComponents --silent clean
+          df -h .
+      - name: Make all
+        run: make all
+      # A test built without googletest runs nothing and exits 0, so require gtest's PASSED line too
+      - name: Run tests
+        shell: bash
+        run: |
+          make run-tests 2>&1 | tee /tmp/run-tests.log
+          grep -q '^\[  PASSED  \]' /tmp/run-tests.log
+      - name: Collect logs
+        if: failure()
+        run: |
+          mkdir -p /tmp/logs
+          cp --parents IntermediateFiles/${CONFIGURATION}/ThirdPartyComponents/*/*-OUT.txt /tmp/logs/ 2>/dev/null || :
+          cp --parents IntermediateFiles/${CONFIGURATION}/ThirdPartyComponents/*/*.OUT /tmp/logs/ 2>/dev/null || :
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Logs (${{ matrix.displayTargetName }})
+          path: /tmp/logs/

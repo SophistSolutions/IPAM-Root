@@ -1,0 +1,14 @@
+[
+    {
+        "#": "Linux - ubuntu 26.04; Debug carries Stroika's default sanitizers (address, undefined)"
+    },
+    {
+        "build_job": "Linux",
+        "displayTargetName": "ubuntu-26.04 (Debug)",
+        "runs_on": "ubuntu-latest",
+        "container_image": "sophistsolutionsinc/ipam-ubuntu-2604:v1",
+        "config_name": "Debug",
+        "extra_config_args": "--apply-default-debug-flags",
+        "run_on_branch": "always"
+    }
+]

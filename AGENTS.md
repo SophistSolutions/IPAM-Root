@@ -7,8 +7,8 @@ This file provides guidance to agents (and people) working in this repository.
 IPAM is an application built on Stroika (scaffolded with Stroika's `Skel`, in 2022). Stroika's AGENTS.md, imported
 above, applies here - agents that do not follow `@` imports: read `ThirdPartyComponents/Stroika/StroikaRoot/AGENTS.md`
 first. Its build system, C++ conventions, Commits, Issues and "Working with LGP" sections are IPAM's too. These parts of
-it do not apply: its regression-test layout (`Tests/NN`, renumbering), its CI matrix and supported-platforms tables (IPAM
-has no CI), its release milestones and `Release-Notes.md`, `UPGRADE NOTE:`s in commit messages (nothing is built on
+it do not apply: its regression-test layout (`Tests/NN`, renumbering), its CI matrix and supported-platforms tables (IPAM's
+CI is one job - see Layout), its release milestones and `Release-Notes.md`, `UPGRADE NOTE:`s in commit messages (nothing is built on
 IPAM), and its "Downstream projects" list (IPAM is on it). Where the two files disagree, this one wins.
 
 ## What this is
@@ -16,7 +16,7 @@ IPAM), and its "Downstream projects" list (IPAM is on it). Where the two files d
 IPAM, the "Interplanetary Album Manager": tools to organize photo albums (and other documents) and share them over IPFS
 without handing control to a third party. It is early-stage. `Documentation/ReadMe.md` is the design (documents,
 versions, sections, tags, an API-Server that talks to IPFS), and most of it is not written yet: there is no IPFS code.
-What works today is scraping photo metadata. Version in `VERSION`; one branch, `v1-Dev`; no CI, no release notes.
+What works today is scraping photo metadata. Version in `VERSION`; one branch, `v1-Dev`; no release notes.
 
 ## Layout
 
@@ -28,11 +28,18 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
   them, and writes JSON (`FileScrape.json`, `DigikamScrape.json`, `ExtenstionTally.json`, `DocumentMetaData.json`) to
   `-o <dir>`. Its inputs are hard-wired in `Main.cpp` (`P:/...`, `c:/Digikam/digikam4.db`).
 - `Tools/PS2/` - reads PS1's `DocumentMetaData.json` and writes tag co-occurrence counts
-  (`DocumentMetaDataTagInfo.json`); both paths are hard-wired to `c:\ssw\mdResults\`. `TagInfo.{h,cpp}` are not built.
+  (`DocumentMetaDataTagInfo.json`); both paths are hard-wired to `c:\ssw\mdResults\`.
 - `API-Server/` - a stub `main` that does nothing yet.
 - `Tests/Geolocation/` - the only test: googletest, over `LibIPAM/Common/Geolocation`.
 - `ThirdPartyComponents/` - Stroika (git submodule, at `StroikaRoot`), plus `expat` and `Exiv2`, which only PS1 links.
 - `Workspaces/` - the VS Code workspace and a Visual Studio 2022 solution (Visual Studio is for debugging; make builds).
+- `DockerBuildContainers/` - IPAM's build images (`sophistsolutionsinc/ipam-ubuntu-2604`, on Stroika's
+  `stroika-buildvm-ubuntu2604-small`): tools IPAM needs beyond Stroika's go in their Dockerfiles. The
+  `build-Dev-Docker-Containers` workflow (run by hand) publishes them, from its `-Matrix.json`.
+- `.github/workflows/build-N-test.yml` - CI on every push, one job per entry of `build-N-test-Matrix.json` that the branch
+  selects (`run_on_branch`, as in Stroika's): today one, Linux Debug in IPAM's image, which builds everything and runs
+  the test. No Windows or macOS yet. Results: https://github.com/SophistSolutions/IPAM-Root/actions (public, so readable
+  with no token, as Stroika's are).
 
 ## Build
 
