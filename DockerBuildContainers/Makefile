@@ -9,7 +9,8 @@ DETECTED_HOST_OS=$(shell $(StroikaRoot)Build/Scripts/DetectedHostOS)
 help:
 	@echo "make build-images to create the docker images on your computer"
 	@echo "to run the image, use:"
-	@echo "    docker run -it sophistsolutionsinc/ipam-ubuntu-2604"
+	@echo "    docker run -it sophistsolutionsinc/ipam-ubuntu-2604   OR"
+	@echo "    docker run -it sophistsolutionsinc/ipam-windows-vs2k26"
 	@echo "n.b. use --security-opt seccomp=unconfined to run debugger (ptrace/address randomization disable)"
 	@echo "and first thing when you run docker image, cat /Getting-Started.md"
 	@echo "make tag-images, then make push-images (after docker login) to publish them, as the build-Dev-Docker-Containers workflow does"
@@ -23,6 +24,9 @@ DEFAULT_IMAGES_?=
 ifeq (${DETECTED_HOST_OS},Linux)
 DEFAULT_IMAGES_+= sophistsolutionsinc/ipam-ubuntu-2604
 endif
+ifneq ($(findstring $(DETECTED_HOST_OS),MSYS-Cygwin),)
+DEFAULT_IMAGES_+= sophistsolutionsinc/ipam-windows-vs2k26
+endif
 
 IMAGES?=${DEFAULT_IMAGES_}
 
@@ -32,6 +36,9 @@ build-images:
 
 sophistsolutionsinc/ipam-ubuntu-2604:
 	docker build -f Ubuntu-2604/Dockerfile -t $@ ${DOCKER_BUILD_EXTRAS_} .
+
+sophistsolutionsinc/ipam-windows-vs2k26:
+	docker build -f Windows-VS2k26/Dockerfile -t $@ -m 2G .
 
 
 tag-images:

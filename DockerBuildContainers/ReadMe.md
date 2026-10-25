@@ -9,8 +9,10 @@ Just create one or more of these docker images, and run them as in:
   - then inside the docker container find Getting-Started.md, and follow its instructions to build (basically clone
     IPAM-Root and type make)
 
-The image is Ubuntu 26.04, on the matching Stroika build image (`stroika-buildvm-ubuntu2604-small`), plus the distro's
-default g++. Tools IPAM needs beyond Stroika's - for IPFS, say - go in its Dockerfile.
+The images are Ubuntu 26.04 (`sophistsolutionsinc/ipam-ubuntu-2604`, on Stroika's `stroika-buildvm-ubuntu2604-small`,
+plus the distro's default g++) and Windows with Visual Studio 2026 (`sophistsolutionsinc/ipam-windows-vs2k26`, on
+Stroika's `stroika-buildvm-windows-msys-vs2k26`). Tools IPAM needs beyond Stroika's - for IPFS, say - go in their
+Dockerfiles. Each image builds only on its own OS.
 
 CI builds in it (`.github/workflows/build-N-test-Matrix.json`), and the build-Dev-Docker-Containers workflow (run by
 hand) builds and publishes it, tagged `latest` and `v1`, from `.github/workflows/build-Dev-Docker-Containers-Matrix.json`.

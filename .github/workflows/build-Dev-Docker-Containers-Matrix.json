@@ -7,5 +7,14 @@
         "runs_on": "ubuntu-latest",
         "displayTargetName": "ipam-buildvm-ubuntu-2604",
         "container_images": "sophistsolutionsinc/ipam-ubuntu-2604"
+    },
+    {
+        "#": "Windows"
+    },
+    {
+        "build_job": "Windows",
+        "runs_on": "windows-2025",
+        "displayTargetName": "ipam-buildvm-windows-vs2k26",
+        "container_images": "sophistsolutionsinc/ipam-windows-vs2k26"
     }
 ]
