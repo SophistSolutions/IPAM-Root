@@ -35,12 +35,19 @@ namespace {
     };
 
     // sorted multiset doesn't currently do what I want (sorts by key, not value)
-    // so do the sorting by hand
+    // so do the sorting by hand: most frequent sibling first, then by name
     struct TagInfoHelper {
         String       key;
         unsigned int value;
 
-        auto operator<=> (const TagInfoHelper& rhs) const = default;
+        strong_ordering operator<=> (const TagInfoHelper& rhs) const
+        {
+            if (strong_ordering cmp = rhs.value <=> value; cmp != 0) {
+                return cmp;
+            }
+            return key <=> rhs.key;
+        }
+        bool operator== (const TagInfoHelper& rhs) const = default;
     };
 
     void LoadMasterTagList_ ()
