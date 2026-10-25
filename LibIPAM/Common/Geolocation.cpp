@@ -34,13 +34,17 @@ Geolocation::Coordinate::Coordinate (const String& s, const RegularExpression& r
 {
     Containers::Sequence<String> matches;
     if (s.Matches (regex, &matches)) {
-        _value = std::fmod (Characters::FloatConversion::ToFloat (matches[1]), 360);
+        _value                   = std::fmod (Characters::FloatConversion::ToFloat (matches[1]), 360);
+        fLastUnit_               = Unit_::eDegrees;
+        double lastUnitInDegrees = 1;
         if (matches[2].length () == 2) {
             int minutes = Characters::String2Int (matches[2]);
             if (abs (minutes) >= _kBase) {
                 Execution::Throw (DataExchange::BadFormatException{"Invalid coordinate specification (minutes > 60)"sv});
             }
             _value += minutes / _kBase;
+            fLastUnit_        = Unit_::eMinutes;
+            lastUnitInDegrees = 1 / _kBase;
         }
         if (matches[3].length () == 2) {
             int seconds = Characters::String2Int (matches[3]);
@@ -48,9 +52,12 @@ Geolocation::Coordinate::Coordinate (const String& s, const RegularExpression& r
                 Execution::Throw (DataExchange::BadFormatException{"Invalid coordinate specification (seconds > 60)"sv});
             }
             _value += seconds / (_kBase * _kBase);
+            fLastUnit_        = Unit_::eSeconds;
+            lastUnitInDegrees = 1 / (_kBase * _kBase);
         }
         if (matches[4].length () > 1) {
-            _value += Characters::FloatConversion::ToFloat (matches[4]) / (_kBase * _kBase);
+            _value += Characters::FloatConversion::ToFloat (matches[4]) * lastUnitInDegrees;
+            fFractionDigits_ = matches[4].length () - 1;
         }
         _value *= (matches[0] == "-") ? -1.0 : 1.0;
     }
@@ -98,24 +105,47 @@ double Geolocation::Coordinate::seconds () const
 
 String Geolocation::Coordinate::ToISOString_ (const Characters::FormatString<char> degreeSpecification)
 {
+    // Count the whole value in its last unit, rounded to the digits printed, and split that: splitting the double unit by
+    // unit truncates 42.99999 seconds to 42
+    Unit_        unit      = fLastUnit_.value_or (Unit_::eSeconds);
+    unsigned int digits    = static_cast<unsigned int> (fFractionDigits_.value_or (6));
+    double       perDegree = unit == Unit_::eDegrees ? 1 : unit == Unit_::eMinutes ? _kBase : _kBase * _kBase;
+    double       scale     = std::pow (10.0, digits);
+    double       total     = std::round (abs (_value) * perDegree * scale) / scale;
+    double       fraction  = total - std::floor (total);
+    long long    whole     = static_cast<long long> (std::floor (total));
+    long long    degrees   = whole;
+    long long    minutes   = 0;
+    long long    seconds   = 0;
+    if (unit == Unit_::eMinutes) {
+        degrees = whole / 60;
+        minutes = whole % 60;
+    }
+    else if (unit == Unit_::eSeconds) {
+        degrees = whole / 3600;
+        minutes = whole / 60 % 60;
+        seconds = whole % 60;
+    }
+    bool hasFraction = fraction >= 0.5 / scale;
+    if (not fLastUnit_.has_value () and seconds == 0 and not hasFraction) {
+        unit = minutes == 0 ? Unit_::eDegrees : Unit_::eMinutes;
+    }
+
+    // the sign goes first, then the zero-padded magnitude: formatted with the number, a '-' takes a digit's place in the width
     StringBuilder result;
-    if (_value >= 0) {
-        result << '+';
+    result << (_value < 0 ? '-' : '+');
+    result << Characters::Format (degreeSpecification, degrees);
+    if (unit != Unit_::eDegrees) {
+        result << Characters::Format ("{:02}"_f, minutes);
     }
-    result += Characters::Format (degreeSpecification, degrees ());
-    if (minutes () != 0) {
-        result << Characters::Format ("{:02}"_f, abs (minutes ()));
+    if (unit == Unit_::eSeconds) {
+        result << Characters::Format ("{:02}"_f, seconds);
     }
-    if ((abs (seconds ()) - 0) > 0.00001) {
-        double _integral;
-        double fractional = std::modf (abs (seconds ()), &_integral);
-        int    xxx        = int (abs (_integral));
-        if (xxx != 0) {
-            result << Characters::Format ("{:02}"_f, xxx);
-        }
-        if (abs (fractional) > 0.000001) {
-            result << Characters::Format ("{:.6g}"_f, abs (fractional)).SubString (1);
-        }
+    if (fFractionDigits_.has_value ()) {
+        result << Characters::Format ("{:.{}f}"_f, fraction, digits).SubString (1);
+    }
+    else if (hasFraction) {
+        result << Characters::Format ("{:.6f}"_f, fraction).SubString (1).RTrim ([] (Character c) { return c == '0'; });
     }
     return result;
 }

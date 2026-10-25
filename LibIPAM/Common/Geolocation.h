@@ -45,6 +45,20 @@ namespace IPAM::LibIPAM::Common {
             double                  _value;
 
             nonvirtual String ToISOString_ (const Characters::FormatString<char> degreeSpecification);
+
+        private:
+            /*
+             *  ISO 6709 gives a decimal fraction to whichever unit comes last (+48.8577 is degrees, +1234.23 minutes), so a
+             *  parsed coordinate keeps that unit and the fraction's digit count, and prints back in the same form. One made
+             *  from a number has neither, and prints every unit down to its last nonzero one.
+             */
+            enum class Unit_ {
+                eDegrees,
+                eMinutes,
+                eSeconds
+            };
+            optional<Unit_>  fLastUnit_;
+            optional<size_t> fFractionDigits_;
         };
 
         /**

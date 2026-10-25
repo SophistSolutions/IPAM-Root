@@ -18,11 +18,6 @@ as they are done.
   system directories come first). Once a Stroika upgrade brings #1252's fix, set IPAM up as its upgrade note says, and
   check IntelliSense opens a `Tools/PS1` source with no errors.
 
-- **Geolocation test assertions that cannot fail** (found 2026-10-23): `EXPECT_TRUE ((abs (b.seconds ()) - 3.6348) <
-  0.00001)` (Tests/Geolocation/Sources/Main.cpp:37, :74, and the `- 0` / `- .23` lines near them) is true for any value
-  below 3.6348 - meant `abs (b.seconds () - 3.6348)`. And three ISO 6709 examples are commented out, failing on zero
-  padding (`+00-025/` prints `+00-25/`; :112-128).
-
 - Small build leftovers (found 2026-10-23):
   - `make run-tests` runs `Geolocation.exe` (Tests/Makefile:12) - no such file on UNIX - and needs `CONFIGURATION=`.
   - expat's and Exiv2's `make all` with no `CONFIGURATION=` calls `$(StroikaRoot)GetConfigurations`, which does not exist
