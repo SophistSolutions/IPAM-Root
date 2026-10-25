@@ -8,8 +8,8 @@
       "name": "(gdb-UNIX) Launch EXE",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/Builds/${command:cpptools.activeConfigName}/IPAM/IPAM",
-      "args": ["-m"],
+      "program": "${workspaceFolder}/Builds/${command:cpptools.activeConfigName}/IPAM/${input:IPAMProgram}",
+      "args": [],
       "stopAtEntry": true,
       "cwd": "${workspaceFolder}",
       "environment": [
@@ -31,15 +31,15 @@
       "name": "(lldb-UNIX) Launch EXE",
       "type": "lldb",
       "request": "launch",
-      "program": "${workspaceFolder}/Builds/${command:cpptools.activeConfigName}/IPAM/IPAM",
+      "program": "${workspaceFolder}/Builds/${command:cpptools.activeConfigName}/IPAM/${input:IPAMProgram}",
       "args": []
     },
     {
       "name": "(Windows) Launch VisualStudio",
       "type": "cppvsdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/Builds/${command:cpptools.activeConfigName}/IPAM/IPAM.exe",
-      "args": ["-m"],
+      "program": "${workspaceFolder}/Builds/${command:cpptools.activeConfigName}/IPAM/${input:IPAMProgram}.exe",
+      "args": [],
       "stopAtEntry": true,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -48,7 +48,7 @@
         "moduleLoad": false,
         "trace": true
       },
-      "visualizerFile": "${workspaceFolder}/ThirdPartyComponets/Stroika/StroikaRoot/Library/Projects/VisualStudio.Net-2022/VisualStudio-Stroika-Foundation-Debugger-Template.natvis"
+      "visualizerFile": "${workspaceFolder}/ThirdPartyComponents/Stroika/StroikaRoot/Library/Projects/VisualStudio.Net-2022/VisualStudio-Stroika-Foundation-Debugger-Template.natvis"
     },
     {
       "name": "gdbserver remote Launch(not sure helpful right now)",
@@ -61,6 +61,15 @@
       "linux": {
         "MIMode": "gdb"
       }
+    }
+  ],
+  "inputs": [
+    {
+      "id": "IPAMProgram",
+      "type": "pickString",
+      "description": "IPAM program to run",
+      "options": ["Tools/PS1/PS1", "Tools/PS2/PS2", "Tests/Geolocation/Geolocation", "API-Server/API-Server"],
+      "default": "Tests/Geolocation/Geolocation"
     }
   ]
 }
