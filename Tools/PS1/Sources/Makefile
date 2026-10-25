@@ -13,19 +13,9 @@ CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)In
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
 LDFLAGS=
 
-
+# exiv2.pc names no Windows system libraries, but exiv2's version.cpp calls EnumProcessModules
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
-LDFLAGS += exiv2.lib
-LDFLAGS += libexpat.lib psapi.lib
-else
-LDFLAGS += -lexiv2 -lexpat -lz
-endif
-
-# From https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4286?view=msvc-170
-#		Sounds like fix needed in exiv2.lib
-# LINK : warning LNK4286: symbol 'XML_Parse' defined in 'libexpat.lib(xmlparse.obj)' is imported by 'exiv2.lib(xmp.obj)'
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
-LDFLAGS+= -ignore:4217 
+LDFLAGS += psapi.lib
 endif
 
 TARGETEXEDir	:=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS1/
@@ -66,9 +56,9 @@ Objs += $(SUBDIR_OBJS)
 $(TARGETEXE):	$(Objs) $(StroikaLibs) $(TOP_ROOT)Builds/$(CONFIGURATION)/libIPAM$(LIB_SUFFIX)
 	@$(StroikaRoot)Build/Scripts/PrintProgressLine $(MAKE_INDENT_LEVEL) "Linking `$(StroikaRoot)Build/Scripts/SubstituteBackVariables $@`" "... "
 	@if [ $(ECHO_BUILD_LINES) -eq 1 ]; then\
-	    $(StroikaRoot)Build/Scripts/PrintProgressLine $$(($(MAKE_INDENT_LEVEL)+1)) '$(call DEFAULT_LINK_LINE,$@,libIPAM,,${LDFLAGS})';\
+	    $(StroikaRoot)Build/Scripts/PrintProgressLine $$(($(MAKE_INDENT_LEVEL)+1)) '$(call DEFAULT_LINK_LINE,$@,libIPAM exiv2,,${LDFLAGS})';\
 	fi
-	@$(call DEFAULT_LINK_LINE,$@,libIPAM,,${LDFLAGS})
+	@$(call DEFAULT_LINK_LINE,$@,libIPAM exiv2,,${LDFLAGS})
 
 clean::
 	@rm -f $(SUBDIR_OBJS)

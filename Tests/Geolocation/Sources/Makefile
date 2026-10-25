@@ -13,21 +13,6 @@ CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)In
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
 LDFLAGS=
 
-
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
-LDFLAGS += exiv2.lib
-LDFLAGS += libexpat.lib psapi.lib
-else
-LDFLAGS += -lexiv2 -lexpat -lz
-endif
-
-# From https://learn.microsoft.com/en-us/cpp/error-messages/tool-errors/linker-tools-warning-lnk4286?view=msvc-170
-#		Sounds like fix needed in exiv2.lib
-# LINK : warning LNK4286: symbol 'XML_Parse' defined in 'libexpat.lib(xmlparse.obj)' is imported by 'exiv2.lib(xmp.obj)'
-ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
-LDFLAGS+= -ignore:4286 
-endif
-
 TARGETEXEDir			=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tests/Geolocation/
 TARGETEXE				=	$(TARGETEXEDir)Geolocation${EXE_SUFFIX}
 

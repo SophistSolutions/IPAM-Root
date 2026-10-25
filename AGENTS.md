@@ -31,8 +31,7 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
   (`DocumentMetaDataTagInfo.json`); both paths are hard-wired to `c:\ssw\mdResults\`. `TagInfo.{h,cpp}` are not built.
 - `API-Server/` - a stub `main` that does nothing yet.
 - `Tests/Geolocation/` - the only test: googletest, over `LibIPAM/Common/Geolocation`.
-- `ThirdPartyComponents/` - Stroika (git submodule, at `StroikaRoot`), plus `expat` and `Exiv2`, which PS1 and the test
-  link.
+- `ThirdPartyComponents/` - Stroika (git submodule, at `StroikaRoot`), plus `expat` and `Exiv2`, which only PS1 links.
 - `Workspaces/` - the VS Code workspace and a Visual Studio 2022 solution (Visual Studio is for debugging; make builds).
 
 ## Build
@@ -56,7 +55,9 @@ Stroika's build section applies. The IPAM-specific parts:
   `LibIPAM/Makefile`), and in its `.vcxproj` and `.vcxproj.filters`.
 - The executables link libIPAM through `Builds/<CONFIG>/lib/pkgconfig/libIPAM.pc`, which `LibIPAM/Makefile` writes:
   named as `DEFAULT_LINK_LINE`'s 2nd argument, it goes ahead of Stroika's libraries, as GNU ld needs. A library passed in
-  the 4th argument (`LDFLAGS`) comes after them - fine with MSVC, undefined references on Linux.
+  the 4th argument (`LDFLAGS`) comes after them - fine with MSVC, undefined references on Linux. So libraries go in the
+  2nd argument by their `.pc` names - PS1's is `libIPAM exiv2` (`exiv2.pc` brings expat and zlib) - and `LDFLAGS` keeps
+  only system libraries a `.pc` misses (PS1's `psapi.lib`).
 - expat and Exiv2: each Makefile pins `VERSION`, and names the page to check for newer releases. The zip is cached in
   `ThirdPartyComponents/Origs-Cache/`, then extracted and patched (`Patches/`) into
   `IntermediateFiles/<CONFIG>/ThirdPartyComponents/<name>/`, built with cmake, and installed into
