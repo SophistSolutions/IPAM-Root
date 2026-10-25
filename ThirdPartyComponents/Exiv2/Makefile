@@ -79,7 +79,7 @@ endif
 all:
 	@$(StroikaRoot)Build/Scripts/PrintProgressLine $(MAKE_INDENT_LEVEL) "ThirdPartyComponents/Exiv2 $(VERSION) Build {$(CONFIGURATION)}:"
 ifeq ($(CONFIGURATION),)
-	@for i in `$(StroikaRoot)GetConfigurations` ; do\
+	@for i in `$(StroikaRoot)Build/Scripts/GetConfigurations` ; do\
 		$(MAKE) --no-print-directory all CONFIGURATION=$$i;\
 	done
 else
