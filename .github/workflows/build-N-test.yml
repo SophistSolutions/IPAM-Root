@@ -58,8 +58,8 @@ jobs:
           cd ThirdPartyComponents/Stroika/StroikaRoot
           ./configure ${{ matrix.config_name }} ${{ matrix.extra_config_args }}
           cat ConfigurationFiles/${{ matrix.config_name }}.xml
-      # Stroika's third-party components first, on their own, so their intermediate files can go before the rest is built:
-      # a whole Debug build otherwise needs more disk than the runner has
+      # Stroika's third-party components first, on their own, so their time shows separately and their intermediate files
+      # can go before the rest is built. The runners have room to spare today; this is kept for when the build or tests grow.
       - name: Make Stroika's third-party components
         run: make --directory=ThirdPartyComponents/Stroika/StroikaRoot third-party-components
       - name: Save space
