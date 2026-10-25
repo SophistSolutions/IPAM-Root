@@ -13,12 +13,3 @@ as they are done.
   ["${workspaceFolder}"]` - which also puts `VERSION` ahead of the system `<version>` (the compile is fine: there the
   system directories come first). Once a Stroika upgrade brings #1252's fix, set IPAM up as its upgrade note says, and
   check IntelliSense opens a `Tools/PS1` source with no errors.
-
-- Small build leftovers (found 2026-10-23):
-  - `make run-tests` runs `Geolocation.exe` (Tests/Makefile:12) - no such file on UNIX - and needs `CONFIGURATION=`.
-  - expat's and Exiv2's `make all` with no `CONFIGURATION=` calls `$(StroikaRoot)GetConfigurations`, which does not exist
-    (ThirdPartyComponents/expat/Makefile:54, ThirdPartyComponents/Exiv2/Makefile:82) - `Build/Scripts/GetConfigurations`.
-  - `.vscode/launch.json` launches `Builds/<CONFIG>/IPAM/IPAM` (:11, :34, :41), Skel's placeholder: there is no such
-    program.
-  - `Tools/PS2/Sources/TagInfo.{h,cpp}` are built by nothing, and use a `DocumentMetadata` type that no longer exists:
-    delete them, or fold what is useful into `Main.cpp`.
