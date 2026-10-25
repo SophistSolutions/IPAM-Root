@@ -1,0 +1,11 @@
+[
+    {
+        "#": "Linux"
+    },
+    {
+        "build_job": "Linux",
+        "runs_on": "ubuntu-latest",
+        "displayTargetName": "ipam-buildvm-ubuntu-2604",
+        "container_images": "sophistsolutionsinc/ipam-ubuntu-2604"
+    }
+]

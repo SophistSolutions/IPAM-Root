@@ -1,0 +1,60 @@
+#
+# build-Dev-Docker-Containers - builds IPAM's build images (DockerBuildContainers/), and pushes them to Docker Hub.
+# Run by hand (Actions tab, then Run workflow); it needs the repository secrets DOCKERHUB_USERNAME and DOCKERHUB_PASSWORD
+# (an access token), for an account that can push to sophistsolutionsinc.
+#
+name: build-Dev-Docker-Containers
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_all:
+        description: "run all"
+        required: false
+        default: "true"
+
+permissions:
+  contents: read
+
+jobs:
+  LinuxMatrixPrep:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - uses: actions/checkout@v7
+    - id: set-matrix
+      run: |
+        branchName=$(echo '${{ github.ref }}' | sed 's,refs/heads/,,g')
+        matrix=$(jq --arg branchName "$branchName" 'map(
+            . | select((.run_on_branch==$branchName) or (.run_on_branch=="always") or ("${{github.event.inputs.run_all}}"=="true") and (.run_on_branch!="never")) | select(.build_job=="Linux")
+        )' .github/workflows/build-Dev-Docker-Containers-Matrix.json)
+        echo "matrix={\"include\":$(echo $matrix)}" >> $GITHUB_OUTPUT
+
+  build-Linux:
+    needs: LinuxMatrixPrep
+    name: ${{ matrix.displayTargetName }}
+    runs-on: ${{ matrix.runs_on }}
+    strategy:
+      matrix: ${{fromJson(needs.LinuxMatrixPrep.outputs.matrix)}}
+    steps:
+      # the submodule too: DockerBuildContainers/Makefile uses Stroika's scripts
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - name: Build System Info
+        run: |
+          df -h
+          uname -a
+      - name: Build Linux Container Images
+        run: |
+          make --directory DockerBuildContainers --no-print-directory IMAGES="${{ matrix.container_images }}" build-images
+          make --directory DockerBuildContainers --no-print-directory IMAGES="${{ matrix.container_images }}" tag-images
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Push Linux Container Images
+        run: |
+          make --directory DockerBuildContainers --no-print-directory IMAGES="${{ matrix.container_images }}" push-images
