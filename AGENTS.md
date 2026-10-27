@@ -33,13 +33,14 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
 - `Tests/Geolocation/` - the only test: googletest, over `LibIPAM/Common/Geolocation`.
 - `ThirdPartyComponents/` - Stroika (git submodule, at `StroikaRoot`), plus `expat` and `Exiv2`, which only PS1 links.
 - `Workspaces/` - the VS Code workspace and a Visual Studio 2022 solution (Visual Studio is for debugging; make builds).
-- `DockerBuildContainers/` - IPAM's build images (`sophistsolutionsinc/ipam-ubuntu-2604`, on Stroika's
-  `stroika-buildvm-ubuntu2604-small`): tools IPAM needs beyond Stroika's go in their Dockerfiles. The
-  `build-Dev-Docker-Containers` workflow (run by hand) publishes them, from its `-Matrix.json`.
+- `DockerBuildContainers/` - IPAM's build images (`sophistsolutionsinc/ipam-ubuntu-2604` and `ipam-windows-vs2k26`, on
+  Stroika's `stroika-buildvm-ubuntu2604-small` and `stroika-buildvm-windows-msys-vs2k26`): tools IPAM needs beyond
+  Stroika's go in their Dockerfiles. The `build-Dev-Docker-Containers` workflow (run by hand) publishes them, from its
+  `-Matrix.json`.
 - `.github/workflows/build-N-test.yml` - CI on every push, one job per entry of `build-N-test-Matrix.json` that the branch
-  selects (`run_on_branch`, as in Stroika's): today one, Linux Debug in IPAM's image, which builds everything and runs
-  the test. No Windows or macOS yet. Results: https://github.com/SophistSolutions/IPAM-Root/actions (public, so readable
-  with no token, as Stroika's are).
+  selects (`run_on_branch`, as in Stroika's): today Linux Debug and Windows Debug, each in IPAM's image, building
+  everything and running the test. No macOS. Results: https://github.com/SophistSolutions/IPAM-Root/actions (public, so
+  readable with no token, as Stroika's are).
 
 ## Build
 

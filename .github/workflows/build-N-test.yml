@@ -33,6 +33,19 @@ jobs:
             . | select((.run_on_branch==$branchName) or (.run_on_branch=="always") or ("${{github.event.inputs.run_all}}"=="true") and (.run_on_branch!="never")) | select(.build_job=="Linux")
         )' .github/workflows/build-N-test-Matrix.json)
         echo "matrix={\"include\":$(echo $matrix)}" >> $GITHUB_OUTPUT
+  WindowsMatrixPrep:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - uses: actions/checkout@v7
+    - id: set-matrix
+      run: |
+        branchName=$(echo '${{ github.ref }}' | sed 's,refs/heads/,,g')
+        matrix=$(jq --arg branchName "$branchName" 'map(
+            . | select((.run_on_branch==$branchName) or (.run_on_branch=="always") or ("${{github.event.inputs.run_all}}"=="true") and (.run_on_branch!="never")) | select(.build_job=="Windows")
+        )' .github/workflows/build-N-test-Matrix.json)
+        echo "matrix={\"include\":$(echo $matrix)}" >> $GITHUB_OUTPUT
 
   Linux:
     needs: LinuxMatrixPrep
@@ -86,3 +99,89 @@ jobs:
         with:
           name: Logs (${{ matrix.displayTargetName }})
           path: /tmp/logs/
+
+  # GitHub's container: does not support Windows, so the job starts the build image itself, and runs the build in it with
+  # docker exec - as Stroika's and WTF's do
+  Windows:
+    needs: WindowsMatrixPrep
+    name: ${{ matrix.displayTargetName }}
+    runs-on: ${{ matrix.runs_on }}
+    # GitHub's own bound is 6 hours, which lets a hung build hold a runner that long
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix: ${{fromJson(needs.WindowsMatrixPrep.outputs.matrix)}}
+    defaults:
+      run:
+        shell: bash
+    env:
+      # the build container gets the runner's 4 virtual CPUs (docker run, below)
+      MAKEFLAGS: "--jobs=4"
+      CONFIGURATION: ${{ matrix.config_name }}
+      IPAM_TOP_ROOT: "c:/IPAM/"
+      STROIKA_TOP_ROOT: "c:/IPAM/ThirdPartyComponents/Stroika/StroikaRoot/"
+      # the Visual Studio images are big: drive D has the room
+      USE_DOCKER_ROOT: "D:/docker"
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+      - name: Setup Docker to use ${{env.USE_DOCKER_ROOT}} as data-root
+        shell: powershell
+        run: |
+          mkdir ${{env.USE_DOCKER_ROOT}}
+          $configFile = "C:\ProgramData\Docker\config\daemon.json"
+          if (-not (Test-Path $configFile)) {
+            New-Item $configFile -ItemType File
+            $config = @{}
+          } else {
+            $config = Get-Content $configFile | ConvertFrom-Json
+          }
+          # -Force updates the property if it already exists
+          $config | Add-Member -MemberType NoteProperty -Name "data-root" -Value "${{env.USE_DOCKER_ROOT}}" -Force
+          $config | ConvertTo-Json -Depth 4 | Set-Content $configFile
+          Get-Content -Path $configFile
+          Stop-Service Docker
+          Start-Service Docker
+          docker info
+      # docker run would pull it anyway - a step of its own, so its time shows
+      - name: docker pull ${{ matrix.container_image }}
+        run: docker pull ${{ matrix.container_image }}
+      # the runners have 16GB and 4 virtual CPUs; 7GB was too little memory for Stroika's build
+      - name: Start docker build environment
+        run: |
+          docker run --interactive --memory 15G --cpus 4 --storage-opt 'size=120GB' \
+            -v "${GITHUB_WORKSPACE}:c:\IPAM" --detach --name buildContainer ${{ matrix.container_image }} bash
+          docker exec buildContainer df -h
+      - name: Configure ${{ matrix.config_name }}
+        run: |
+          docker exec --workdir ${IPAM_TOP_ROOT} buildContainer sh -c "make build-root"
+          docker exec --workdir ${STROIKA_TOP_ROOT} buildContainer sh -c "./configure ${{ matrix.config_name }} ${{ matrix.extra_config_args }}"
+          docker exec --workdir ${STROIKA_TOP_ROOT} buildContainer cat ConfigurationFiles/${{ matrix.config_name }}.xml
+      # as on Linux: Stroika's third-party components first, so their time shows separately and their intermediate files
+      # can go before the rest is built
+      - name: Make Stroika's third-party components
+        run: docker exec --workdir ${STROIKA_TOP_ROOT} --env MAKEFLAGS --env CONFIGURATION buildContainer make third-party-components
+      - name: Save space
+        run: |
+          docker exec --workdir ${STROIKA_TOP_ROOT}ThirdPartyComponents --env CONFIGURATION buildContainer make --silent clean
+          docker exec buildContainer df -h
+      - name: Make all
+        run: docker exec --workdir ${IPAM_TOP_ROOT} --env MAKEFLAGS --env CONFIGURATION buildContainer make all
+      # A test built without googletest runs nothing and exits 0, so require gtest's PASSED line too
+      - name: Run tests
+        run: |
+          docker exec --workdir ${IPAM_TOP_ROOT} --env CONFIGURATION buildContainer make run-tests 2>&1 | tee "${RUNNER_TEMP}/run-tests.log"
+          grep -q '^\[  PASSED  \]' "${RUNNER_TEMP}/run-tests.log"
+      - name: Stop build container
+        if: always()
+        run: docker stop buildContainer
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: Logs (${{ matrix.displayTargetName }})
+          if-no-files-found: ignore
+          path: |
+            IntermediateFiles/${{ matrix.config_name }}/ThirdPartyComponents/*/*-OUT.txt
+            IntermediateFiles/${{ matrix.config_name }}/ThirdPartyComponents/*/*.OUT

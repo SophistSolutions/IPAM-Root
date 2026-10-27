@@ -10,5 +10,17 @@
         "config_name": "Debug",
         "extra_config_args": "--apply-default-debug-flags",
         "run_on_branch": "always"
+    },
+    {
+        "#": "Windows - Visual Studio 2026; configured as the top Makefile's Windows Debug"
+    },
+    {
+        "build_job": "Windows",
+        "displayTargetName": "windows-vs2k26 (Debug)",
+        "runs_on": "windows-2025",
+        "container_image": "sophistsolutionsinc/ipam-windows-vs2k26:v1",
+        "config_name": "Debug",
+        "extra_config_args": "--arch x86_64 --ATLMFC no --apply-default-debug-flags",
+        "run_on_branch": "always"
     }
 ]
