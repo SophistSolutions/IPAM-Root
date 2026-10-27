@@ -148,9 +148,13 @@ jobs:
       - name: docker pull ${{ matrix.container_image }}
         run: docker pull ${{ matrix.container_image }}
       # the runners have 16GB and 4 virtual CPUs; 7GB was too little memory for Stroika's build
+      # SHLVL=1 works around a Stroika bug (https://github.com/SophistSolutions/Stroika/issues/1258) - drop it once IPAM's
+      # Stroika has the fix: openssl/Makefile has every shell read MSYS2's /etc/profile, which does cd $HOME in a shell at
+      # SHLVL 1, so OpenSSL's download fails ("../Origs-Cache/openssl-....tar.gz: No such file or directory"); this puts
+      # every shell at 2 or more
       - name: Start docker build environment
         run: |
-          docker run --interactive --memory 15G --cpus 4 --storage-opt 'size=120GB' \
+          docker run --interactive --memory 15G --cpus 4 --storage-opt 'size=120GB' --env SHLVL=1 \
             -v "${GITHUB_WORKSPACE}:c:\IPAM" --detach --name buildContainer ${{ matrix.container_image }} bash
           docker exec buildContainer df -h
       - name: Configure ${{ matrix.config_name }}

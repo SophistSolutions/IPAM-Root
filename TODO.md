@@ -7,6 +7,11 @@ as they are done.
 
 ## Open
 
+- **Windows CI's `SHLVL=1` - waits on Stroika [#1258](https://github.com/SophistSolutions/Stroika/issues/1258)**.
+  `build-N-test.yml` starts the Windows build container with `--env SHLVL=1`, or Stroika's OpenSSL download fails there
+  (its Makefile sends `WebGet` to `$HOME`). Once a Stroika upgrade brings #1258's fix, drop it, and check Windows CI
+  still passes.
+
 - **IntelliSense takes `VERSION` for `<version>` - waits on Stroika
   [#1252](https://github.com/SophistSolutions/Stroika/issues/1252)**. IPAM includes its own headers from its root
   (`"LibIPAM/..."`), so the local, untracked `.vscode/c_cpp_properties.json` keeps `myDefaultIncludePath:
