@@ -68,7 +68,7 @@ namespace {
         EXPECT_EQ (Geolocation::Latitude{"-0030"}.ToISOString (), "-0030");
         EXPECT_EQ (Geolocation::Latitude{"+124543.891234"}.ToISOString (), "+124543.891234");
 
-        // one made from a number (as PS1 does) prints every unit down to the last nonzero one, zero-padded after the sign
+        // one made from a number (as ImportMetadata does) prints every unit down to the last nonzero one, zero-padded after the sign
         EXPECT_EQ (Geolocation::Latitude{-5.5}.ToISOString (), "-0530");
         EXPECT_EQ (Geolocation::Latitude{30 + 5 / 3600.0}.ToISOString (), "+300005");
         EXPECT_EQ (Geolocation::Latitude{30 + 42 / 60.0 + 0.5 / 3600}.ToISOString (), "+304200.5");

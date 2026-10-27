@@ -17,4 +17,4 @@ as they are done.
   (`"LibIPAM/..."`), so the local, untracked `.vscode/c_cpp_properties.json` keeps `myDefaultIncludePath:
   ["${workspaceFolder}"]` - which also puts `VERSION` ahead of the system `<version>` (the compile is fine: there the
   system directories come first). Once a Stroika upgrade brings #1252's fix, set IPAM up as its upgrade note says, and
-  check IntelliSense opens a `Tools/PS1` source with no errors.
+  check IntelliSense opens a `Tools/ImportMetadata` source with no errors.

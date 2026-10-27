@@ -1,13 +1,13 @@
 export TOP_ROOT	:=	$(abspath ../../../)/
 StroikaRoot		:=	$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
-SrcDir			:=	$(TOP_ROOT)Tools/PS1/Sources/
-ObjDir			:=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/
+SrcDir			:=	$(TOP_ROOT)Tools/ImportMetadata/Sources/
+ObjDir			:=	$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/ImportMetadata/
 
 include $(StroikaRoot)Build/Lib/Make/SharedMakeVariables-Default.mk
 
 include $(StroikaRoot)Build/Lib/Make/SharedBuildRules-Default.mk
 
-CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/)"
+CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/ImportMetadata/)"
 
 
 CXXFLAGS += -I"$(call FUNCTION_CONVERT_FILEPATH_TO_COMPILER_NATIVE,$(TOP_ROOT))"
@@ -18,8 +18,8 @@ ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
 LDFLAGS += psapi.lib
 endif
 
-TARGETEXEDir	:=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/PS1/
-TARGETEXE		:=	$(TARGETEXEDir)PS1${EXE_SUFFIX}
+TARGETEXEDir	:=	$(StroikaRoot)Builds/$(CONFIGURATION)/IPAM/Tools/ImportMetadata/
+TARGETEXE		:=	$(TARGETEXEDir)ImportMetadata${EXE_SUFFIX}
 
 
 SubDirs:=\
@@ -35,16 +35,16 @@ Objs	:=	\
 	$(ObjDir)ImageMetadataExtraction${OBJ_SUFFIX}\
 
 VERSION_FILE_IN:=$(TOP_ROOT)VERSION
-VERSION_FILE_OUT:=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1/AppVersion.h
+VERSION_FILE_OUT:=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/ImportMetadata/AppVersion.h
 $(VERSION_FILE_OUT):	$(VERSION_FILE_IN)
-	@mkdir -p $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/PS1
-	@$(StroikaRoot)Build/Scripts/MakeVersionFile $(VERSION_FILE_IN) $(VERSION_FILE_OUT) AppCPlusPlusVersion kAppVersion __PS1_AppVersion_H__
+	@mkdir -p $(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/ImportMetadata
+	@$(StroikaRoot)Build/Scripts/MakeVersionFile $(VERSION_FILE_IN) $(VERSION_FILE_OUT) AppCPlusPlusVersion kAppVersion
 
 $(ObjDir)Main${OBJ_SUFFIX} $(ObjDir)Service${OBJ_SUFFIX}:		$(VERSION_FILE_OUT)
 
 
 all:
-	@$(StroikaRoot)/Build/Scripts/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "Building IPAM/Tools/PS1"
+	@$(StroikaRoot)/Build/Scripts/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "Building IPAM/Tools/ImportMetadata"
 	@mkdir -p $(TARGETEXEDir)
 	@$(MAKE) --silent $(VERSION_FILE_OUT) MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1))
 	@for s in ${SubDirs}; do $(MAKE) --directory $${s} -s MAKE_INDENT_LEVEL=$$(($(MAKE_INDENT_LEVEL)+1)) all; done

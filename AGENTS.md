@@ -24,15 +24,16 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
   - `Common/Geolocation` - ISO 6709 latitude, longitude and altitude, parsed and printed.
   - `Metadata/Document` - one document's metadata (tags, date, location, comments, title, rating, album), its
     `ObjectVariantMapper` mapping, and JSON file read/write. The long comment in `Document.h` specifies the data model.
-- `Tools/PS1/` - the scraper: reads every image under a directory with Exiv2, and a digiKam SQLite database, merges
-  them, and writes JSON (`FileScrape.json`, `DigikamScrape.json`, `ExtenstionTally.json`, `DocumentMetaData.json`) to
-  an output directory. Arguments: `-s DIR` (the images), `-d FILE` (the digiKam database - without it, no merge),
+- `Tools/ImportMetadata/` - reads every image under a directory with Exiv2, and a digiKam SQLite database, merges them,
+  and writes JSON (`FileScrape.json`, `DigikamScrape.json`, `ExtenstionTally.json`, `DocumentMetaData.json`) to an
+  output directory. Arguments: `-s DIR` (the images), `-d FILE` (the digiKam database - without it, no merge),
   `--include-digikam-only`, `-o DIR`; `--help` lists them.
-- `Tools/PS2/` - reads PS1's `DocumentMetaData.json` and writes tag co-occurrence counts
+- `Tools/PS2/` - reads ImportMetadata's `DocumentMetaData.json` and writes tag co-occurrence counts
   (`DocumentMetaDataTagInfo.json`); both paths are hard-wired to `c:\ssw\mdResults\`.
 - `API-Server/` - a stub `main` that does nothing yet.
 - `Tests/Geolocation/` - the only test: googletest, over `LibIPAM/Common/Geolocation`.
-- `ThirdPartyComponents/` - Stroika (git submodule, at `StroikaRoot`), plus `expat` and `Exiv2`, which only PS1 links.
+- `ThirdPartyComponents/` - Stroika (git submodule, at `StroikaRoot`), plus `expat` and `Exiv2`, which only
+  ImportMetadata links.
 - `Workspaces/` - the VS Code workspace and a Visual Studio 2022 solution (Visual Studio is for debugging; make builds).
 - `DockerBuildContainers/` - IPAM's build images (`sophistsolutionsinc/ipam-ubuntu-2604` and `ipam-windows-vs2k26`, on
   Stroika's `stroika-buildvm-ubuntu2604-small` and `stroika-buildvm-windows-msys-vs2k26`): tools IPAM needs beyond
@@ -56,7 +57,7 @@ Stroika's build section applies. The IPAM-specific parts:
   there are not rebuilt), expat, Exiv2, `LibIPAM`, `Tools`, `Tests`, `API-Server`. `make all` alone builds every
   default configuration - slow.
 - Output: `Builds/<CONFIG>/libIPAM.lib` and `Builds/<CONFIG>/IPAM/<project path>/<name>.exe` (eg
-  `Builds/Debug/IPAM/Tools/PS1/PS1.exe`); objects under `IntermediateFiles/<CONFIG>/IPAM/`.
+  `Builds/Debug/IPAM/Tools/ImportMetadata/ImportMetadata.exe`); objects under `IntermediateFiles/<CONFIG>/IPAM/`.
 - **A header edit rebuilds nothing, in IPAM as in Stroika.** After editing an IPAM `.h`/`.inl`,
   `rm -rf IntermediateFiles/<CONFIG>/IPAM` before trusting a build. After moving the Stroika submodule, see "Upgrading
   Stroika".
@@ -65,8 +66,8 @@ Stroika's build section applies. The IPAM-specific parts:
 - The executables link libIPAM through `Builds/<CONFIG>/lib/pkgconfig/libIPAM.pc`, which `LibIPAM/Makefile` writes:
   named as `DEFAULT_LINK_LINE`'s 2nd argument, it goes ahead of Stroika's libraries, as GNU ld needs. A library passed in
   the 4th argument (`LDFLAGS`) comes after them - fine with MSVC, undefined references on Linux. So libraries go in the
-  2nd argument by their `.pc` names - PS1's is `libIPAM exiv2` (`exiv2.pc` brings expat and zlib) - and `LDFLAGS` keeps
-  only system libraries a `.pc` misses (PS1's `psapi.lib`).
+  2nd argument by their `.pc` names - ImportMetadata's is `libIPAM exiv2` (`exiv2.pc` brings expat and zlib) - and
+  `LDFLAGS` keeps only system libraries a `.pc` misses (ImportMetadata's `psapi.lib`).
 - expat and Exiv2: each Makefile pins `VERSION`, and names the page to check for newer releases. The zip is cached in
   `ThirdPartyComponents/Origs-Cache/`, then extracted and patched (`Patches/`) into
   `IntermediateFiles/<CONFIG>/ThirdPartyComponents/<name>/`, built with cmake, and installed into
@@ -82,8 +83,8 @@ Stroika's build section applies. The IPAM-specific parts:
 - A check is the build (with its warnings, as in Stroika), then the test, `Builds/<CONFIG>/IPAM/Tests/Geolocation/
   Geolocation` (`.exe` on Windows): count its `[  PASSED  ]` line as Stroika's AGENTS.md says. `make CONFIGURATION=X
   run-tests` runs it - with no `CONFIGURATION=`, each default configuration's in turn. Unlike Stroika's, it builds nothing.
-- PS1 needs a photo collection (and a digiKam database) to do anything useful, and PS2's paths are hard-wired, so
-  usually they can only be built. Say what you ran, and what you could not.
+- ImportMetadata needs a photo collection (and a digiKam database) to do anything useful, and PS2's paths are
+  hard-wired, so usually they can only be built. Say what you ran, and what you could not.
 - DbgTrace goes to a trace file in Debug and Release-Logging builds.
 - `git grep` searches IPAM's own files: it skips the Stroika submodule and everything untracked - `Builds/`,
   `IntermediateFiles/` (where Exiv2's and expat's sources are extracted). A `grep -r` searches all of those too.
@@ -107,7 +108,8 @@ The submodule follows Stroika's releases (`v3-Release`), or `v3-Dev` between the
    again): an incremental build links the old Stroika libraries (Stroika's `Documentation/Upgrading.md` says why).
 7. Fix the errors, and the deprecation warnings too: deprecated Stroika names go away at v3.0a1. A renamed macro cannot
    warn - search for each old name the notes list.
-8. Build Debug and Release with MSVC, and with g++ on a Linux box; run the test; run PS1 and PS2 where their data is.
+8. Build Debug and Release with MSVC, and with g++ on a Linux box; run the test; run ImportMetadata and PS2 where their
+   data is.
 9. Report every change IPAM needed that the upgrade notes do not mention, and every note that was wrong or unclear, so
    Stroika's Release-Notes can be fixed.
 10. The commit's headline names the Stroika version ("Stroika 3.0d25").
