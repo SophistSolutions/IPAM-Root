@@ -26,7 +26,8 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
     `ObjectVariantMapper` mapping, and JSON file read/write. The long comment in `Document.h` specifies the data model.
 - `Tools/PS1/` - the scraper: reads every image under a directory with Exiv2, and a digiKam SQLite database, merges
   them, and writes JSON (`FileScrape.json`, `DigikamScrape.json`, `ExtenstionTally.json`, `DocumentMetaData.json`) to
-  `-o <dir>`. Its inputs are hard-wired in `Main.cpp` (`P:/...`, `c:/Digikam/digikam4.db`).
+  an output directory. Arguments: `-s DIR` (the images), `-d FILE` (the digiKam database - without it, no merge),
+  `--include-digikam-only`, `-o DIR`; `--help` lists them.
 - `Tools/PS2/` - reads PS1's `DocumentMetaData.json` and writes tag co-occurrence counts
   (`DocumentMetaDataTagInfo.json`); both paths are hard-wired to `c:\ssw\mdResults\`.
 - `API-Server/` - a stub `main` that does nothing yet.
@@ -81,8 +82,8 @@ Stroika's build section applies. The IPAM-specific parts:
 - A check is the build (with its warnings, as in Stroika), then the test, `Builds/<CONFIG>/IPAM/Tests/Geolocation/
   Geolocation` (`.exe` on Windows): count its `[  PASSED  ]` line as Stroika's AGENTS.md says. `make CONFIGURATION=X
   run-tests` runs it - with no `CONFIGURATION=`, each default configuration's in turn. Unlike Stroika's, it builds nothing.
-- PS1 and PS2 need the photo collection and digiKam database at their hard-wired paths, so usually they can only be
-  built. Say what you ran, and what you could not.
+- PS1 needs a photo collection (and a digiKam database) to do anything useful, and PS2's paths are hard-wired, so
+  usually they can only be built. Say what you ran, and what you could not.
 - DbgTrace goes to a trace file in Debug and Release-Logging builds.
 - `git grep` searches IPAM's own files: it skips the Stroika submodule and everything untracked - `Builds/`,
   `IntermediateFiles/` (where Exiv2's and expat's sources are extracted). A `grep -r` searches all of those too.

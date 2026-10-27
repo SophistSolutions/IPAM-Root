@@ -28,62 +28,92 @@ using namespace Stroika::Foundation::Containers;
 using namespace Stroika::Foundation::Execution;
 
 namespace {
-    constexpr wstring_view kMyTopLevelDirectory = L"P:/";
-
     constexpr bool kTallyExtensions  = true;
-    constexpr bool kScrapeFileSystem = true;
-    constexpr bool kScrapeDigikamDB  = true;
+    constexpr bool kScrapeFileSystem = true; // false reuses the FileScrape.json an earlier run left in the output directory
     constexpr bool kCreateMasterFile = true;
-
-    //const String kSourceDirectory = L"P:/2022/May/Costa Rica";
-    const String kSourceDirectory = "P:/1900-1909"sv;
 
     const wstring kDigikamScrapeFileName  = L"DigikamScrape.json";
     const wstring kFileScrapeFileName     = L"FileScrape.json";
     const wstring kMergedTagsFileName     = L"DocumentMetaData.json";
     const wstring kExtensionTallyFileName = L"ExtenstionTally.json";
+
+    const CommandLine::Option kSourceDirectoryO_{.fSingleCharName   = 's',
+                                                 .fLongName         = "source-directory"sv,
+                                                 .fSupportsArgument = true,
+                                                 .fRequired         = true,
+                                                 .fHelpArgName      = "DIR"sv,
+                                                 .fHelpOptionText   = "the images to scrape: every file under DIR"sv};
+    const CommandLine::Option kDigikamDatabaseO_{.fSingleCharName   = 'd',
+                                                 .fLongName         = "digikam-database"sv,
+                                                 .fSupportsArgument = true,
+                                                 .fHelpArgName      = "FILE"sv,
+                                                 .fHelpOptionText   = "a digiKam database (digikam4.db) to merge in"sv};
+    const CommandLine::Option kIncludeDigikamOnlyO_{
+        .fLongName = "include-digikam-only"sv,
+        .fHelpOptionText = "also list the images only the digiKam database knows - for when the source directory is its whole collection"sv};
+    const CommandLine::Option kOutputDirectoryO_{.fSingleCharName   = 'o',
+                                                 .fLongName         = "output-directory"sv,
+                                                 .fSupportsArgument = true,
+                                                 .fRequired         = true,
+                                                 .fHelpArgName      = "DIR"sv,
+                                                 .fHelpOptionText = "where to write the JSON files, and a sample file of each extension"sv};
+    const Sequence<CommandLine::Option> kAllOptions_{StandardCommandLineOptions::kHelp, kSourceDirectoryO_, kDigikamDatabaseO_,
+                                                     kIncludeDigikamOnlyO_, kOutputDirectoryO_};
+
+    // How Sterling ran it while these paths were built in: one directory of the collection, or all of it
+    constexpr string_view kExamples_ = "Examples:\n"
+                                       "    -s P:/1900-1909 -d c:/Digikam/digikam4.db -o c:/ssw/mdResults/\n"
+                                       "    -s P:/ -d c:/Digikam/digikam4.db --include-digikam-only -o c:/ssw/mdResults/";
 }
 
-int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
+int main (int argc, const char* argv[])
 {
     CommandLine               commandLine{argc, argv};
     Debug::TraceContextBumper ctx{"main", "argv={}"_f, commandLine};
 
-    const CommandLine::Option kOutputDirectoryOption_ = CommandLine::Option{.fSingleCharName = 'o', .fSupportsArgument = true};
-    // @todo add more arguments, and maybe make some of these args REQUIRED? And add call to commandline.Validate()...
+    if (commandLine.Has (StandardCommandLineOptions::kHelp)) {
+        cerr << commandLine.GenerateUsage (kAllOptions_) << endl;
+        cerr << kExamples_ << endl;
+        return EXIT_SUCCESS;
+    }
+    try {
+        commandLine.Validate (kAllOptions_);
+    }
+    catch (...) {
+        cerr << Characters::ToString (current_exception ()) << endl;
+        cerr << commandLine.GenerateUsage (kAllOptions_) << endl;
+        return EXIT_FAILURE;
+    }
 
-    // @todo - begin process of removing hardwired paths from app - and using command-line args...
-    path outputDirectory = commandLine.GetArgument (kOutputDirectoryOption_).value_or ("c:/ssw/mdResults/"sv).As<filesystem::path> ();
-    path sampleExtractionFilesDirectory = outputDirectory;
-
-    const path kDigikamDatabase = "c:/Digikam/digikam4.db"sv; // get from cmdline arg! @todo
+    const path     sourceDirectory = commandLine.GetArgument (kSourceDirectoryO_)->As<path> ();
+    const path     outputDirectory = commandLine.GetArgument (kOutputDirectoryO_)->As<path> ();
+    optional<path> digikamDatabase;
+    if (optional<String> arg = commandLine.GetArgument (kDigikamDatabaseO_)) {
+        digikamDatabase = arg->As<path> ();
+    }
 
     path digikamScrapeFilePath = outputDirectory / kDigikamScrapeFileName;
     path fileScrapeFilePath    = outputDirectory / kFileScrapeFileName;
 
-    Mapping<String, Metadata::Document> mergedMetaData;
-
     Mapping<String, Metadata::Document> fileScrape;
     if (kScrapeFileSystem) {
         {
-            DbgTrace ("scraping file system directory at {}"_f, kSourceDirectory);
+            DbgTrace ("scraping file system directory at {}"_f, sourceDirectory);
             Debug::TimingTrace ttrc;
-            fileScrape = Metadata::ImageMetadataExtractor ().ExtractAll (path (kSourceDirectory.As<wstring> ().c_str ()));
+            fileScrape = Metadata::ImageMetadataExtractor ().ExtractAll (sourceDirectory);
         }
         {
             DbgTrace ("writing file system scrape to {}"_f, fileScrapeFilePath);
             Debug::TimingTrace ttrc;
             Metadata::Document::WriteToFileAsJSON (fileScrape, fileScrapeFilePath);
         }
-        mergedMetaData = fileScrape;
     }
 
     if (kTallyExtensions) {
-        DbgTrace ("tallying extenstions for directory = {}"_f, kSourceDirectory);
+        DbgTrace ("tallying extenstions for directory = {}"_f, sourceDirectory);
         Debug::TimingTrace ttrc;
 
-        MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (kSourceDirectory.As<filesystem::path> (),
-                                                                                         String{sampleExtractionFilesDirectory});
+        MultiSet<String> extTally = Metadata::ImageMetadataExtractor ().TallyExtensions (sourceDirectory, String{outputDirectory});
 
         DataExchange::ObjectVariantMapper mapper;
         mapper.AddCommonType<MultiSet<String>> ();
@@ -95,11 +125,11 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
     }
 
     Mapping<String, Metadata::Document> dbScrape;
-    if (kScrapeDigikamDB) {
+    if (digikamDatabase) {
         {
-            DbgTrace ("scraping digikam database at {}"_f, kDigikamDatabase);
+            DbgTrace ("scraping digikam database at {}"_f, *digikamDatabase);
             Debug::TimingTrace ttrc;
-            dbScrape = digikam::ScrapeDigikamDB (kDigikamDatabase);
+            dbScrape = digikam::ScrapeDigikamDB (*digikamDatabase);
         }
         {
             DbgTrace ("writing digikam scrape to {}"_f, digikamScrapeFilePath);
@@ -114,12 +144,6 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
             DbgTrace ("about to read file system metadata"_f);
             Debug::TimingTrace ttrc;
             Metadata::Document::ReadFromJSONFile (&fileScrape, fileScrapeFilePath);
-        }
-        if (not kScrapeDigikamDB) {
-            // read in an old copy
-            DbgTrace ("about to read digikam metadata from {}"_f, digikamScrapeFilePath);
-            Debug::TimingTrace ttrc;
-            Metadata::Document::ReadFromJSONFile (&dbScrape, digikamScrapeFilePath);
         }
 
         DbgTrace ("merging file and database sources, files length = {}, db length = {}"_f, fileScrape.Keys ().length (), dbScrape.Keys ().length ());
@@ -194,12 +218,12 @@ int main ([[maybe_unused]] int argc, [[maybe_unused]] const char* argv[])
                     }
                 }
             }
-            else {
+            else if (digikamDatabase) {
                 DbgTrace ("missing digikam dmd for : {}"_f, it.fKey);
             }
             masterList.Add (it.fKey, dmd);
         }
-        if ((kSourceDirectory == kMyTopLevelDirectory) and true) {
+        if (commandLine.Has (kIncludeDigikamOnlyO_)) {
             DbgTrace ("adding digikam only info to master list"_f);
             Debug::TimingTrace ttrc;
             for (const auto& it : dbScrape) {
