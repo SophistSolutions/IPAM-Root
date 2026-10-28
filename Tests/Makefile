@@ -3,7 +3,7 @@ export StroikaRoot:=$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
 
 include $(StroikaRoot)Build/Lib/Make/SharedMakeVariables-Default.mk
 
-Tests	:=	Geolocation Metadata
+Tests	:=	Geolocation ImportMetadataTool Metadata
 
 all clean clobber format-code:
 	@$(StroikaRoot)Build/Scripts/PrintProgressLine $(MAKE_INDENT_LEVEL) "Tests $(call FUNCTION_CAPITALIZE_WORD,$@) {$(CONFIGURATION)}:"

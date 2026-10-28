@@ -68,7 +68,7 @@
       "id": "IPAMProgram",
       "type": "pickString",
       "description": "IPAM program to run",
-      "options": ["Tools/ImportMetadata/ImportMetadata", "Tools/TagStats/TagStats", "Tests/Geolocation/Geolocation", "Tests/Metadata/Metadata", "API-Server/API-Server"],
+      "options": ["Tools/ImportMetadata/ImportMetadata", "Tools/TagStats/TagStats", "Tests/Geolocation/Geolocation", "Tests/ImportMetadataTool/ImportMetadataTool", "Tests/Metadata/Metadata", "API-Server/API-Server"],
       "default": "Tests/Geolocation/Geolocation"
     }
   ]

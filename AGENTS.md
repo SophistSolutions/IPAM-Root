@@ -32,9 +32,10 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
   often each other tag is with it. Arguments: `-i FILE` (the `DocumentMetaData.json`), `-o FILE`; `--help` lists them.
 - `API-Server/` - a stub `main` that does nothing yet.
 - `Tests/` - the tests, googletest, one program per directory, named in `Tests/Makefile`'s `Tests`: `Geolocation`
-  (`LibIPAM/Common/Geolocation`) and `Metadata` (`Metadata::Document`'s JSON: a round trip, and reading a file in today's
-  format). A new one copies `Metadata`'s Makefiles and project, and goes in `Tests`, the solution and
-  `.vscode/launch.json`'s list.
+  (`LibIPAM/Common/Geolocation`), `Metadata` (`Metadata::Document`'s JSON: a round trip, and reading a file in today's
+  format) and `ImportMetadataTool` (runs the built ImportMetadata on a collection it makes in a temporary directory -
+  JPEGs written with Exiv2, and a digiKam database with the tables ImportMetadata reads - and checks what it writes). A
+  new one copies `Metadata`'s Makefiles and project, and goes in `Tests`, the solution and `.vscode/launch.json`'s list.
 - `ThirdPartyComponents/` - Stroika (git submodule, at `StroikaRoot`), plus `expat` and `Exiv2`, which only
   ImportMetadata links.
 - `Workspaces/` - the VS Code workspace and a Visual Studio 2022 solution (Visual Studio is for debugging; make builds).
@@ -87,9 +88,11 @@ Stroika's build section applies. The IPAM-specific parts:
   (`.exe` on Windows): count each one's `[  PASSED  ]` line as Stroika's AGENTS.md says. `make CONFIGURATION=X
   run-tests` runs them all, and fails if any failed - with no `CONFIGURATION=`, each default configuration's in turn.
   Unlike Stroika's, it builds nothing.
-- ImportMetadata needs a photo collection (and a digiKam database) to do anything useful, and TagStats needs what
-  ImportMetadata wrote from one, so usually they can only be built, or run on a tiny input. Say what you ran, and what
-  you could not.
+- ImportMetadata on a real photo collection (and digiKam database), and TagStats on what it writes, need data only
+  LGP and Sterling have; `Tests/ImportMetadataTool` runs ImportMetadata on a small one. Say what you ran, and what you
+  could not.
+- A Debug build that aborts on Windows - an assertion, an uncaught exception - shows a dialog and waits for a click, so
+  a test that runs a tool (`ImportMetadataTool`) gives it a time limit.
 - DbgTrace goes to a trace file in Debug and Release-Logging builds.
 - `git grep` searches IPAM's own files: it skips the Stroika submodule and everything untracked - `Builds/`,
   `IntermediateFiles/` (where Exiv2's and expat's sources are extracted). A `grep -r` searches all of those too.
