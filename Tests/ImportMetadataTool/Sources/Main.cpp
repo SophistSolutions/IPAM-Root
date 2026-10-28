@@ -13,11 +13,13 @@
 #include "Stroika/Foundation/Characters/StringBuilder.h"
 #include "Stroika/Foundation/Characters/ToString.h"
 #include "Stroika/Foundation/Containers/SortedSet.h"
+#include "Stroika/Foundation/DataExchange/Variant/JSON/Reader.h"
 #include "Stroika/Foundation/Database/SQL/SQLite.h"
 #include "Stroika/Foundation/Debug/Trace.h"
 #include "Stroika/Foundation/Execution/CommandLine.h"
 #include "Stroika/Foundation/Execution/Module.h"
 #include "Stroika/Foundation/Execution/ProcessRunner.h"
+#include "Stroika/Foundation/IO/FileSystem/FileInputStream.h"
 #include "Stroika/Foundation/IO/FileSystem/TemporaryFile.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
@@ -35,6 +37,7 @@ using std::filesystem::path;
 using namespace Stroika::Foundation;
 using namespace Stroika::Foundation::Characters;
 using namespace Stroika::Foundation::Containers;
+using Stroika::Foundation::DataExchange::VariantValue;
 using namespace Stroika::Frameworks;
 
 using namespace IPAM::LibIPAM::Common;
@@ -141,8 +144,10 @@ namespace {
             });
             WriteJPEG_ (images / "Scans" / "IMG_0101.jpg", [] (Exiv2::Image& image) {
                 AddIPTCKeywords_ (image, {"Grandma"});
-                image.xmpData ()["Xmp.exif.GPSLatitude"]  = "somewhere";
-                image.xmpData ()["Xmp.exif.GPSLongitude"] = "2,17,40.2E";
+                image.xmpData ()["Xmp.exif.GPSLatitude"]      = "somewhere";
+                image.xmpData ()["Xmp.exif.GPSLongitude"]     = "2,17,40.2E";
+                image.xmpData ()["Xmp.xmp.CreateDate"]        = "last summer";
+                image.xmpData ()["Xmp.MicrosoftPhoto.Rating"] = "five";
             });
             WriteJPEG_ (images / "Scans" / "unknown.jpg", [] (Exiv2::Image&) {});
             WriteJPEG_ (images / "loose.jpg", [] (Exiv2::Image&) {});
@@ -197,7 +202,7 @@ namespace {
             result.Add (key ("Scans/IMG_0100.jpg"), d);
         }
         {
-            // a location that is not one is dropped, not the rest
+            // values that will not parse are left out (and reported - kProblems_), not the rest
             Document d;
             d.tags  = Set<String>{"Grandma"sv};
             d.album = "Scans"sv;
@@ -238,6 +243,33 @@ namespace {
             }
         }
         return result;
+    }
+
+    // The values ImportMetadata should leave out of Collection_'s documents, and report, as ProblemsListing_ lists them
+    constexpr string_view kProblems_ = "Scans/IMG_0101.jpg Xmp.MicrosoftPhoto.Rating: five\n"
+                                       "Scans/IMG_0101.jpg Xmp.exif.GPSLatitude: somewhere\n"
+                                       "Scans/IMG_0101.jpg Xmp.xmp.CreateDate: last summer";
+
+    // The problems in a Problems.json, sorted, one per line: the photo (relative to images), the key and the value. Each must
+    // give a reason too.
+    String ProblemsListing_ (const path& problemsFile, const path& images)
+    {
+        String            prefix = String{images.generic_wstring ()} + "/"sv;
+        SortedSet<String> lines;
+        VariantValue      problems = DataExchange::Variant::JSON::Reader{}.Read (IO::FileSystem::FileInputStream::New (problemsFile));
+        for (const VariantValue& vp : problems.As<Sequence<VariantValue>> ()) {
+            Mapping<String, VariantValue> p    = vp.As<Mapping<String, VariantValue>> ();
+            String                        file = p.LookupValue ("file"sv).As<String> ();
+            EXPECT_TRUE (file.StartsWith (prefix)) << file;
+            EXPECT_FALSE (p.LookupValue ("reason"sv).As<String> ().empty ()) << file;
+            lines.Add ("{} {}: {}"_f(file.StartsWith (prefix) ? file.SubString (prefix.length ()) : file,
+                                     p.LookupValue ("key"sv).As<String> (), p.LookupValue ("value"sv).As<String> ()));
+        }
+        StringBuilder sb;
+        for (const String& l : lines) {
+            sb << (sb.empty () ? ""sv : "\n"sv) << l;
+        }
+        return sb;
     }
 
     // Runs ImportMetadata on the collection (-s naming its images, as given); returns the DocumentMetaData.json it wrote
@@ -283,9 +315,10 @@ namespace {
         Collection_ c;
         path        out = c.root / "out";
         ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, out, false), ExpectedDocuments_ (c, false));
+        EXPECT_EQ (ProblemsListing_ (out / "Problems.json", c.images), kProblems_);
         // it writes only into its output directory
         EXPECT_EQ (Listing_ (c.root), "Images digikam4.db out"sv);
-        EXPECT_EQ (Listing_ (out), "DigikamScrape.json DocumentMetaData.json ExtenstionTally.json FileScrape.json jpg.txt"sv);
+        EXPECT_EQ (Listing_ (out), "DigikamScrape.json DocumentMetaData.json ExtenstionTally.json FileScrape.json Problems.json jpg.txt"sv);
     }
 
     GTEST_TEST (ImportMetadata, IncludeDigikamOnly_)

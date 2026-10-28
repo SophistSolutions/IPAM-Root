@@ -29,5 +29,8 @@
     <ClInclude Include="..\..\Sources\ImageMetadataExtraction.h">
       <Filter>Sources</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Sources\Problem.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -35,9 +35,36 @@ using namespace Stroika::Foundation::Characters;
 using namespace IPAM::LibIPAM::Common;
 
 namespace Metadata {
+    namespace {
+        // as ExtractAll keys a photo's Document
+        String DocumentKey_ (const path& p)
+        {
+            return String{p}.ReplaceAll ("\\"sv, "/"sv);
+        }
+    }
+
+    ImageMetadataExtractor::ImageMetadataExtractor (const ProblemSink& problemSink)
+        : fProblemSink_{problemSink}
+    {
+    }
+
     Metadata::Document ImageMetadataExtractor::Extract (const path& pictFile)
     {
         Metadata::Document ms;
+
+        // runs read, which reads key's value into ms: if it throws, just that value is left out - and reported
+        auto readValue = [&] (const String& key, const String& value, const function<void ()>& read) {
+            try {
+                read ();
+            }
+            catch (...) {
+                Problem p{.fFile = DocumentKey_ (pictFile), .fKey = key, .fValue = value, .fReason = Characters::ToString (current_exception ())};
+                DbgTrace ("left out {}={} of {}: {}"_f, key, value, p.fFile, p.fReason);
+                if (fProblemSink_) {
+                    fProblemSink_ (p);
+                }
+            }
+        };
 
         Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (pictFile.string ());
         if (image != nullptr) {
@@ -90,15 +117,12 @@ namespace Metadata {
                         using Time::Date;
                         using Time::DateTime;
                         // DbgTrace (L"foundDate =%s, foundTime=%s", Characters::ToString (foundDate).c_str (), Characters::ToString (foundTime).c_str ());
-                        DateTime dt = [&] () {
-                            if (foundTime) {
-                                return DateTime::Parse (foundDate.value () + "T"sv + foundTime.value (), Time::DateTime::kISO8601Format);
-                            }
-                            else {
-                                return DateTime{Date::Parse (foundDate.value ())};
-                            }
-                        }();
-                        ms.date = dt.AsUTC ().Format (Time::DateTime::kISO8601Format);
+                        String key   = foundTime ? String{kDateKeyword} + ", "sv + String{kTimeKeyword} : String{kDateKeyword};
+                        String value = foundTime ? foundDate.value () + "T"sv + foundTime.value () : foundDate.value ();
+                        readValue (key, value, [&] () {
+                            DateTime dt = foundTime ? DateTime::Parse (value, Time::DateTime::kISO8601Format) : DateTime{Date::Parse (value)};
+                            ms.date = dt.AsUTC ().Format (Time::DateTime::kISO8601Format);
+                        });
                         //DbgTrace (L"parsed date = %s", ms.date.value ().c_str ());
                     }
                     return true;
@@ -132,12 +156,15 @@ namespace Metadata {
                     for (Exiv2::XmpData::const_iterator md = xmpData.begin (); md != xmpData.end (); ++md) {
                         String key = String::FromNarrowSDKString (md->key ());
                         if (key == kRatingKeyword) {
-                            if (String::FromNarrowSDKString (md->value ().toString ()) == kRatingNearOne) {
-                                ms.rating = 1.0; // metadata apparently only allows 2 digits
-                            }
-                            else {
-                                ms.rating = std::round ((stoi (md->value ().toString ()) / 100.0) * 100.0) / 100.0;
-                            }
+                            String value = String::FromNarrowSDKString (md->value ().toString ());
+                            readValue (key, value, [&] () {
+                                if (value == kRatingNearOne) {
+                                    ms.rating = 1.0; // metadata apparently only allows 2 digits
+                                }
+                                else {
+                                    ms.rating = std::round ((stoi (md->value ().toString ()) / 100.0) * 100.0) / 100.0;
+                                }
+                            });
                         }
                         else if (key == kTitleKeyword) {
                             ms.title = String::FromNarrowSDKString (md->value ().toString ());
@@ -158,9 +185,10 @@ namespace Metadata {
                             foundLongitude = String::FromNarrowSDKString (md->value ().toString ());
                         }
                         else if (key == kDateKeyword) {
-                            ms.date = Time::DateTime::Parse (String::FromNarrowSDKString (md->value ().toString ()), Time::DateTime::kISO8601Format)
-                                          .AsUTC ()
-                                          .Format (Time::DateTime::kISO8601Format);
+                            String value = String::FromNarrowSDKString (md->value ().toString ());
+                            readValue (key, value, [&] () {
+                                ms.date = Time::DateTime::Parse (value, Time::DateTime::kISO8601Format).AsUTC ().Format (Time::DateTime::kISO8601Format);
+                            });
                         }
                         else {
                             if (key.Matches (tagEntry)) {
@@ -169,14 +197,15 @@ namespace Metadata {
                         }
                     }
                     if (foundLatitude.has_value () and foundLongitude.has_value ()) {
-                        // a location that will not parse is dropped, not the photo's other metadata (foundAltitude is not used yet)
-                        try {
-                            ms.location = Geolocation (Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()),
-                                                       Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ()))
-                                              .ToISOString ();
-                        }
-                        catch (...) {
-                            DbgTrace ("ignoring location {}, {} of {}: {}"_f, foundLatitude, foundLongitude, pictFile, current_exception ());
+                        // (foundAltitude is not used yet)
+                        optional<double> latitude;
+                        optional<double> longitude;
+                        readValue (kLatitudeKeyword, foundLatitude.value (),
+                                   [&] () { latitude = Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()); });
+                        readValue (kLongitudeKeyword, foundLongitude.value (),
+                                   [&] () { longitude = Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ()); });
+                        if (latitude and longitude) {
+                            ms.location = Geolocation (latitude.value (), longitude.value ()).ToISOString ();
                         }
                     }
                     if (foundComment.has_value () and foundComment.value () != "Ignored") {
@@ -346,7 +375,7 @@ namespace Metadata {
                         // its directory relative to topDir, as digiKam's albums are to their album root: "" for topDir itself
                         path albumDirectory = p.parent_path ().lexically_relative (topDir);
                         ms.album            = albumDirectory == "." ? String{} : String{albumDirectory.generic_wstring ()};
-                        imageMetaData.Add (String{p}.ReplaceAll ("\\"sv, "/"sv), ms);
+                        imageMetaData.Add (DocumentKey_ (p), ms);
                     }
                     catch (...) {
                         DbgTrace ("failed to find metadata for  {}"_f, p);

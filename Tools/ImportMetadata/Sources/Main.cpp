@@ -38,6 +38,7 @@ namespace {
     const path kFileScrapeFileName     = "FileScrape.json";
     const path kMergedTagsFileName     = "DocumentMetaData.json";
     const path kExtensionTallyFileName = "ExtenstionTally.json";
+    const path kProblemsFileName       = "Problems.json";
 
     const CommandLine::Option kSourceDirectoryO_{.fSingleCharName   = 's',
                                                  .fLongName         = "source-directory"sv,
@@ -82,12 +83,16 @@ static void Import_ (const CommandLine& commandLine)
     path digikamScrapeFilePath = outputDirectory / kDigikamScrapeFileName;
     path fileScrapeFilePath    = outputDirectory / kFileScrapeFileName;
 
+    // each value left out of a Document, for Problems.json
+    Sequence<Metadata::Problem> problems;
+    Metadata::ProblemSink       problemSink = [&] (const Metadata::Problem& p) { problems.Append (p); };
+
     Mapping<String, Metadata::Document> fileScrape;
     if (kScrapeFileSystem) {
         {
             DbgTrace ("scraping file system directory at {}"_f, sourceDirectory);
             Debug::TimingTrace ttrc;
-            fileScrape = Metadata::ImageMetadataExtractor ().ExtractAll (sourceDirectory);
+            fileScrape = Metadata::ImageMetadataExtractor{problemSink}.ExtractAll (sourceDirectory);
         }
         {
             DbgTrace ("writing file system scrape to {}"_f, fileScrapeFilePath);
@@ -228,6 +233,23 @@ static void Import_ (const CommandLine& commandLine)
             DbgTrace ("writing processed tag info to {}"_f, outputPath);
             Debug::TimingTrace ttrc;
             Metadata::Document::WriteToFileAsJSON (masterList, outputPath);
+        }
+    }
+
+    {
+        path problemsFilePath = outputDirectory / kProblemsFileName;
+        DbgTrace ("writing {} problems to {}"_f, problems.size (), problemsFilePath);
+        DataExchange::ObjectVariantMapper mapper;
+        mapper.AddClass<Metadata::Problem> ({
+            {"file"sv, &Metadata::Problem::fFile},
+            {"key"sv, &Metadata::Problem::fKey},
+            {"value"sv, &Metadata::Problem::fValue},
+            {"reason"sv, &Metadata::Problem::fReason},
+        });
+        mapper.AddCommonType<Sequence<Metadata::Problem>> ();
+        DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (problems), IO::FileSystem::FileOutputStream::New (problemsFilePath));
+        if (not problems.empty ()) {
+            cerr << "{} values could not be read, and were left out - see {}"_f(problems.size (), problemsFilePath) << endl;
         }
     }
 }

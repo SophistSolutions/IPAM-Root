@@ -11,6 +11,8 @@
 
 #include "LibIPAM/Metadata/Document.h"
 
+#include "Problem.h"
+
 namespace Metadata {
 
     using namespace IPAM::LibIPAM::Metadata;
@@ -18,7 +20,10 @@ namespace Metadata {
     using Characters::String;
     class ImageMetadataExtractor {
     public:
-        ImageMetadataExtractor () = default;
+        /**
+         *  A value that will not parse is left out of its photo's Document - not the photo - traced, and given to problemSink
+         */
+        ImageMetadataExtractor (const ProblemSink& problemSink = nullptr);
 
         // extract relevant metadata from image file
         Metadata::Document Extract (const std::filesystem::path& pictFile);
@@ -29,6 +34,9 @@ namespace Metadata {
         // find all the file extensions in a directory (and subdirectories) and optionally
         // attempt to extract image metadata from first file of each extension found
         Containers::MultiSet<String> TallyExtensions (const std::filesystem::path& topDir, String outputDirectoryForSampleFiles);
+
+    private:
+        ProblemSink fProblemSink_;
     };
 
 }

@@ -69,6 +69,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\Sources\Digikam.h" />
     <ClInclude Include="..\..\Sources\ImageMetadataExtraction.h" />
+    <ClInclude Include="..\..\Sources\Problem.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
