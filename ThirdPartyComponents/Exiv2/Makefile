@@ -197,25 +197,12 @@ CMAKE_ARGS+= -DBUILD_SHARED_LIBS=OFF
 # linking exiv2.exe fails with unresolved __imp_rand_s / __imp__fdclass.
 CMAKE_ARGS+= -DEXIV2_ENABLE_DYNAMIC_RUNTIME=OFF
 
-## Should not be needed but finding stuff in wrong place - mingw - instead...
-##  SB mingw only hack at least
-## https://github.com/SophistSolutions/IPAM-Root/issues/9
+# cmake finds expat and zlib in CMAKE_INSTALL_PREFIX (Stroika's Builds/<CONFIG>/). But on Windows Stroika's zlib is both
+# a DLL - z[d].lib its import library - and the static zs[d].lib, and FindZLIB takes the DLL's unless told (exiv2.exe then
+# needs z[d].dll; libexiv2's users get zlib from zlib.pc, which names the static one). Told, it looks for zs[d] first
+# (cmake 4.3, VS 2026's).
 ifeq (VisualStudio.Net,$(findstring VisualStudio.Net,$(BuildPlatform)))
-X_=$(call FUNCTION_CONVERT_FILES_TO_COMPILER_NATIVE,$(PER_CONFIGURATION_BUILDS_DIR))
-CMAKE_ARGS+= -DPC_EXPAT_INCLUDE_DIRS=$(X_)/include/
-CMAKE_ARGS+= -DPC_EXPAT_LIBRARY_DIRS=$(X_)/lib/
-CMAKE_ARGS+= -DZLIB_INCLUDE_DIR=$(X_)/include/
-CMAKE_ARGS+= -DZLIB_LIBRARY_DIR=$(X_)/lib/
-# Stroika's zlib installs as zs[d].lib (zlibstatic[d].lib before zlib 1.3.2) - never zlib.lib, so
-# the old hard-coded name silently produced a nonexistent path (cmake's FindZLIB never checks) and
-# only blew up at link: LNK1181 cannot open input file ...\zlib.lib, building app/exiv2.exe.
-# Naming mirrors ThirdPartyComponents/zlib/Makefile in Stroika (MAYBED_ keyed off AssertionsEnabled).
-ifeq ($(AssertionsEnabled),1)
-ZLIB_MAYBED_=d
-else
-ZLIB_MAYBED_=
-endif
-CMAKE_ARGS+= -DZLIB_LIBRARY_RELEASE=$(X_)/lib/zs$(ZLIB_MAYBED_)$(LIB_SUFFIX)
+CMAKE_ARGS+= -DZLIB_USE_STATIC_LIBS=ON
 endif
 
 
