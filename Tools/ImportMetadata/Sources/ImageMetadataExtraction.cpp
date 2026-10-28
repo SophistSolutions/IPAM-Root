@@ -169,15 +169,14 @@ namespace Metadata {
                         }
                     }
                     if (foundLatitude.has_value () and foundLongitude.has_value ()) {
-                        if (foundAltitude.has_value ()) {
-                            ms.location = Geolocation (Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()),
-                                                       Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ()) /*, double _altitude*/)
-                                              .ToISOString ();
-                        }
-                        else {
+                        // a location that will not parse is dropped, not the photo's other metadata (foundAltitude is not used yet)
+                        try {
                             ms.location = Geolocation (Geolocation::Coordinate::GPSCoordStringToValue (foundLatitude.value ()),
                                                        Geolocation::Coordinate::GPSCoordStringToValue (foundLongitude.value ()))
                                               .ToISOString ();
+                        }
+                        catch (...) {
+                            DbgTrace ("ignoring location {}, {} of {}: {}"_f, foundLatitude, foundLongitude, pictFile, current_exception ());
                         }
                     }
                     if (foundComment.has_value () and foundComment.value () != "Ignored") {

@@ -70,14 +70,18 @@ Geolocation::Coordinate::Coordinate (const String& s, const RegularExpression& r
 
 double Geolocation::Coordinate::GPSCoordStringToValue (const String& coor)
 {
-    static const RegularExpression kCoordinateExp_{"^([0-9]*)?,([0-9]*)(\\.[0-9]*)([NWES]?)"};
+    // DDD,MM.mmk or DDD,MM,SSk (taking a fraction of a second too)
+    static const RegularExpression kCoordinateExp_{"^([0-9]+),([0-9]+(?:\\.[0-9]+)?)(?:,([0-9]+(?:\\.[0-9]+)?))?([NSEW])$"};
     Containers::Sequence<String>   matches;
     if (coor.Matches (kCoordinateExp_, &matches)) {
-        double degrees = std::stod (matches[0].As<wstring> ().c_str ());
-        double minutes = std::stod (matches[1].As<wstring> ().c_str ());
-        double seconds = std::stod (matches[2].As<wstring> ().c_str ());
-        double sign    = (matches[3] == "N"sv or matches[3] == "E"sv) ? 1 : -1;
-        return sign * (degrees + (minutes + seconds) / 60);
+        double degrees = FloatConversion::ToFloat (matches[0]);
+        double minutes = FloatConversion::ToFloat (matches[1]);
+        double seconds = matches[2].empty () ? 0 : FloatConversion::ToFloat (matches[2]);
+        if (minutes >= _kBase or seconds >= _kBase) {
+            Execution::Throw (DataExchange::BadFormatException{"Invalid coordinate specification (minutes or seconds >= 60)"sv});
+        }
+        double sign = (matches[3] == "N"sv or matches[3] == "E"sv) ? 1 : -1;
+        return sign * (degrees + minutes / _kBase + seconds / (_kBase * _kBase));
     }
     Execution::Throw (DataExchange::BadFormatException{"Invalid coordinate specification"sv});
 }

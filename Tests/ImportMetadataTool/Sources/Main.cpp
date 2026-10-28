@@ -135,7 +135,14 @@ namespace {
                 image.xmpData ()["Xmp.acdsee.notes"]          = "Found in the attic";
                 image.xmpData ()["Xmp.acdsee.author"]         = "Sterling";
                 image.xmpData ()["Xmp.MicrosoftPhoto.Rating"] = "99";
+                image.xmpData ()["Xmp.exif.GPSLatitude"]      = "48,51,29.6N";
+                image.xmpData ()["Xmp.exif.GPSLongitude"]     = "2,17,40.2E";
                 AddXMPRegionName_ (image, "Grandma");
+            });
+            WriteJPEG_ (images / "Scans" / "IMG_0101.jpg", [] (Exiv2::Image& image) {
+                AddIPTCKeywords_ (image, {"Grandma"});
+                image.xmpData ()["Xmp.exif.GPSLatitude"]  = "somewhere";
+                image.xmpData ()["Xmp.exif.GPSLongitude"] = "2,17,40.2E";
             });
             WriteJPEG_ (images / "Scans" / "unknown.jpg", [] (Exiv2::Image&) {});
             WriteJPEG_ (images / "loose.jpg", [] (Exiv2::Image&) {});
@@ -178,15 +185,23 @@ namespace {
             result.Add (key ("1964 New York/IMG_0002.jpg"), d);
         }
         {
-            // the file alone
+            // the file alone (its location in XMP's other form, DDD,MM,SSk)
             Document d;
-            d.tags    = Set<String>{"Grandma"sv};
-            d.date    = "1931-05-01T11:00:00Z"sv;
-            d.comment = Sequence<Document::Comment>{Document::Comment{"Found in the attic"sv, "Sterling"sv}};
-            d.title   = "Grandma's wedding"sv;
-            d.rating  = 1.0;
-            d.album   = "Scans"sv;
+            d.tags     = Set<String>{"Grandma"sv};
+            d.date     = "1931-05-01T11:00:00Z"sv;
+            d.location = Geolocation{48 + 51 / 60.0 + 29.6 / 3600, 2 + 17 / 60.0 + 40.2 / 3600}.ToISOString ();
+            d.comment  = Sequence<Document::Comment>{Document::Comment{"Found in the attic"sv, "Sterling"sv}};
+            d.title    = "Grandma's wedding"sv;
+            d.rating   = 1.0;
+            d.album    = "Scans"sv;
             result.Add (key ("Scans/IMG_0100.jpg"), d);
+        }
+        {
+            // a location that is not one is dropped, not the rest
+            Document d;
+            d.tags  = Set<String>{"Grandma"sv};
+            d.album = "Scans"sv;
+            result.Add (key ("Scans/IMG_0101.jpg"), d);
         }
         {
             Document d;

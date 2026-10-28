@@ -10,6 +10,7 @@
 #include "Stroika/Foundation/Characters/RegularExpression.h"
 #include "Stroika/Foundation/Characters/ToString.h"
 #include "Stroika/Foundation/Common/StroikaVersion.h"
+#include "Stroika/Foundation/DataExchange/BadFormatException.h"
 #include "Stroika/Foundation/Debug/TimingTrace.h"
 #include "Stroika/Foundation/Debug/Trace.h"
 #include "Stroika/Foundation/Execution/CommandLine.h"
@@ -138,6 +139,21 @@ namespace {
         Geolocation eiffelTower{"+48.8577+002.295/"};
         EXPECT_EQ (eiffelTower.latitude, Geolocation::Latitude{48.8577});
         EXPECT_EQ (eiffelTower.longitude, Geolocation::Longitude{2.295});
+    }
+
+    GTEST_TEST (Geolocation, GPSCoordStringToValue_)
+    {
+        using Coordinate = Geolocation::Coordinate;
+        // XMP's two forms: DDD,MM.mmk and DDD,MM,SSk
+        EXPECT_NEAR (Coordinate::GPSCoordStringToValue ("40,41.364N"sv), 40 + 41.364 / 60, 1e-9);
+        EXPECT_NEAR (Coordinate::GPSCoordStringToValue ("74,2.682W"sv), -(74 + 2.682 / 60), 1e-9);
+        EXPECT_NEAR (Coordinate::GPSCoordStringToValue ("2,17E"sv), 2 + 17 / 60.0, 1e-9);
+        EXPECT_NEAR (Coordinate::GPSCoordStringToValue ("48,51,29.6N"sv), 48 + 51 / 60.0 + 29.6 / 3600, 1e-9);
+        EXPECT_NEAR (Coordinate::GPSCoordStringToValue ("33,51,54S"sv), -(33 + 51 / 60.0 + 54 / 3600.0), 1e-9);
+        // and nothing else: no direction (or a wrong one), no degrees, 60 minutes or seconds, text after it, nothing at all
+        for (const String& bad : {"40.6894"sv, "40,41.364"sv, "40,41.364X"sv, ",41.364N"sv, "40,60N"sv, "40,41,60N"sv, "40,41.364N "sv, ""sv}) {
+            EXPECT_THROW (Coordinate::GPSCoordStringToValue (bad), DataExchange::BadFormatException) << bad;
+        }
     }
 }
 #endif

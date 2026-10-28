@@ -21,6 +21,11 @@ namespace IPAM::LibIPAM::Common {
         public:
             Coordinate () = delete;
 
+            /**
+             *  \brief An XMP GPSCoordinate ("DDD,MM,SSk" or "DDD,MM.mmk", k being N, S, E or W) in degrees, south and west negative
+             *
+             *  Anything else - a value without its direction, too - throws DataExchange::BadFormatException.
+             */
             static double GPSCoordStringToValue (const String& coor);
 
         protected:
