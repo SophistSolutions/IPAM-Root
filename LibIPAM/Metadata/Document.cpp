@@ -1,3 +1,5 @@
+#include "Stroika/Frameworks/StroikaPreComp.h"
+
 #include <fstream>
 #include <iostream>
 

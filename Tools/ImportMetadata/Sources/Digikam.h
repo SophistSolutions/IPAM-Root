@@ -1,6 +1,8 @@
 #ifndef __IPAM_Tools_ImportMetadata_Digikam_h__
 #define __IPAM_Tools_ImportMetadata_Digikam_h__ 1
 
+#include "Stroika/Frameworks/StroikaPreComp.h"
+
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Containers/Mapping.h"
 #include "Stroika/Foundation/Containers/Set.h"

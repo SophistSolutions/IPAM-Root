@@ -1,3 +1,5 @@
+#include "Stroika/Frameworks/StroikaPreComp.h"
+
 #include <cassert>
 #include <cstring>
 #include <filesystem>

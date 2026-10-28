@@ -2,6 +2,8 @@
  * Copyright(c) Sophist Solutions, Inc. 1990-2022.  All rights reserved
  */
 
+#include "Stroika/Frameworks/StroikaPreComp.h"
+
 #include <math.h>
 
 #include "Stroika/Foundation/Characters/FloatConversion.h"

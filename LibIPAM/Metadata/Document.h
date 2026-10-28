@@ -4,6 +4,8 @@
 #ifndef __IPAM_LibIPAM_Metadata_Document_h__
 #define __IPAM_LibIPAM_Metadata_Document_h__ 1
 
+#include "Stroika/Frameworks/StroikaPreComp.h"
+
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Containers/Mapping.h"
 #include "Stroika/Foundation/Containers/Sequence.h"

@@ -1,6 +1,8 @@
 #ifndef __IPAM_Tools_ImportMetadata_ImageMetadataExtraction_h__
 #define __IPAM_Tools_ImportMetadata_ImageMetadataExtraction_h__ 1
 
+#include "Stroika/Frameworks/StroikaPreComp.h"
+
 #include <filesystem>
 
 #include "Stroika/Foundation/Characters/String.h"

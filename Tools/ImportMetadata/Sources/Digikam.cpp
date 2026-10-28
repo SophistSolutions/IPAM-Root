@@ -1,3 +1,5 @@
+#include "Stroika/Frameworks/StroikaPreComp.h"
+
 #include "Stroika/Foundation/Characters/RegularExpression.h"
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Characters/ToString.h"
