@@ -56,36 +56,35 @@ namespace digikam {
 
             // step one: build imageID map to image path (so can access in masterListOfTags and because is our primary key)
             // album paths are done by reference so first need to build map of those
-            // I *think* only one AlbumRoot is supported -- if not will have to rework this somewhat (keep track of rootPathLength separately for each)
-            ptrdiff_t rootPathLength = -1;
-
             Mapping<int, String> albumRoots;
-            for (const auto& ari : conn.mkStatement ("Select id,identifier,specificPath from AlbumRoots;"sv).GetAllRows (0, 1, 2)) {
+            for (const auto& ari : conn.mkStatement ("Select id,identifier from AlbumRoots;"sv).GetAllRows (0, 1)) {
                 // example identier: volumeid:?path=P:
                 // from internet example: volumeid:?path=%/home/user1/Photo
-                int    id           = std::get<0> (ari).As<int> ();
-                String path         = std::get<1> (ari).As<String> ();
-                String specificPath = std::get<2> (ari).As<String> ();
-                /*+ std::get<2> (ari).As<String> ()*/;
+                int    id   = std::get<0> (ari).As<int> ();
+                String path = std::get<1> (ari).As<String> ();
 
                 static const auto albumLocation{"^(?:volumeid:\\?path=)(.*)"_RegEx};
                 Sequence<String>  matches;
                 if (path.Matches (albumLocation, &matches)) {
                     path = matches[0];
                 }
-                rootPathLength = path.length () + specificPath.length ();
                 //DbgTrace (L"root: %d, %s", id, path.c_str ());
                 albumRoots.Add (id, path);
             }
 
+            // An album's relativePath is its directory relative to its album root, after a "/" - and "/" for the album root
+            // itself. Without the "/" it is the album's name, as ImageMetadataExtractor names one: "" for the album root.
             Mapping<int, String> albumPaths;
+            Mapping<int, String> albumNames;
             for (const auto& ai : conn.mkStatement ("Select id,albumRoot,relativePath from Albums;"sv).GetAllRows (0, 1, 2)) {
-                int    id        = std::get<0> (ai).As<int> ();
-                int    albumRoot = std::get<1> (ai).As<int> ();
-                String name      = albumRoots[albumRoot] + std::get<2> (ai).As<String> ();
+                int    id           = std::get<0> (ai).As<int> ();
+                int    albumRoot    = std::get<1> (ai).As<int> ();
+                String relativePath = std::get<2> (ai).As<String> ();
+                String name         = relativePath.StartsWith ("/"sv) ? relativePath.SubString (1) : relativePath;
 
                 // DbgTrace (L"albumPaths: %d, %s", id,name.c_str ());
-                albumPaths.Add (id, name);
+                albumPaths.Add (id, name.empty () ? albumRoots[albumRoot] : albumRoots[albumRoot] + "/" + name);
+                albumNames.Add (id, name);
             }
             Mapping<int, String> imageIDToImagePath;
 
@@ -99,7 +98,7 @@ namespace digikam {
                     //DbgTrace (L"got: %d, %d, %s, %s", id, album, name.c_str (), imagePath.c_str ());
                     imageIDToImagePath.Add (id, imagePath);
                     Metadata::Document ms;
-                    ms.album = String{imagePath.As<filesystem::path> ().remove_filename ()}.SubString (rootPathLength).SubString (0, -1);
+                    ms.album = albumNames[album];
                     scrapedMetadata.Add (imagePath, ms);
                 };
             }

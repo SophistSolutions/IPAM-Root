@@ -78,7 +78,7 @@ namespace {
     }
 
     // The tables and columns of a digiKam database that ImportMetadata reads. digiKam keeps dates in local time, with no
-    // offset, and an album's path relative to its album root.
+    // offset, and an album's path relative to its album root - "/" for the album root itself.
     void WriteDigikamDB_ (const path& dbFile, const path& albumRoot)
     {
         using namespace Database::SQL;
@@ -93,20 +93,23 @@ namespace {
                    "CREATE TABLE TagProperties (tagid INTEGER, property TEXT, value TEXT);"
                    "CREATE TABLE ImageTags (imageid INTEGER NOT NULL, tagid INTEGER NOT NULL);"sv);
         conn.Exec ("INSERT INTO AlbumRoots VALUES (1, 'volumeid:?path={}', '/');"_f(String{albumRoot.generic_wstring ()}.ReplaceAll ("'"sv, "''"sv)));
-        conn.Exec ("INSERT INTO Albums VALUES (1, 1, '/1964 New York');"
-                   "INSERT INTO Images VALUES (1, 1, 'IMG_0001.jpg'), (2, 1, 'IMG_0002.jpg'), (3, 1, 'IMG_0003.jpg');"
+        conn.Exec ("INSERT INTO Albums VALUES (1, 1, '/1964 New York'), (2, 1, '/');"
+                   "INSERT INTO Images VALUES (1, 1, 'IMG_0001.jpg'), (2, 1, 'IMG_0002.jpg'), (3, 1, 'IMG_0003.jpg'), (4, 2, 'loose.jpg'),"
+                   "    (5, 2, 'IMG_0004.jpg');"
                    "INSERT INTO ImageComments VALUES (1, 1, NULL, 'Fred took this one'), (2, 2, 'Sterling', 'Fred took this one'),"
                    "    (3, 3, NULL, 'Screenshot');"
                    "INSERT INTO ImagePositions VALUES (2, 40.6894, -74.0447);"
                    "INSERT INTO ImageInformation VALUES (1, 4, '1964-07-04T15:30:00.000'), (2, 1, '1964-07-05T10:00:00.000'),"
-                   "    (3, 5, '1964-07-06T09:00:00.000');"
+                   "    (3, 5, '1964-07-06T09:00:00.000'), (4, 3, '1964-07-07T08:00:00.000'),"
+                   "    (5, 2, '1964-07-08T12:00:00.000');"
                    "INSERT INTO Tags VALUES (1, 'Fred'), (2, 'Statue of Liberty'), (3, 'Uncle Bob'), (4, 'Color Label Red');"
                    "INSERT INTO TagProperties VALUES (1, 'person', 'Fred'), (3, 'faceEngineId', '7'), (4, 'internalTag', NULL);"
-                   "INSERT INTO ImageTags VALUES (1, 1), (1, 2), (1, 3), (1, 4), (2, 1), (3, 1);"sv);
+                   "INSERT INTO ImageTags VALUES (1, 1), (1, 2), (1, 3), (1, 4), (2, 1), (3, 1), (4, 3), (5, 1);"sv);
     }
 
     // A small digiKam collection - photos, and its database - in a temporary directory. Its database knows IMG_0001 to 0003
-    // (0003 has no file); Scans is not in it, and nor is anything ImportMetadata skips (a hidden directory, a text file).
+    // in its album 1964 New York, and loose.jpg and IMG_0004 in its root album (0003 and 0004 have no file); Scans is not in
+    // it, and nor is anything ImportMetadata skips (a hidden directory, a text file).
     struct Collection_ {
         IO::FileSystem::ScopedTmpDir tmpDir{"ImportMetadataTest"};
         path                         root{static_cast<path> (tmpDir)};
@@ -191,18 +194,33 @@ namespace {
             result.Add (key ("Scans/unknown.jpg"), d);
         }
         {
+            // in both, in digiKam's root album
             Document d;
-            d.album = ""sv;
+            d.tags   = Set<String>{"Uncle Bob"sv};
+            d.date   = fromDigikamDate ("1964-07-07T08:00:00.000"sv);
+            d.rating = 0.50;
+            d.album  = ""sv;
             result.Add (key ("loose.jpg"), d);
         }
         if (includeDigikamOnly) {
-            // digiKam alone (and its comment is one ImportMetadata ignores)
-            Document d;
-            d.tags   = Set<String>{"Fred"sv};
-            d.date   = fromDigikamDate ("1964-07-06T09:00:00.000"sv);
-            d.rating = 1.0;
-            d.album  = "1964 New York"sv;
-            result.Add (key ("1964 New York/IMG_0003.jpg"), d);
+            {
+                // digiKam alone (and its comment is one ImportMetadata ignores)
+                Document d;
+                d.tags   = Set<String>{"Fred"sv};
+                d.date   = fromDigikamDate ("1964-07-06T09:00:00.000"sv);
+                d.rating = 1.0;
+                d.album  = "1964 New York"sv;
+                result.Add (key ("1964 New York/IMG_0003.jpg"), d);
+            }
+            {
+                // digiKam alone, in its root album
+                Document d;
+                d.tags   = Set<String>{"Fred"sv};
+                d.date   = fromDigikamDate ("1964-07-08T12:00:00.000"sv);
+                d.rating = 0.25;
+                d.album  = ""sv;
+                result.Add (key ("IMG_0004.jpg"), d);
+            }
         }
         return result;
     }
