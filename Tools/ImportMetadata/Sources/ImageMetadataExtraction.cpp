@@ -264,7 +264,7 @@ namespace Metadata {
         try {
             Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (pictFile.string ());
             if (image != nullptr) {
-                std::ofstream outfile (outputDirectoryForSampleFiles.AsNarrowSDKString () + pictFile.extension ().string ().substr (1) + ".txt");
+                std::ofstream outfile (outputDirectoryForSampleFiles.As<path> () / (pictFile.extension ().string ().substr (1) + ".txt"));
 
                 image->readMetadata ();
                 outfile << "metadata of " << pictFile.string () << endl;
@@ -327,7 +327,6 @@ namespace Metadata {
     Containers::Mapping<String, Metadata::Document> ImageMetadataExtractor::ExtractAll (const std::filesystem::path& topDir)
     {
         Containers::Mapping<String, Metadata::Document> imageMetaData;
-        size_t                                          topDirLength = String{topDir}.size ();
         try {
             for (recursive_directory_iterator end, dirEntry (topDir); dirEntry != end; ++dirEntry) {
                 const path& p    = dirEntry->path ();
@@ -343,7 +342,9 @@ namespace Metadata {
                 if (is_regular_file (p)) {
                     try {
                         Metadata::Document ms = Extract (p);
-                        ms.album = String{path{p}.remove_filename ()}.SubString (topDirLength).SubString (0, -1).ReplaceAll ("\\"sv, "/"sv);
+                        // its directory relative to topDir, as digiKam's albums are to their album root: "" for topDir itself
+                        path albumDirectory = p.parent_path ().lexically_relative (topDir);
+                        ms.album            = albumDirectory == "." ? String{} : String{albumDirectory.generic_wstring ()};
                         imageMetaData.Add (String{p}.ReplaceAll ("\\"sv, "/"sv), ms);
                     }
                     catch (...) {

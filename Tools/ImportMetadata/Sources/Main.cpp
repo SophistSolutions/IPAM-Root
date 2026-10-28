@@ -66,31 +66,16 @@ namespace {
                                        "    -s P:/ -d c:/Digikam/digikam4.db --include-digikam-only -o c:/ssw/mdResults/";
 }
 
-int main (int argc, const char* argv[])
+// main's work, once its arguments are checked
+static void Import_ (const CommandLine& commandLine)
 {
-    CommandLine               commandLine{argc, argv};
-    Debug::TraceContextBumper ctx{"main", "argv={}"_f, commandLine};
-
-    if (commandLine.Has (StandardCommandLineOptions::kHelp)) {
-        cerr << commandLine.GenerateUsage (kAllOptions_) << endl;
-        cerr << kExamples_ << endl;
-        return EXIT_SUCCESS;
-    }
-    try {
-        commandLine.Validate (kAllOptions_);
-    }
-    catch (...) {
-        cerr << Characters::ToString (current_exception ()) << endl;
-        cerr << commandLine.GenerateUsage (kAllOptions_) << endl;
-        return EXIT_FAILURE;
-    }
-
     const path     sourceDirectory = commandLine.GetArgument (kSourceDirectoryO_)->As<path> ();
     const path     outputDirectory = commandLine.GetArgument (kOutputDirectoryO_)->As<path> ();
     optional<path> digikamDatabase;
     if (optional<String> arg = commandLine.GetArgument (kDigikamDatabaseO_)) {
         digikamDatabase = arg->As<path> ();
     }
+    create_directories (outputDirectory);
 
     path digikamScrapeFilePath = outputDirectory / kDigikamScrapeFileName;
     path fileScrapeFilePath    = outputDirectory / kFileScrapeFileName;
@@ -243,6 +228,34 @@ int main (int argc, const char* argv[])
             Metadata::Document::WriteToFileAsJSON (masterList, outputPath);
         }
     }
+}
 
+int main (int argc, const char* argv[])
+{
+    CommandLine               commandLine{argc, argv};
+    Debug::TraceContextBumper ctx{"main", "argv={}"_f, commandLine};
+
+    if (commandLine.Has (StandardCommandLineOptions::kHelp)) {
+        cerr << commandLine.GenerateUsage (kAllOptions_) << endl;
+        cerr << kExamples_ << endl;
+        return EXIT_SUCCESS;
+    }
+    try {
+        commandLine.Validate (kAllOptions_);
+    }
+    catch (...) {
+        cerr << Characters::ToString (current_exception ()) << endl;
+        cerr << commandLine.GenerateUsage (kAllOptions_) << endl;
+        return EXIT_FAILURE;
+    }
+
+    try {
+        Import_ (commandLine);
+    }
+    catch (...) {
+        DbgTrace ("got exception={}"_f, current_exception ());
+        cerr << Characters::ToString (current_exception ()) << endl;
+        return EXIT_FAILURE;
+    }
     return EXIT_SUCCESS;
 }
