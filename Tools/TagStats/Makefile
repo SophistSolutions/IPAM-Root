@@ -1,6 +1,6 @@
 export TOP_ROOT		:=	$(abspath ../../)/
 export StroikaRoot	:=	$(TOP_ROOT)ThirdPartyComponents/Stroika/StroikaRoot/
-SrcDir				:=	$(TOP_ROOT)IPAM/Tools/PS2/
+SrcDir				:=	$(TOP_ROOT)Tools/TagStats/
 
 include $(StroikaRoot)Build/Lib/Make/SharedMakeVariables-Default.mk
 
@@ -15,7 +15,7 @@ all:
 
 
 clean clobber::
-	@$(StroikaRoot)/Build/Scripts/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "IPAM/Tools/PS2 $(call FUNCTION_CAPITALIZE_WORD,$@) {$(CONFIGURATION)}:"
+	@$(StroikaRoot)/Build/Scripts/PrintLevelLeader $(MAKE_INDENT_LEVEL) && $(ECHO) "IPAM/Tools/TagStats $(call FUNCTION_CAPITALIZE_WORD,$@) {$(CONFIGURATION)}:"
 	@$(MAKE) --directory=Sources --silent $@
 
 

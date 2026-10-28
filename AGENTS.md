@@ -28,7 +28,7 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
   and writes JSON (`FileScrape.json`, `DigikamScrape.json`, `ExtenstionTally.json`, `DocumentMetaData.json`) to an
   output directory. Arguments: `-s DIR` (the images), `-d FILE` (the digiKam database - without it, no merge),
   `--include-digikam-only`, `-o DIR`; `--help` lists them.
-- `Tools/PS2/` - reads ImportMetadata's `DocumentMetaData.json` and writes tag co-occurrence counts
+- `Tools/TagStats/` - reads ImportMetadata's `DocumentMetaData.json` and writes tag co-occurrence counts
   (`DocumentMetaDataTagInfo.json`); both paths are hard-wired to `c:\ssw\mdResults\`.
 - `API-Server/` - a stub `main` that does nothing yet.
 - `Tests/Geolocation/` - the only test: googletest, over `LibIPAM/Common/Geolocation`.
@@ -83,7 +83,7 @@ Stroika's build section applies. The IPAM-specific parts:
 - A check is the build (with its warnings, as in Stroika), then the test, `Builds/<CONFIG>/IPAM/Tests/Geolocation/
   Geolocation` (`.exe` on Windows): count its `[  PASSED  ]` line as Stroika's AGENTS.md says. `make CONFIGURATION=X
   run-tests` runs it - with no `CONFIGURATION=`, each default configuration's in turn. Unlike Stroika's, it builds nothing.
-- ImportMetadata needs a photo collection (and a digiKam database) to do anything useful, and PS2's paths are
+- ImportMetadata needs a photo collection (and a digiKam database) to do anything useful, and TagStats' paths are
   hard-wired, so usually they can only be built. Say what you ran, and what you could not.
 - DbgTrace goes to a trace file in Debug and Release-Logging builds.
 - `git grep` searches IPAM's own files: it skips the Stroika submodule and everything untracked - `Builds/`,
@@ -108,8 +108,8 @@ The submodule follows Stroika's releases (`v3-Release`), or `v3-Dev` between the
    again): an incremental build links the old Stroika libraries (Stroika's `Documentation/Upgrading.md` says why).
 7. Fix the errors, and the deprecation warnings too: deprecated Stroika names go away at v3.0a1. A renamed macro cannot
    warn - search for each old name the notes list.
-8. Build Debug and Release with MSVC, and with g++ on a Linux box; run the test; run ImportMetadata and PS2 where their
-   data is.
+8. Build Debug and Release with MSVC, and with g++ on a Linux box; run the test; run ImportMetadata and TagStats where
+   their data is.
 9. Report every change IPAM needed that the upgrade notes do not mention, and every note that was wrong or unclear, so
    Stroika's Release-Notes can be fixed.
 10. The commit's headline names the Stroika version ("Stroika 3.0d25").
