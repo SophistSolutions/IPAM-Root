@@ -1,4 +1,5 @@
-#pragma once
+#ifndef __IPAM_Tools_ImportMetadata_ImageMetadataExtraction_h__
+#define __IPAM_Tools_ImportMetadata_ImageMetadataExtraction_h__ 1
 
 #include <filesystem>
 
@@ -29,3 +30,5 @@ namespace Metadata {
     };
 
 }
+
+#endif /*__IPAM_Tools_ImportMetadata_ImageMetadataExtraction_h__*/
