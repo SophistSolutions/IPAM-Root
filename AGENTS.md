@@ -31,7 +31,10 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
 - `Tools/TagStats/` - reads ImportMetadata's `DocumentMetaData.json` and writes JSON: for each tag, its photos and how
   often each other tag is with it. Arguments: `-i FILE` (the `DocumentMetaData.json`), `-o FILE`; `--help` lists them.
 - `API-Server/` - a stub `main` that does nothing yet.
-- `Tests/Geolocation/` - the only test: googletest, over `LibIPAM/Common/Geolocation`.
+- `Tests/` - the tests, googletest, one program per directory, named in `Tests/Makefile`'s `Tests`: `Geolocation`
+  (`LibIPAM/Common/Geolocation`) and `Metadata` (`Metadata::Document`'s JSON: a round trip, and reading a file in today's
+  format). A new one copies `Metadata`'s Makefiles and project, and goes in `Tests`, the solution and
+  `.vscode/launch.json`'s list.
 - `ThirdPartyComponents/` - Stroika (git submodule, at `StroikaRoot`), plus `expat` and `Exiv2`, which only
   ImportMetadata links.
 - `Workspaces/` - the VS Code workspace and a Visual Studio 2022 solution (Visual Studio is for debugging; make builds).
@@ -41,7 +44,7 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
   `-Matrix.json`.
 - `.github/workflows/build-N-test.yml` - CI on every push, one job per entry of `build-N-test-Matrix.json` that the branch
   selects (`run_on_branch`, as in Stroika's): today Linux Debug and Windows Debug, each in IPAM's image, building
-  everything and running the test. No macOS. Results: https://github.com/SophistSolutions/IPAM-Root/actions (public, so
+  everything and running the tests. No macOS. Results: https://github.com/SophistSolutions/IPAM-Root/actions (public, so
   readable with no token, as Stroika's are).
 
 ## Build
@@ -80,9 +83,10 @@ Stroika's build section applies. The IPAM-specific parts:
 
 ## Run and check
 
-- A check is the build (with its warnings, as in Stroika), then the test, `Builds/<CONFIG>/IPAM/Tests/Geolocation/
-  Geolocation` (`.exe` on Windows): count its `[  PASSED  ]` line as Stroika's AGENTS.md says. `make CONFIGURATION=X
-  run-tests` runs it - with no `CONFIGURATION=`, each default configuration's in turn. Unlike Stroika's, it builds nothing.
+- A check is the build (with its warnings, as in Stroika), then the tests, `Builds/<CONFIG>/IPAM/Tests/<name>/<name>`
+  (`.exe` on Windows): count each one's `[  PASSED  ]` line as Stroika's AGENTS.md says. `make CONFIGURATION=X
+  run-tests` runs them all, and fails if any failed - with no `CONFIGURATION=`, each default configuration's in turn.
+  Unlike Stroika's, it builds nothing.
 - ImportMetadata needs a photo collection (and a digiKam database) to do anything useful, and TagStats needs what
   ImportMetadata wrote from one, so usually they can only be built, or run on a tiny input. Say what you ran, and what
   you could not.

@@ -92,6 +92,10 @@ namespace IPAM::LibIPAM::Metadata {
     public:
         Document () = default;
 
+        nonvirtual bool operator== (const Document& rhs) const = default;
+
+        nonvirtual String ToString () const;
+
     public:
         Containers::Set<String> tags;
         optional<String>        date;

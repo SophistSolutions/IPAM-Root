@@ -50,6 +50,21 @@ String Document::Comment::ToString (Containers::Sequence<Comment> comments)
  ******************************** Metadata::Document ****************************
  ********************************************************************************
  */
+String Document::ToString () const
+{
+    StringBuilder sb;
+    sb << "{"sv;
+    sb << "tags: "sv << tags << ", "sv;
+    sb << "date: "sv << date << ", "sv;
+    sb << "location: "sv << location << ", "sv;
+    sb << "comment: "sv << comment << ", "sv;
+    sb << "title: "sv << title << ", "sv;
+    sb << "rating: "sv << rating << ", "sv;
+    sb << "album: "sv << album;
+    sb << "}"sv;
+    return sb;
+}
+
 void Document::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
 {
     mapper.AddCommonType<Containers::Set<String>> ();

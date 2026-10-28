@@ -12,6 +12,11 @@ as they are done.
   (its Makefile sends `WebGet` to `$HOME`). Once a Stroika upgrade brings #1258's fix, drop it, and check Windows CI
   still passes.
 
+- **A JSON Schema for `DocumentMetaData.json` - waits on Stroika
+  [#1140](https://github.com/SophistSolutions/Stroika/issues/1140)** (JSON Schema validation, in its 3.0d26 milestone).
+  Once a Stroika upgrade brings it, write the schema (`Documentation/Schemas/DocumentMetaData.schema.json`, say), and have
+  `Tests/Metadata` check its saved-format text, and a file it has just written, against it.
+
 - **IntelliSense takes `VERSION` for `<version>` - waits on Stroika
   [#1252](https://github.com/SophistSolutions/Stroika/issues/1252)**. IPAM includes its own headers from its root
   (`"LibIPAM/..."`), so the local, untracked `.vscode/c_cpp_properties.json` keeps `myDefaultIncludePath:
