@@ -32,10 +32,10 @@ namespace {
     constexpr bool kScrapeFileSystem = true; // false reuses the FileScrape.json an earlier run left in the output directory
     constexpr bool kCreateMasterFile = true;
 
-    const wstring kDigikamScrapeFileName  = L"DigikamScrape.json";
-    const wstring kFileScrapeFileName     = L"FileScrape.json";
-    const wstring kMergedTagsFileName     = L"DocumentMetaData.json";
-    const wstring kExtensionTallyFileName = L"ExtenstionTally.json";
+    const path kDigikamScrapeFileName  = "DigikamScrape.json";
+    const path kFileScrapeFileName     = "FileScrape.json";
+    const path kMergedTagsFileName     = "DocumentMetaData.json";
+    const path kExtensionTallyFileName = "ExtenstionTally.json";
 
     const CommandLine::Option kSourceDirectoryO_{.fSingleCharName   = 's',
                                                  .fLongName         = "source-directory"sv,
