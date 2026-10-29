@@ -114,6 +114,17 @@ namespace {
         Document::ReadFromJSONFile (&read, tmpFile);
         ExpectSameDocuments_ (read, MakeSample_ ());
     }
+
+    GTEST_TEST (Metadata, Document_FormatDate_)
+    {
+        using Time::DateTime;
+        auto formatISO = [] (const String& iso) { return Document::FormatDate (DateTime::Parse (iso, DateTime::kISO8601Format)); };
+        // a known zone: in UTC
+        EXPECT_EQ (formatISO ("1964-07-04T14:30:00-04:00"sv), "1964-07-04T18:30:00Z"sv);
+        EXPECT_EQ (formatISO ("1964-07-04T18:30:00Z"sv), "1964-07-04T18:30:00Z"sv);
+        // none: the local time as given, with none - not taken for UTC
+        EXPECT_EQ (formatISO ("1964-07-04T14:30:00"sv), "1964-07-04T14:30:00"sv);
+    }
 }
 #endif
 

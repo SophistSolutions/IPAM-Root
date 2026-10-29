@@ -80,8 +80,30 @@ namespace {
         image.xmpData ()["Xmp.mwg-rs.Regions/mwg-rs:RegionList[1]/mwg-rs:Name"] = name;
     }
 
+    // EXIF's date taken, as a camera writes it: local time, in EXIF's format - and its offset from UTC, if the camera knows it
+    void AddEXIFDate_ (Exiv2::Image& image, const string& dateTimeOriginal, const optional<string>& offsetTimeOriginal = nullopt)
+    {
+        image.exifData ()["Exif.Photo.DateTimeOriginal"] = dateTimeOriginal;
+        if (offsetTimeOriginal) {
+            image.exifData ()["Exif.Photo.OffsetTimeOriginal"] = *offsetTimeOriginal;
+        }
+    }
+    // EXIF's GPS coordinates, as a camera writes them: degrees, minutes and seconds (each a rational), and N/S or E/W (none if empty)
+    void AddEXIFGPS_ (Exiv2::Image& image, const string& latitude, const string& latitudeRef, const string& longitude, const string& longitudeRef)
+    {
+        image.exifData ()["Exif.GPSInfo.GPSLatitude"]  = latitude;
+        image.exifData ()["Exif.GPSInfo.GPSLongitude"] = longitude;
+        if (not latitudeRef.empty ()) {
+            image.exifData ()["Exif.GPSInfo.GPSLatitudeRef"] = latitudeRef;
+        }
+        if (not longitudeRef.empty ()) {
+            image.exifData ()["Exif.GPSInfo.GPSLongitudeRef"] = longitudeRef;
+        }
+    }
+
     // The tables and columns of a digiKam database that ImportMetadata reads. digiKam keeps dates in local time, with no
-    // offset, and an album's path relative to its album root - "/" for the album root itself.
+    // offset (so ImportMetadata writes them with none), and an album's path relative to its album root - "/" for the album
+    // root itself.
     void WriteDigikamDB_ (const path& dbFile, const path& albumRoot)
     {
         using namespace Database::SQL;
@@ -129,6 +151,9 @@ namespace {
                 image.xmpData ()["Xmp.MicrosoftPhoto.Rating"]      = "75";
                 image.xmpData ()["Xmp.exif.GPSLatitude"]           = "40,41.364N";
                 image.xmpData ()["Xmp.exif.GPSLongitude"]          = "74,2.682W";
+                // what the camera recorded, which the IPTC and XMP above (set since) win over
+                AddEXIFDate_ (image, "1999:01:01 00:00:00");
+                AddEXIFGPS_ (image, "10/1 0/1 0/1", "N", "20/1 0/1 0/1", "E");
             });
             WriteJPEG_ (images / "1964 New York" / "IMG_0002.jpg", [] (Exiv2::Image& image) { AddIPTCKeywords_ (image, {"Fred"}); });
             WriteJPEG_ (images / "Scans" / "IMG_0100.jpg", [] (Exiv2::Image& image) {
@@ -147,8 +172,18 @@ namespace {
                 image.xmpData ()["Xmp.exif.GPSLongitude"]     = "2,17,40.2E";
                 image.xmpData ()["Xmp.xmp.CreateDate"]        = "last summer";
                 image.xmpData ()["Xmp.MicrosoftPhoto.Rating"] = "five";
+                AddEXIFDate_ (image, "someday");
+                AddEXIFGPS_ (image, "48/1 51/1 2960/100", "", "2/1 17/1 402/10", "E");
             });
-            WriteJPEG_ (images / "Scans" / "unknown.jpg", [] (Exiv2::Image&) {});
+            // only EXIF: a date with no zone (the camera's local time), and one with its zone
+            WriteJPEG_ (images / "Scans" / "IMG_0102.jpg", [] (Exiv2::Image& image) {
+                AddEXIFDate_ (image, "1950:12:25 09:15:00");
+                AddEXIFGPS_ (image, "51/1 30/1 2604/100", "N", "0/1 7/1 3954/100", "W");
+            });
+            WriteJPEG_ (images / "Scans" / "IMG_0103.jpg",
+                        [] (Exiv2::Image& image) { AddEXIFDate_ (image, "2019:06:01 18:45:30", "+02:00"); });
+            // a camera whose clock was never set
+            WriteJPEG_ (images / "Scans" / "unknown.jpg", [] (Exiv2::Image& image) { AddEXIFDate_ (image, "0000:00:00 00:00:00"); });
             WriteJPEG_ (images / "loose.jpg", [] (Exiv2::Image&) {});
             WriteJPEG_ (images / ".hidden" / "IMG_9999.jpg", [] (Exiv2::Image& image) { AddIPTCKeywords_ (image, {"Hidden"}); });
             std::ofstream{images / "Scans" / "notes.txt"} << "not a photo" << endl;
@@ -162,11 +197,7 @@ namespace {
     // What ImportMetadata should write for Collection_
     Mapping<String, Document> ExpectedDocuments_ (const Collection_& c, bool includeDigikamOnly)
     {
-        auto key = [&] (const path& p) { return String{(c.images / p).generic_wstring ()}; };
-        // digiKam's dates are local time, so in UTC they depend on this machine's time zone
-        auto fromDigikamDate = [] (const String& d) {
-            return Time::DateTime::Parse (d, Time::DateTime::kISO8601Format).AsUTC ().Format (Time::DateTime::kISO8601Format);
-        };
+        auto                      key = [&] (const path& p) { return String{(c.images / p).generic_wstring ()}; };
         Mapping<String, Document> result;
         {
             // in both: the file's metadata wins, and digiKam adds its album and its tags (but not internal ones)
@@ -184,7 +215,7 @@ namespace {
             // digiKam fills in what the file lacks
             Document d;
             d.tags     = Set<String>{"Fred"sv};
-            d.date     = fromDigikamDate ("1964-07-05T10:00:00.000"sv);
+            d.date     = "1964-07-05T10:00:00"sv;
             d.location = Geolocation{40.6894, -74.0447}.ToISOString ();
             d.comment  = Sequence<Document::Comment>{Document::Comment{"Fred took this one"sv, "Sterling"sv}};
             d.rating   = 0.01;
@@ -211,6 +242,21 @@ namespace {
             result.Add (key ("Scans/IMG_0101.jpg"), d);
         }
         {
+            // EXIF alone: a date with no zone stays the camera's local time, with no zone (not Z)
+            Document d;
+            d.date     = "1950-12-25T09:15:00"sv;
+            d.location = Geolocation{51 + 30 / 60.0 + 26.04 / 3600, -(0 + 7 / 60.0 + 39.54 / 3600)}.ToISOString ();
+            d.album    = "Scans"sv;
+            result.Add (key ("Scans/IMG_0102.jpg"), d);
+        }
+        {
+            // one with its zone, in UTC
+            Document d;
+            d.date  = "2019-06-01T16:45:30Z"sv;
+            d.album = "Scans"sv;
+            result.Add (key ("Scans/IMG_0103.jpg"), d);
+        }
+        {
             Document d;
             d.album = "Scans"sv;
             result.Add (key ("Scans/unknown.jpg"), d);
@@ -219,7 +265,7 @@ namespace {
             // in both, in digiKam's root album
             Document d;
             d.tags   = Set<String>{"Uncle Bob"sv};
-            d.date   = fromDigikamDate ("1964-07-07T08:00:00.000"sv);
+            d.date   = "1964-07-07T08:00:00"sv;
             d.rating = 0.50;
             d.album  = ""sv;
             result.Add (key ("loose.jpg"), d);
@@ -229,7 +275,7 @@ namespace {
                 // digiKam alone (and its comment is one ImportMetadata ignores)
                 Document d;
                 d.tags   = Set<String>{"Fred"sv};
-                d.date   = fromDigikamDate ("1964-07-06T09:00:00.000"sv);
+                d.date   = "1964-07-06T09:00:00"sv;
                 d.rating = 1.0;
                 d.album  = "1964 New York"sv;
                 result.Add (key ("1964 New York/IMG_0003.jpg"), d);
@@ -249,6 +295,8 @@ namespace {
     // What ImportMetadata should leave out for Collection_, and report, as ProblemsListing_ lists them: values of photos'
     // documents, from files and from digiKam, and whole photos
     constexpr string_view kProblems_ = "IMG_0004.jpg ImageInformation.creationDate: yesterday\n"
+                                       "Scans/IMG_0101.jpg Exif.GPSInfo.GPSLatitude: 48/1 51/1 2960/100\n"
+                                       "Scans/IMG_0101.jpg Exif.Photo.DateTimeOriginal: someday\n"
                                        "Scans/IMG_0101.jpg Xmp.MicrosoftPhoto.Rating: five\n"
                                        "Scans/IMG_0101.jpg Xmp.exif.GPSLatitude: somewhere\n"
                                        "Scans/IMG_0101.jpg Xmp.xmp.CreateDate: last summer\n"

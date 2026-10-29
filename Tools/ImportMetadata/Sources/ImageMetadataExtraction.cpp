@@ -11,7 +11,9 @@
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Characters/ToString.h"
 #include "Stroika/Foundation/Containers/Set.h"
+#include "Stroika/Foundation/DataExchange/BadFormatException.h"
 #include "Stroika/Foundation/Debug/Trace.h"
+#include "Stroika/Foundation/Execution/Throw.h"
 #include "Stroika/Foundation/IO/FileSystem/PathName.h"
 #include "Stroika/Foundation/Time/Date.h"
 #include "Stroika/Foundation/Time/DateTime.h"
@@ -54,6 +56,43 @@ namespace Metadata {
                 ".psd"sv, ".heic"sv, ".heif"sv, ".avif"sv, ".jxl"sv,  ".dng"sv, ".cr2"sv,  ".cr3"sv, ".crw"sv, ".nef"sv,
                 ".nrw"sv, ".arw"sv,  ".sr2"sv,  ".srf"sv,  ".srw"sv,  ".orf"sv, ".pef"sv,  ".raf"sv, ".rw2"sv, ".mrw"sv};
             return kPhotoExtensions_.Contains (ext);
+        }
+
+        // EXIF's date taken ("1964:07:04 14:30:00"): with its offset from UTC ("-04:00") if the camera knows it, else in the
+        // camera's local time, its zone unknown
+        Time::DateTime ParseEXIFDateTime_ (const String& dateTime, const optional<String>& offset)
+        {
+            static const RegularExpression kDateTime_{"^([0-9]{4}):([0-9]{2}):([0-9]{2}) ([0-9]{2}:[0-9]{2}:[0-9]{2})$"sv};
+            static const RegularExpression kOffset_{"^[+-][0-9]{2}:[0-9]{2}$"sv};
+            Containers::Sequence<String>   m;
+            if (not dateTime.Matches (kDateTime_, &m) or (offset and not offset->Matches (kOffset_))) {
+                Execution::Throw (DataExchange::BadFormatException{"Invalid EXIF date and time"sv});
+            }
+            return Time::DateTime::Parse ("{}-{}-{}T{}{}"_f(m[0], m[1], m[2], m[3], offset.value_or (String{})), Time::DateTime::kISO8601Format);
+        }
+
+        // EXIF's GPS coordinate - degrees, minutes and seconds, each a rational - signed by ref: positive or negative
+        double EXIFCoordinate_ (const Exiv2::Exifdatum& dms, const Exiv2::Exifdatum* ref, string_view positive, string_view negative)
+        {
+            if (dms.count () != 3) {
+                Execution::Throw (DataExchange::BadFormatException{"Invalid EXIF GPS coordinate (not degrees, minutes and seconds)"sv});
+            }
+            double units[3];
+            for (size_t i = 0; i < 3; ++i) {
+                Exiv2::Rational r = dms.toRational (i);
+                if (r.second == 0) {
+                    Execution::Throw (DataExchange::BadFormatException{"Invalid EXIF GPS coordinate (a zero denominator)"sv});
+                }
+                units[i] = static_cast<double> (r.first) / r.second;
+            }
+            if (units[1] >= 60 or units[2] >= 60) {
+                Execution::Throw (DataExchange::BadFormatException{"Invalid EXIF GPS coordinate (minutes or seconds >= 60)"sv});
+            }
+            string direction = ref == nullptr ? string{} : ref->toString ();
+            if (direction != positive and direction != negative) {
+                Execution::Throw (DataExchange::BadFormatException{"Invalid EXIF GPS coordinate (no N, S, E or W)"sv});
+            }
+            return (direction == positive ? 1 : -1) * (units[0] + units[1] / 60 + units[2] / 3600);
         }
     }
 
@@ -126,7 +165,7 @@ namespace Metadata {
                         String value = foundTime ? foundDate.value () + "T"sv + foundTime.value () : foundDate.value ();
                         readValue (key, value, [&] () {
                             DateTime dt = foundTime ? DateTime::Parse (value, Time::DateTime::kISO8601Format) : DateTime{Date::Parse (value)};
-                            ms.date = dt.AsUTC ().Format (Time::DateTime::kISO8601Format);
+                            ms.date = Document::FormatDate (dt);
                         });
                         //DbgTrace (L"parsed date = %s", ms.date.value ().c_str ());
                     }
@@ -192,7 +231,7 @@ namespace Metadata {
                         else if (key == kDateKeyword) {
                             String value = String::FromNarrowSDKString (md->value ().toString ());
                             readValue (key, value, [&] () {
-                                ms.date = Time::DateTime::Parse (value, Time::DateTime::kISO8601Format).AsUTC ().Format (Time::DateTime::kISO8601Format);
+                                ms.date = Document::FormatDate (Time::DateTime::Parse (value, Time::DateTime::kISO8601Format));
                             });
                         }
                         else {
@@ -217,6 +256,50 @@ namespace Metadata {
                         // only one comment supported by metadata so don't need to check if already created
                         ms.comment = Containers::Sequence<Metadata::Document::Comment> ();
                         ms.comment.value ().Append (Metadata::Document::Comment{foundComment.value (), foundAuthor});
+                    }
+                }
+            }
+
+            // EXIF - what the camera recorded - fills in only what IPTC and XMP lack: they are what someone set since
+            {
+                const Exiv2::ExifData& exifData = image->exifData ();
+                auto                   find     = [&] (const char* key) -> const Exiv2::Exifdatum* {
+                    auto i = exifData.findKey (Exiv2::ExifKey{key});
+                    return i == exifData.end () ? nullptr : &*i;
+                };
+                auto text = [] (const Exiv2::Exifdatum& d) { return String::FromNarrowSDKString (d.toString ()); };
+                if (not ms.date) {
+                    if (const Exiv2::Exifdatum* dateTime = find ("Exif.Photo.DateTimeOriginal")) {
+                        // a camera whose clock was never set writes zeros, or spaces: no date, rather than a bad one
+                        static const RegularExpression kUnset_{"^[0: ]*$"sv};
+                        if (not text (*dateTime).Matches (kUnset_)) {
+                            const Exiv2::Exifdatum* offset = find ("Exif.Photo.OffsetTimeOriginal");
+                            String                  key    = String::FromNarrowSDKString (dateTime->key ());
+                            String                  value  = text (*dateTime);
+                            if (offset != nullptr) {
+                                key   = "{}, {}"_f(key, String::FromNarrowSDKString (offset->key ()));
+                                value = "{} {}"_f(value, text (*offset));
+                            }
+                            readValue (key, value, [&] () {
+                                ms.date = Document::FormatDate (
+                                    ParseEXIFDateTime_ (text (*dateTime), offset == nullptr ? optional<String>{} : text (*offset)));
+                            });
+                        }
+                    }
+                }
+                if (not ms.location) {
+                    const Exiv2::Exifdatum* latitude  = find ("Exif.GPSInfo.GPSLatitude");
+                    const Exiv2::Exifdatum* longitude = find ("Exif.GPSInfo.GPSLongitude");
+                    if (latitude != nullptr and longitude != nullptr) {
+                        optional<double> lat;
+                        optional<double> lon;
+                        readValue (String::FromNarrowSDKString (latitude->key ()), text (*latitude),
+                                   [&] () { lat = EXIFCoordinate_ (*latitude, find ("Exif.GPSInfo.GPSLatitudeRef"), "N", "S"); });
+                        readValue (String::FromNarrowSDKString (longitude->key ()), text (*longitude),
+                                   [&] () { lon = EXIFCoordinate_ (*longitude, find ("Exif.GPSInfo.GPSLongitudeRef"), "E", "W"); });
+                        if (lat and lon) {
+                            ms.location = Geolocation (lat.value (), lon.value ()).ToISOString ();
+                        }
                     }
                 }
             }

@@ -11,6 +11,7 @@
 #include "Stroika/Foundation/Containers/Sequence.h"
 #include "Stroika/Foundation/Containers/Set.h"
 #include "Stroika/Foundation/DataExchange/ObjectVariantMapper.h"
+#include "Stroika/Foundation/Time/DateTime.h"
 
 using namespace Stroika::Foundation;
 using Characters::String;
@@ -30,7 +31,9 @@ using Characters::String;
     date:
     There are many dates saved in image metadata, but here we mean whatever date the user thinks of the document representing. This is often the "creation" date
     for an image, but not always (scanned images will have a creation date very different from the date the image was actually taken, which is what we would want).
-    We store the dates in UTC time in ISO 8601 string format.
+    We store the dates in ISO 8601 string format: in UTC ("1964-07-04T18:30:00Z") when the source says what time zone it is in, and otherwise
+    as the local time the source gives, with no zone ("1964-07-04T14:30:00") - as cameras (EXIF, without its offset) and digiKam keep dates.
+    Taking such a time for UTC would be off by its zone's offset (Document::FormatDate).
 
     title:
     an optional piece of descriptive text to explain what the document is about. Useful to keep separate from tags for UI display purposes. One implication of it not being
@@ -107,6 +110,12 @@ namespace IPAM::LibIPAM::Metadata {
         optional<String>                        title;
         optional<double>                        rating; // 0->1.0, mapped to/from various software rating styles
         optional<String>                        album;  // for file system, owning directory path from root
+
+    public:
+        /**
+         *  \brief d as date holds it: in UTC if d's time zone is known, else its local time, with no zone
+         */
+        static String FormatDate (const Time::DateTime& d);
 
     public:
         static void SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper);
