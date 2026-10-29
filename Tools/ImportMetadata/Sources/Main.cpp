@@ -121,7 +121,7 @@ static void Import_ (const CommandLine& commandLine)
         {
             DbgTrace ("scraping digikam database at {}"_f, *digikamDatabase);
             Debug::TimingTrace ttrc;
-            dbScrape = digikam::ScrapeDigikamDB (*digikamDatabase);
+            dbScrape = digikam::ScrapeDigikamDB (*digikamDatabase, problemSink);
         }
         {
             DbgTrace ("writing digikam scrape to {}"_f, digikamScrapeFilePath);

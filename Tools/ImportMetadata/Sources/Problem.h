@@ -13,13 +13,13 @@
 namespace Metadata {
 
     /**
-     *  A value an importer could not read, and so left out of its photo's Document - for whoever cares (ImportMetadata
-     *  lists them in Problems.json).
+     *  A value an importer could not read, and so left out of its photo's Document - or a whole photo, left out - for
+     *  whoever cares (ImportMetadata lists them in Problems.json).
      */
     struct Problem {
         Stroika::Foundation::Characters::String fFile;   ///< the photo, as its Document is keyed
-        Stroika::Foundation::Characters::String fKey;    ///< where the value was: Exiv2's key (Xmp.exif.GPSLatitude, ...)
-        Stroika::Foundation::Characters::String fValue;  ///< the value, as text
+        Stroika::Foundation::Characters::String fKey;    ///< where it was: Exiv2's key, or digiKam's table.column; empty: the whole photo
+        Stroika::Foundation::Characters::String fValue;  ///< the value, as text; empty for a whole photo
         Stroika::Foundation::Characters::String fReason; ///< why it would not do: what reading it threw
     };
 
@@ -27,6 +27,18 @@ namespace Metadata {
      *  Told of each Problem, as it is found
      */
     using ProblemSink = std::function<void (const Problem&)>;
+
+    /**
+     *  Traces problem, and gives it to problemSink (if any)
+     */
+    void Report (const ProblemSink& problemSink, const Problem& problem);
+
+    /**
+     *  Runs read, which reads file's value of key: if it throws, Report()s that, so the caller goes on without it
+     */
+    void ReadOrReport (const ProblemSink& problemSink, const Stroika::Foundation::Characters::String& file,
+                       const Stroika::Foundation::Characters::String& key, const Stroika::Foundation::Characters::String& value,
+                       const std::function<void ()>& read);
 
 }
 

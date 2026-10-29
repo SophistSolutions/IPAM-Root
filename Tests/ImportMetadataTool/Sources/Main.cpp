@@ -103,8 +103,7 @@ namespace {
                    "    (3, 3, NULL, 'Screenshot');"
                    "INSERT INTO ImagePositions VALUES (2, 40.6894, -74.0447);"
                    "INSERT INTO ImageInformation VALUES (1, 4, '1964-07-04T15:30:00.000'), (2, 1, '1964-07-05T10:00:00.000'),"
-                   "    (3, 5, '1964-07-06T09:00:00.000'), (4, 3, '1964-07-07T08:00:00.000'),"
-                   "    (5, 2, '1964-07-08T12:00:00.000');"
+                   "    (3, 5, '1964-07-06T09:00:00.000'), (4, 3, '1964-07-07T08:00:00.000'), (5, 2, 'yesterday');"
                    "INSERT INTO Tags VALUES (1, 'Fred'), (2, 'Statue of Liberty'), (3, 'Uncle Bob'), (4, 'Color Label Red');"
                    "INSERT INTO TagProperties VALUES (1, 'person', 'Fred'), (3, 'faceEngineId', '7'), (4, 'internalTag', NULL);"
                    "INSERT INTO ImageTags VALUES (1, 1), (1, 2), (1, 3), (1, 4), (2, 1), (3, 1), (4, 3), (5, 1);"sv);
@@ -112,7 +111,7 @@ namespace {
 
     // A small digiKam collection - photos, and its database - in a temporary directory. Its database knows IMG_0001 to 0003
     // in its album 1964 New York, and loose.jpg and IMG_0004 in its root album (0003 and 0004 have no file); Scans is not in
-    // it, and nor is anything ImportMetadata skips (a hidden directory, a text file).
+    // it, and nor is anything ImportMetadata skips (a hidden directory, a text file) or cannot read (damaged photos).
     struct Collection_ {
         IO::FileSystem::ScopedTmpDir tmpDir{"ImportMetadataTest"};
         path                         root{static_cast<path> (tmpDir)};
@@ -153,6 +152,9 @@ namespace {
             WriteJPEG_ (images / "loose.jpg", [] (Exiv2::Image&) {});
             WriteJPEG_ (images / ".hidden" / "IMG_9999.jpg", [] (Exiv2::Image& image) { AddIPTCKeywords_ (image, {"Hidden"}); });
             std::ofstream{images / "Scans" / "notes.txt"} << "not a photo" << endl;
+            // damaged photos: a JPEG's first bytes, then no JPEG; and a raw photo's name on nothing Exiv2 recognizes
+            std::ofstream{images / "Scans" / "broken.jpg", ios::binary} << "\xFF\xD8"sv << "then not a JPEG"sv;
+            std::ofstream{images / "Scans" / "zeros.nef", ios::binary} << string (64, '\0');
             WriteDigikamDB_ (database, images);
         }
     };
@@ -233,10 +235,9 @@ namespace {
                 result.Add (key ("1964 New York/IMG_0003.jpg"), d);
             }
             {
-                // digiKam alone, in its root album
+                // digiKam alone, in its root album (its date will not parse - kProblems_)
                 Document d;
                 d.tags   = Set<String>{"Fred"sv};
-                d.date   = fromDigikamDate ("1964-07-08T12:00:00.000"sv);
                 d.rating = 0.25;
                 d.album  = ""sv;
                 result.Add (key ("IMG_0004.jpg"), d);
@@ -245,13 +246,17 @@ namespace {
         return result;
     }
 
-    // The values ImportMetadata should leave out of Collection_'s documents, and report, as ProblemsListing_ lists them
-    constexpr string_view kProblems_ = "Scans/IMG_0101.jpg Xmp.MicrosoftPhoto.Rating: five\n"
+    // What ImportMetadata should leave out for Collection_, and report, as ProblemsListing_ lists them: values of photos'
+    // documents, from files and from digiKam, and whole photos
+    constexpr string_view kProblems_ = "IMG_0004.jpg ImageInformation.creationDate: yesterday\n"
+                                       "Scans/IMG_0101.jpg Xmp.MicrosoftPhoto.Rating: five\n"
                                        "Scans/IMG_0101.jpg Xmp.exif.GPSLatitude: somewhere\n"
-                                       "Scans/IMG_0101.jpg Xmp.xmp.CreateDate: last summer";
+                                       "Scans/IMG_0101.jpg Xmp.xmp.CreateDate: last summer\n"
+                                       "Scans/broken.jpg\n"
+                                       "Scans/zeros.nef";
 
-    // The problems in a Problems.json, sorted, one per line: the photo (relative to images), the key and the value. Each must
-    // give a reason too.
+    // The problems in a Problems.json, sorted, one per line: the photo (relative to images), and the key and the value (or
+    // neither, for a whole photo). Each must give a reason too.
     String ProblemsListing_ (const path& problemsFile, const path& images)
     {
         String            prefix = String{images.generic_wstring ()} + "/"sv;
@@ -262,8 +267,9 @@ namespace {
             String                        file = p.LookupValue ("file"sv).As<String> ();
             EXPECT_TRUE (file.StartsWith (prefix)) << file;
             EXPECT_FALSE (p.LookupValue ("reason"sv).As<String> ().empty ()) << file;
-            lines.Add ("{} {}: {}"_f(file.StartsWith (prefix) ? file.SubString (prefix.length ()) : file,
-                                     p.LookupValue ("key"sv).As<String> (), p.LookupValue ("value"sv).As<String> ()));
+            String photo = file.StartsWith (prefix) ? file.SubString (prefix.length ()) : file;
+            String key   = p.LookupValue ("key"sv).As<String> ();
+            lines.Add (key.empty () ? photo : "{} {}: {}"_f(photo, key, p.LookupValue ("value"sv).As<String> ()));
         }
         StringBuilder sb;
         for (const String& l : lines) {
@@ -327,6 +333,23 @@ namespace {
         // and -s with a trailing separator makes no difference
         String images = String{c.images / ""};
         ExpectSameDocuments_ (RunImportMetadata_ (c, images, c.root / "out", true), ExpectedDocuments_ (c, true));
+    }
+
+    GTEST_TEST (ImportMetadata, UnreadableDigikamDatabaseFails_)
+    {
+        Collection_ c;
+        // a database it cannot read is an error - not a run that quietly lacks digiKam's data
+        Sequence<String> args{String{ImportMetadataEXE_ ()}, "-s"sv, String{c.images},      "-d"sv,
+                              String{c.root / "missing.db"}, "-o"sv, String{c.root / "out"}};
+        // RunInBackground, not a timed Run: in a Debug build, that asserts when the program fails (Stroika 3.0d25) - once a
+        // Stroika upgrade brings https://github.com/SophistSolutions/Stroika/issues/1261's fix, EXPECT_ANY_THROW a timed Run
+        using Execution::ProcessRunner;
+        ProcessRunner                    runner{Execution::CommandLine{args}};
+        ProcessRunner::BackgroundProcess bp = runner.RunInBackground ();
+        bp.Join (Time::DurationSeconds{5 * 60});
+        optional<ProcessRunner::ProcessResultType> result = bp.GetProcessResult ();
+        ASSERT_TRUE (result.has_value ());
+        EXPECT_NE (result->fExitStatus.value_or (ProcessRunner::ExitStatusType{}), ProcessRunner::ExitStatusType{});
     }
 }
 #endif

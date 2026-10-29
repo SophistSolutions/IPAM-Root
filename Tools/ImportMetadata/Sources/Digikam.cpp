@@ -13,6 +13,7 @@
 #include "Stroika/Foundation/Database/SQL/SQLite.h"
 #include "Stroika/Foundation/Database/SQL/Statement.h"
 #include "Stroika/Foundation/Debug/Trace.h"
+#include "Stroika/Foundation/Execution/Activity.h"
 #include "Stroika/Foundation/IO/FileSystem/PathName.h"
 #include "Stroika/Foundation/Streams/iostream/OutputStreamFromStdOStream.h"
 #include "Stroika/Foundation/Time/DateTime.h"
@@ -32,7 +33,8 @@ using namespace IPAM;
 
 using namespace LibIPAM::Common;
 
-using namespace LibIPAM;
+// not using namespace LibIPAM: its Metadata would make Metadata:: (Problem.h's) ambiguous
+using LibIPAM::Metadata::Document;
 
 /*
     Digikam SQL mappings
@@ -47,12 +49,18 @@ using namespace LibIPAM;
 
 namespace digikam {
 
-    Mapping<String, Metadata::Document> ScrapeDigikamDB (std::filesystem::path dbPath)
+    Mapping<String, Document> ScrapeDigikamDB (std::filesystem::path dbPath, const Metadata::ProblemSink& problemSink)
     {
-        Mapping<String, Metadata::Document> scrapedMetadata;
+        auto activity = Execution::LazyEvalActivity ([&] () -> String { return "reading the digiKam database {}"_f(dbPath); });
+        Execution::DeclareActivity declareActivity{&activity};
+        Mapping<String, Document>  scrapedMetadata;
         try {
-            auto conn = SQLite::Connection::New (SQLite::Connection::Options{
-                .fDBPath = dbPath, .fThreadingMode = SQLite::Connection::Options::ThreadingMode::eMultiThread, .fReadOnly = true, .fBusyTimeout = 1s});
+            // fCreateDBPathIfDoesNotExist defaults true, which read-only must not have (https://github.com/SophistSolutions/Stroika/issues/1262)
+            auto conn = SQLite::Connection::New (SQLite::Connection::Options{.fDBPath                     = dbPath,
+                                                                             .fCreateDBPathIfDoesNotExist = false,
+                                                                             .fThreadingMode = SQLite::Connection::Options::ThreadingMode::eMultiThread,
+                                                                             .fReadOnly    = true,
+                                                                             .fBusyTimeout = 1s});
 
             // step one: build imageID map to image path (so can access in masterListOfTags and because is our primary key)
             // album paths are done by reference so first need to build map of those
@@ -97,7 +105,7 @@ namespace digikam {
                     String imagePath = albumPaths[album] + "/" + name;
                     //DbgTrace (L"got: %d, %d, %s, %s", id, album, name.c_str (), imagePath.c_str ());
                     imageIDToImagePath.Add (id, imagePath);
-                    Metadata::Document ms;
+                    Document ms;
                     ms.album = albumNames[album];
                     scrapedMetadata.Add (imagePath, ms);
                 };
@@ -112,17 +120,17 @@ namespace digikam {
                 if (comment.length () > 0 and not comment.Matches (kIgnoreComment_)) {
                     String path;
                     if (imageIDToImagePath.Lookup (id, &path)) {
-                        Metadata::Document ms;
+                        Document ms;
                         scrapedMetadata.Lookup (path, &ms);
                         // only one comment supported by digikam so don't need to check if already created
-                        ms.comment = Sequence<Metadata::Document::Comment>{};
+                        ms.comment = Sequence<Document::Comment>{};
                         if (author.length () > 0) {
-                            ms.comment.value ().Append (Metadata::Document::Comment{comment, author});
+                            ms.comment.value ().Append (Document::Comment{comment, author});
                         }
                         else {
-                            ms.comment.value ().Append (Metadata::Document::Comment{comment});
+                            ms.comment.value ().Append (Document::Comment{comment});
                         }
-                        //DbgTrace (L"comment: %d, %s", id, Metadata::Document::Comment::ToString (ms.comment.value ()).c_str ());
+                        //DbgTrace (L"comment: %d, %s", id, Document::Comment::ToString (ms.comment.value ()).c_str ());
                         scrapedMetadata.Add (path, ms);
                     }
                 }
@@ -139,7 +147,7 @@ namespace digikam {
                 //  double  alt     = std::get<3> (ii).As<double> ();
                 String path;
                 if (imageIDToImagePath.Lookup (id, &path)) {
-                    Metadata::Document ms;
+                    Document ms;
                     scrapedMetadata.Lookup (path, &ms);
                     ms.location = Geolocation{lat, longi /*, alt*/}.ToISOString ();
                     //   DbgTrace (L"geoloc: %d, %s", id, ms.location.value ().c_str ());
@@ -154,7 +162,7 @@ namespace digikam {
                 String date   = std::get<2> (ii).As<String> ();
                 String path;
                 if (imageIDToImagePath.Lookup (id, &path)) {
-                    Metadata::Document ms;
+                    Document ms;
                     scrapedMetadata.Lookup (path, &ms);
 
                     // digikam does an unusual mapping of its user selected stars to percentile value (as shown in stored metadata in files)
@@ -181,10 +189,12 @@ namespace digikam {
                         default:
                             DbgTrace ("rating, unknown value = : {} for {}"_f, id, path);
                     }
-                    if (date.length () > 0) {
-                        date = Time::DateTime::Parse (date, Time::DateTime::kISO8601Format).AsUTC ().Format (Time::DateTime::kISO8601Format);
-                    }
-                    ms.date = date;
+                    // a date that will not parse is left out (and reported), not the rest of the row
+                    Metadata::ReadOrReport (problemSink, path, "ImageInformation.creationDate"sv, date, [&] () {
+                        ms.date = date.empty ()
+                                      ? date
+                                      : Time::DateTime::Parse (date, Time::DateTime::kISO8601Format).AsUTC ().Format (Time::DateTime::kISO8601Format);
+                    });
                     //   DbgTrace (L"date: %d, %s", id, ms.date.value ().c_str ());
                     scrapedMetadata.Add (path, ms);
                 }
@@ -224,7 +234,7 @@ namespace digikam {
                 if (tagValues.Lookup (tagid, &value)) {
                     String path;
                     if (imageIDToImagePath.Lookup (imageid, &path)) {
-                        Metadata::Document ms;
+                        Document ms;
                         scrapedMetadata.Lookup (path, &ms);
                         ms.tags.Add (value);
                         //   DbgTrace (L"date: %d, %s", id, ms.date.value ().c_str ());
@@ -235,6 +245,7 @@ namespace digikam {
         }
         catch (...) {
             DbgTrace ("ScrapeDigikamDB: got exception={}"_f, current_exception ());
+            throw; // a database it cannot read is an error, not a scrape that stops part-way
         }
         return scrapedMetadata;
     }

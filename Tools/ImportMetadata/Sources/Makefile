@@ -33,6 +33,7 @@ Objs	:=	\
 	$(ObjDir)Main${OBJ_SUFFIX}\
 	$(ObjDir)Digikam${OBJ_SUFFIX}\
 	$(ObjDir)ImageMetadataExtraction${OBJ_SUFFIX}\
+	$(ObjDir)Problem${OBJ_SUFFIX}\
 
 VERSION_FILE_IN:=$(TOP_ROOT)VERSION
 VERSION_FILE_OUT:=$(StroikaRoot)IntermediateFiles/$(CONFIGURATION)/IPAM/Tools/ImportMetadata/AppVersion.h

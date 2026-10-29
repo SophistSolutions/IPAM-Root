@@ -27,9 +27,10 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
 - `Tools/ImportMetadata/` - reads every image under a directory with Exiv2, and a digiKam SQLite database, merges them,
   and writes JSON (`FileScrape.json`, `DigikamScrape.json`, `ExtenstionTally.json`, `DocumentMetaData.json`) to an
   output directory. Arguments: `-s DIR` (the images), `-d FILE` (the digiKam database - without it, no merge),
-  `--include-digikam-only`, `-o DIR`; `--help` lists them. A value that will not parse is left out of its photo's
-  document, not the photo: `ImageMetadataExtractor` hands it to a callback (`Problem.h`), and ImportMetadata lists them
-  all in `Problems.json`, and counts them on stderr.
+  `--include-digikam-only`, `-o DIR`; `--help` lists them. A value that will not parse (from a file or digiKam) is left
+  out of its photo's document, not the photo, and a photo Exiv2 cannot read is left out: each goes to a callback
+  (`Problem.h`), and ImportMetadata lists them all in `Problems.json`, and counts them on stderr. A file that is not a
+  photo Exiv2 reads (a video, a text file) is skipped quietly; a digiKam database it cannot read is an error.
 - `Tools/TagStats/` - reads ImportMetadata's `DocumentMetaData.json` and writes JSON: for each tag, its photos and how
   often each other tag is with it. Arguments: `-i FILE` (the `DocumentMetaData.json`), `-o FILE`; `--help` lists them.
 - `API-Server/` - a stub `main` that does nothing yet.

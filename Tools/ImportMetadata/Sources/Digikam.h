@@ -10,8 +10,15 @@
 
 #include "LibIPAM/Metadata/Document.h"
 
+#include "Problem.h"
+
 namespace digikam {
-    Containers::Mapping<String, IPAM::LibIPAM::Metadata::Document> ScrapeDigikamDB (std::filesystem::path dbPath);
+    /**
+     *  Each image's Document, as the digiKam database at dbPath has it. A value that will not parse is left out, and given
+     *  to problemSink; a database it cannot read throws.
+     */
+    Containers::Mapping<String, IPAM::LibIPAM::Metadata::Document> ScrapeDigikamDB (std::filesystem::path        dbPath,
+                                                                                    const Metadata::ProblemSink& problemSink = nullptr);
 }
 
 #endif /*__IPAM_Tools_ImportMetadata_Digikam_h__*/

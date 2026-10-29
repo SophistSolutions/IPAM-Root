@@ -21,6 +21,9 @@
     <ClCompile Include="..\..\Sources\ImageMetadataExtraction.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Sources\Problem.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Sources\Digikam.h">

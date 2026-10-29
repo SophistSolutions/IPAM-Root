@@ -10,6 +10,7 @@
 #include "Stroika/Foundation/Characters/RegularExpression.h"
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Characters/ToString.h"
+#include "Stroika/Foundation/Containers/Set.h"
 #include "Stroika/Foundation/Debug/Trace.h"
 #include "Stroika/Foundation/IO/FileSystem/PathName.h"
 #include "Stroika/Foundation/Time/Date.h"
@@ -41,6 +42,19 @@ namespace Metadata {
         {
             return String{p}.ReplaceAll ("\\"sv, "/"sv);
         }
+
+        // ext (lower case) is that of a photo format Exiv2 reads (its ImageType): a file with one that Exiv2 cannot read is a
+        // damaged photo, and one with another is some other kind of file (a video, a text file). Exiv2's own guess at the
+        // type cannot tell them apart: it takes a text file for some format, and then fails to read it ("corrupted image
+        // metadata"), as it does a damaged photo.
+        bool IsPhotoExtension_ (const String& ext)
+        {
+            static const Containers::Set<String> kPhotoExtensions_{
+                ".jpg"sv, ".jpeg"sv, ".jpe"sv,  ".tif"sv,  ".tiff"sv, ".png"sv, ".webp"sv, ".gif"sv, ".bmp"sv, ".jp2"sv,
+                ".psd"sv, ".heic"sv, ".heif"sv, ".avif"sv, ".jxl"sv,  ".dng"sv, ".cr2"sv,  ".cr3"sv, ".crw"sv, ".nef"sv,
+                ".nrw"sv, ".arw"sv,  ".sr2"sv,  ".srf"sv,  ".srw"sv,  ".orf"sv, ".pef"sv,  ".raf"sv, ".rw2"sv, ".mrw"sv};
+            return kPhotoExtensions_.Contains (ext);
+        }
     }
 
     ImageMetadataExtractor::ImageMetadataExtractor (const ProblemSink& problemSink)
@@ -54,16 +68,7 @@ namespace Metadata {
 
         // runs read, which reads key's value into ms: if it throws, just that value is left out - and reported
         auto readValue = [&] (const String& key, const String& value, const function<void ()>& read) {
-            try {
-                read ();
-            }
-            catch (...) {
-                Problem p{.fFile = DocumentKey_ (pictFile), .fKey = key, .fValue = value, .fReason = Characters::ToString (current_exception ())};
-                DbgTrace ("left out {}={} of {}: {}"_f, key, value, p.fFile, p.fReason);
-                if (fProblemSink_) {
-                    fProblemSink_ (p);
-                }
-            }
+            ReadOrReport (fProblemSink_, DocumentKey_ (pictFile), key, value, read);
         };
 
         Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (pictFile.string ());
@@ -378,7 +383,12 @@ namespace Metadata {
                         imageMetaData.Add (DocumentKey_ (p), ms);
                     }
                     catch (...) {
-                        DbgTrace ("failed to find metadata for  {}"_f, p);
+                        if (IsPhotoExtension_ (String{p.extension ().wstring ()}.ToLowerCase ())) {
+                            Report (fProblemSink_, Problem{.fFile = DocumentKey_ (p), .fReason = Characters::ToString (current_exception ())});
+                        }
+                        else {
+                            DbgTrace ("not a photo Exiv2 reads: {} ({})"_f, p, current_exception ());
+                        }
                     }
                 }
             }
