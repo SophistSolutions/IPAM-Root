@@ -69,8 +69,8 @@ String Document::ToString () const
 
 String Document::FormatDate (const Time::DateTime& d)
 {
-    // not d.AsUTC () when the zone is unknown: that takes the local time for UTC
-    return (d.GetTimezone () ? d.AsUTC () : d).Format (Time::DateTime::kISO8601Format);
+    // not d.AsUTC (): that takes an unknown zone for UTC, and a known one loses the local time of day
+    return d.Format (Time::DateTime::kISO8601Format);
 }
 
 void Document::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)

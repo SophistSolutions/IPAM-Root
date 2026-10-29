@@ -189,10 +189,12 @@ namespace digikam {
                         default:
                             DbgTrace ("rating, unknown value = : {} for {}"_f, id, path);
                     }
-                    // a date that will not parse is left out (and reported), not the rest of the row
-                    Metadata::ReadOrReport (problemSink, path, "ImageInformation.creationDate"sv, date, [&] () {
-                        ms.date = date.empty () ? date : Document::FormatDate (Time::DateTime::Parse (date, Time::DateTime::kISO8601Format));
-                    });
+                    // a date that will not parse is left out (and reported), not the rest of the row; none (NULL) is no date
+                    if (not date.empty ()) {
+                        Metadata::ReadOrReport (problemSink, path, "ImageInformation.creationDate"sv, date, [&] () {
+                            ms.date = Document::FormatDate (Time::DateTime::Parse (date, Time::DateTime::kISO8601Format));
+                        });
+                    }
                     //   DbgTrace (L"date: %d, %s", id, ms.date.value ().c_str ());
                     scrapedMetadata.Add (path, ms);
                 }

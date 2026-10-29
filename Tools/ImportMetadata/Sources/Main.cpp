@@ -63,6 +63,19 @@ namespace {
     const Sequence<CommandLine::Option> kAllOptions_{StandardCommandLineOptions::kHelp, kSourceDirectoryO_, kDigikamDatabaseO_,
                                                      kIncludeDigikamOnlyO_, kOutputDirectoryO_};
 
+    // The same date and time of day, whatever zone either says: digiKam keeps a date as its local time, with no zone, so a
+    // file's date that says its zone is digiKam's when its clock time is. A date that will not parse matches only itself.
+    bool SameClockTime_ (const String& a, const String& b)
+    {
+        using Time::DateTime;
+        optional<DateTime> da = DateTime::ParseQuietly (a, DateTime::kISO8601Format);
+        optional<DateTime> db = DateTime::ParseQuietly (b, DateTime::kISO8601Format);
+        if (da and db) {
+            return da->GetDate () == db->GetDate () and da->GetTimeOfDay () == db->GetTimeOfDay ();
+        }
+        return a == b;
+    }
+
     // How Sterling ran it while these paths were built in: one directory of the collection, or all of it
     constexpr string_view kExamples_ = "Examples:\n"
                                        "    -s P:/1900-1909 -d c:/Digikam/digikam4.db -o c:/ssw/mdResults/\n"
@@ -139,74 +152,49 @@ static void Import_ (const CommandLine& commandLine)
         }
 
         DbgTrace ("merging file and database sources, files length = {}, db length = {}"_f, fileScrape.Keys ().length (), dbScrape.Keys ().length ());
+        // Where the file and digiKam differ, digiKam's value wins: it is what the user set there, which reaches the file only
+        // if digiKam writes it back - never into a RAW or HEIC file, whose edits go to a sidecar. Where they agree, the file's
+        // is kept: its date may say its zone, as digiKam's never does. Tags are both sets.
         Mapping<String, Metadata::Document> masterList;
         for (const auto& it : fileScrape) {
             Metadata::Document dmd = it.fValue;
             Metadata::Document digikamDmd;
             if (dbScrape.Lookup (it.fKey, &digikamDmd)) {
-                String ext = String{path (it.fKey.As<wstring> ().c_str ()).extension ().wstring ()}.ToLowerCase ();
-                bool   ignoreMissingFromFileScrapeForNow = (ext == ".nef" or ext == ".heic" or ext == ".mov" or ext == ".bmp");
-
                 dmd.album = digikamDmd.album; // digikam does better here at capture correct top of collection when you don't do full file scan
-                if (digikamDmd.comment.has_value ()) {
-                    if (dmd.comment.has_value ()) {
-                        if (dmd.comment.value () != digikamDmd.comment.value ()) { // should just be assert
-                            DbgTrace ("COMMENT disagreement for {} ({} vs {})"_f, it.fKey,
-                                      Metadata::Document::Comment::ToString (dmd.comment.value ()),
-                                      Metadata::Document::Comment::ToString (digikamDmd.comment.value ()));
-                        }
+                if (digikamDmd.comment and digikamDmd.comment != dmd.comment) {
+                    if (dmd.comment) {
+                        DbgTrace ("COMMENT disagreement for {} ({} vs digiKam's {})"_f, it.fKey, Metadata::Document::Comment::ToString (*dmd.comment),
+                                  Metadata::Document::Comment::ToString (*digikamDmd.comment));
                     }
-                    else {
-                        DbgTrace ("adding missing comment for {} (adding {})"_f, it.fKey, digikamDmd.comment);
-                        dmd.comment = digikamDmd.comment;
+                    dmd.comment = digikamDmd.comment;
+                }
+                if (digikamDmd.date and not(dmd.date and SameClockTime_ (*dmd.date, *digikamDmd.date))) {
+                    if (dmd.date) {
+                        DbgTrace ("DATE disagreement for {} ({} vs digiKam's {})"_f, it.fKey, dmd.date, digikamDmd.date);
+                    }
+                    dmd.date = digikamDmd.date;
+                }
+                if (digikamDmd.location and digikamDmd.location != dmd.location) {
+                    if (dmd.location) {
+                        DbgTrace ("LOCATION disagreement for {} ({} vs digiKam's {})"_f, it.fKey, dmd.location, digikamDmd.location);
+                    }
+                    dmd.location = digikamDmd.location;
+                }
+                if (digikamDmd.rating and digikamDmd.rating != dmd.rating) {
+                    if (dmd.rating) {
+                        DbgTrace ("RATING disagreement for {} ({} vs digiKam's {})"_f, it.fKey, dmd.rating, digikamDmd.rating);
+                    }
+                    dmd.rating = digikamDmd.rating;
+                }
+                for (const String& tag : dmd.tags) {
+                    if (not digikamDmd.tags.Contains (tag)) {
+                        DbgTrace ("tag missing from digiKam {} : {}"_f, it.fKey, tag);
                     }
                 }
-                if (digikamDmd.date.has_value ()) {
-                    if (dmd.date.has_value ()) {
-                        if (dmd.date.value () != digikamDmd.date.value ()) {
-                            DbgTrace ("DATE disagreement for {} ({} vs {}"_f, it.fKey, dmd.date, digikamDmd.date);
-                        }
-                    }
-                    else {
-                        //                 DbgTrace (L"adding missing date for %s (adding %s)", it.fKey.c_str (), digikamDmd.date.value ().c_str ());
-                        dmd.date = digikamDmd.date;
-                    }
-                }
-                if (digikamDmd.location.has_value ()) {
-                    if (dmd.location.has_value ()) {
-                        if (dmd.location.value () != digikamDmd.location.value ()) { // should just be assert
-                            DbgTrace ("LOCATION disagreement for {} ({} vs {})"_f, it.fKey, dmd.location, digikamDmd.location);
-                        }
-                    }
-                    else {
-                        //              DbgTrace (L"adding missing location for %s (adding %s)", it.fKey.c_str (), digikamDmd.location.value ().c_str ());
-                        dmd.location = digikamDmd.location;
-                    }
-                }
-                if (digikamDmd.rating.has_value ()) {
-                    if (dmd.rating.has_value ()) {
-                        if (dmd.rating.value () != digikamDmd.rating.value ()) { // should just be assert
-                            DbgTrace ("RATING DISAGREEMENT for {} {} : {}"_f, it.fKey, dmd.rating, digikamDmd.rating);
-                        }
-                    }
-                    else {
-                        DbgTrace ("adding missing rating for {} (adding {})"_f, it.fKey, digikamDmd.rating);
-                        dmd.rating = digikamDmd.rating;
-                    }
-                }
-
-                if (dmd.tags != digikamDmd.tags) { // should be assert but can only do release build
-                    for (String tag : dmd.tags) {
-                        if (not digikamDmd.tags.Contains (tag)) {
-                            DbgTrace ("FOUND TAG MISSING FROM DIGIKAM {} : {}"_f, it.fKey, tag);
-                        }
-                    }
-
-                    for (String tag : digikamDmd.tags) {
-                        if (not dmd.tags.Contains (tag) and not ignoreMissingFromFileScrapeForNow) {
-                            DbgTrace ("found tag missing from file scrape {} : {}"_f, it.fKey, tag);
-                            dmd.tags.Add (tag);
-                        }
+                for (const String& tag : digikamDmd.tags) {
+                    if (not dmd.tags.Contains (tag)) {
+                        DbgTrace ("tag missing from file scrape {} : {}"_f, it.fKey, tag);
+                        dmd.tags.Add (tag);
                     }
                 }
             }

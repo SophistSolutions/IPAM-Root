@@ -120,20 +120,21 @@ namespace {
         conn.Exec ("INSERT INTO AlbumRoots VALUES (1, 'volumeid:?path={}', '/');"_f(String{albumRoot.generic_wstring ()}.ReplaceAll ("'"sv, "''"sv)));
         conn.Exec ("INSERT INTO Albums VALUES (1, 1, '/1964 New York'), (2, 1, '/');"
                    "INSERT INTO Images VALUES (1, 1, 'IMG_0001.jpg'), (2, 1, 'IMG_0002.jpg'), (3, 1, 'IMG_0003.jpg'), (4, 2, 'loose.jpg'),"
-                   "    (5, 2, 'IMG_0004.jpg');"
+                   "    (5, 2, 'IMG_0004.jpg'), (6, 1, 'IMG_0005.heic');"
                    "INSERT INTO ImageComments VALUES (1, 1, NULL, 'Fred took this one'), (2, 2, 'Sterling', 'Fred took this one'),"
                    "    (3, 3, NULL, 'Screenshot');"
-                   "INSERT INTO ImagePositions VALUES (2, 40.6894, -74.0447);"
-                   "INSERT INTO ImageInformation VALUES (1, 4, '1964-07-04T15:30:00.000'), (2, 1, '1964-07-05T10:00:00.000'),"
-                   "    (3, 5, '1964-07-06T09:00:00.000'), (4, 3, '1964-07-07T08:00:00.000'), (5, 2, 'yesterday');"
+                   "INSERT INTO ImagePositions VALUES (1, 40.7484, -73.9857), (2, 40.6894, -74.0447);"
+                   "INSERT INTO ImageInformation VALUES (1, 5, '1964-07-04T14:30:00.000'), (2, 1, '1964-07-05T10:00:00.000'),"
+                   "    (3, 5, '1964-07-06T09:00:00.000'), (4, 3, '1964-07-07T08:00:00.000'), (5, 2, 'yesterday'), (6, 0, NULL);"
                    "INSERT INTO Tags VALUES (1, 'Fred'), (2, 'Statue of Liberty'), (3, 'Uncle Bob'), (4, 'Color Label Red');"
                    "INSERT INTO TagProperties VALUES (1, 'person', 'Fred'), (3, 'faceEngineId', '7'), (4, 'internalTag', NULL);"
-                   "INSERT INTO ImageTags VALUES (1, 1), (1, 2), (1, 3), (1, 4), (2, 1), (3, 1), (4, 3), (5, 1);"sv);
+                   "INSERT INTO ImageTags VALUES (1, 1), (1, 2), (1, 3), (1, 4), (2, 1), (3, 1), (4, 3), (5, 1), (6, 1);"sv);
     }
 
     // A small digiKam collection - photos, and its database - in a temporary directory. Its database knows IMG_0001 to 0003
-    // in its album 1964 New York, and loose.jpg and IMG_0004 in its root album (0003 and 0004 have no file); Scans is not in
-    // it, and nor is anything ImportMetadata skips (a hidden directory, a text file) or cannot read (damaged photos).
+    // and IMG_0005.heic in its album 1964 New York, and loose.jpg and IMG_0004 in its root album (0003 and 0004 have no file);
+    // Scans is not in it, and nor is anything ImportMetadata skips (a hidden directory, a text file) or cannot read (damaged
+    // photos).
     struct Collection_ {
         IO::FileSystem::ScopedTmpDir tmpDir{"ImportMetadataTest"};
         path                         root{static_cast<path> (tmpDir)};
@@ -155,7 +156,13 @@ namespace {
                 AddEXIFDate_ (image, "1999:01:01 00:00:00");
                 AddEXIFGPS_ (image, "10/1 0/1 0/1", "N", "20/1 0/1 0/1", "E");
             });
-            WriteJPEG_ (images / "1964 New York" / "IMG_0002.jpg", [] (Exiv2::Image& image) { AddIPTCKeywords_ (image, {"Fred"}); });
+            // the camera's date, from a clock never set - which the user corrected in digiKam
+            WriteJPEG_ (images / "1964 New York" / "IMG_0002.jpg", [] (Exiv2::Image& image) {
+                AddIPTCKeywords_ (image, {"Fred"});
+                AddEXIFDate_ (image, "1999:01:01 00:00:00");
+            });
+            // a phone's HEIC photo (a JPEG by that name: the merge goes by the name), whose tags digiKam keeps in a sidecar
+            WriteJPEG_ (images / "1964 New York" / "IMG_0005.heic", [] (Exiv2::Image&) {});
             WriteJPEG_ (images / "Scans" / "IMG_0100.jpg", [] (Exiv2::Image& image) {
                 image.xmpData ()["Xmp.xmp.CreateDate"]        = "1931-05-01T12:00:00+01:00";
                 image.xmpData ()["Xmp.acdsee.caption"]        = "Grandma's wedding";
@@ -200,19 +207,21 @@ namespace {
         auto                      key = [&] (const path& p) { return String{(c.images / p).generic_wstring ()}; };
         Mapping<String, Document> result;
         {
-            // in both: the file's metadata wins, and digiKam adds its album and its tags (but not internal ones)
+            // in both: where they differ, digiKam's value wins - the user set it there (comment, location, rating); its date is
+            // the file's clock time, so the file's, which says its zone, is kept; and digiKam adds its album and its tags (but
+            // not internal ones)
             Document d;
             d.tags     = Set<String>{"Fred"sv, "Statue of Liberty"sv, "Brooklyn Bridge"sv, "Uncle Bob"sv};
-            d.date     = "1964-07-04T18:30:00Z"sv;
-            d.location = Geolocation{40 + 41.364 / 60, -(74 + 2.682 / 60)}.ToISOString ();
-            d.comment  = Sequence<Document::Comment>{Document::Comment{"Our first trip to New York"sv}};
+            d.date     = "1964-07-04T14:30:00-04:00"sv;
+            d.location = Geolocation{40.7484, -73.9857}.ToISOString ();
+            d.comment  = Sequence<Document::Comment>{Document::Comment{"Fred took this one"sv}};
             d.title    = "Trip to New York"sv;
-            d.rating   = 0.75;
+            d.rating   = 1.0;
             d.album    = "1964 New York"sv;
             result.Add (key ("1964 New York/IMG_0001.jpg"), d);
         }
         {
-            // digiKam fills in what the file lacks
+            // digiKam fills in what the file lacks, and its date - the user's - wins over the camera's
             Document d;
             d.tags     = Set<String>{"Fred"sv};
             d.date     = "1964-07-05T10:00:00"sv;
@@ -223,10 +232,17 @@ namespace {
             result.Add (key ("1964 New York/IMG_0002.jpg"), d);
         }
         {
+            // digiKam's tags, though the photo is a HEIC (and its date, none - NULL - is no date)
+            Document d;
+            d.tags  = Set<String>{"Fred"sv};
+            d.album = "1964 New York"sv;
+            result.Add (key ("1964 New York/IMG_0005.heic"), d);
+        }
+        {
             // the file alone (its location in XMP's other form, DDD,MM,SSk)
             Document d;
             d.tags     = Set<String>{"Grandma"sv};
-            d.date     = "1931-05-01T11:00:00Z"sv;
+            d.date     = "1931-05-01T12:00:00+01:00"sv;
             d.location = Geolocation{48 + 51 / 60.0 + 29.6 / 3600, 2 + 17 / 60.0 + 40.2 / 3600}.ToISOString ();
             d.comment  = Sequence<Document::Comment>{Document::Comment{"Found in the attic"sv, "Sterling"sv}};
             d.title    = "Grandma's wedding"sv;
@@ -250,9 +266,9 @@ namespace {
             result.Add (key ("Scans/IMG_0102.jpg"), d);
         }
         {
-            // one with its zone, in UTC
+            // one with its zone, which it keeps
             Document d;
-            d.date  = "2019-06-01T16:45:30Z"sv;
+            d.date  = "2019-06-01T18:45:30+02:00"sv;
             d.album = "Scans"sv;
             result.Add (key ("Scans/IMG_0103.jpg"), d);
         }
@@ -372,7 +388,7 @@ namespace {
         EXPECT_EQ (ProblemsListing_ (out / "Problems.json", c.images), kProblems_);
         // it writes only into its output directory
         EXPECT_EQ (Listing_ (c.root), "Images digikam4.db out"sv);
-        EXPECT_EQ (Listing_ (out), "DigikamScrape.json DocumentMetaData.json ExtenstionTally.json FileScrape.json Problems.json jpg.txt"sv);
+        EXPECT_EQ (Listing_ (out), "DigikamScrape.json DocumentMetaData.json ExtenstionTally.json FileScrape.json Problems.json heic.txt jpg.txt"sv);
     }
 
     GTEST_TEST (ImportMetadata, IncludeDigikamOnly_)

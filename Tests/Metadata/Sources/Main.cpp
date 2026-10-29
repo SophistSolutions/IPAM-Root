@@ -119,8 +119,9 @@ namespace {
     {
         using Time::DateTime;
         auto formatISO = [] (const String& iso) { return Document::FormatDate (DateTime::Parse (iso, DateTime::kISO8601Format)); };
-        // a known zone: in UTC
-        EXPECT_EQ (formatISO ("1964-07-04T14:30:00-04:00"sv), "1964-07-04T18:30:00Z"sv);
+        // a known zone: the local time, with its offset
+        EXPECT_EQ (formatISO ("1964-07-04T14:30:00-04:00"sv), "1964-07-04T14:30:00-04:00"sv);
+        EXPECT_EQ (formatISO ("1931-05-01T12:00:00+01:00"sv), "1931-05-01T12:00:00+01:00"sv);
         EXPECT_EQ (formatISO ("1964-07-04T18:30:00Z"sv), "1964-07-04T18:30:00Z"sv);
         // none: the local time as given, with none - not taken for UTC
         EXPECT_EQ (formatISO ("1964-07-04T14:30:00"sv), "1964-07-04T14:30:00"sv);
