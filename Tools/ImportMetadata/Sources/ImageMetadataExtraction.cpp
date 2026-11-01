@@ -69,6 +69,50 @@ namespace Metadata {
             return kPhotoExtensions_.Contains (ext);
         }
 
+        // Calls onFile for each file under topDir (a symbolic link to one too) but hidden ones - a name starting with '.' -
+        // and those in a hidden directory: a directory's files, then its subdirectories'. A directory under topDir that cannot
+        // be read, or not to its end, is left out (what of it was not listed), and given to onUnreadable inside the catch, so
+        // current_exception () says why; topDir itself throws.
+        void ForEachFile_ (const path& topDir, const function<void (const path&)>& onFile, const function<void (const path&)>& onUnreadable)
+        {
+            function<void (const path&)> walk = [&] (const path& dir) {
+                vector<path> files;
+                vector<path> subdirectories;
+                try {
+                    for (const directory_entry& e : directory_iterator{dir}) {
+                        if (e.path ().filename ().native ().starts_with (path::value_type{'.'})) {
+                            continue;
+                        }
+                        if (e.is_directory () and not e.is_symlink ()) {
+                            subdirectories.push_back (e.path ());
+                        }
+                        else if (e.is_regular_file ()) {
+                            files.push_back (e.path ());
+                        }
+                    }
+                }
+                catch (...) {
+                    if (dir == topDir) {
+                        throw;
+                    }
+                    onUnreadable (dir);
+                }
+                for (const path& f : files) {
+                    onFile (f);
+                }
+                for (const path& d : subdirectories) {
+                    walk (d);
+                }
+            };
+            walk (topDir);
+        }
+
+        // For ForEachFile_'s onUnreadable: a directory whose photos were left out (its contents unknown) - why is current_exception ()
+        void ReportUnreadableDirectory_ (const ProblemSink& problemSink, const path& dir)
+        {
+            Report (problemSink, Problem{.fFile = DocumentKey_ (dir), .fReason = Characters::ToString (current_exception ())});
+        }
+
         // Text in IPTC or EXIF: UTF-8 if it is valid UTF-8 (IPTC naming UTF-8 as its character set, as digiKam writes it;
         // EXIF's, in practice), else Windows-1252 - as ExifTool reads IPTC that names no character set. Not the machine's
         // code page: a photo's text does not depend on the machine reading it. (XMP's text is always UTF-8.)
@@ -535,74 +579,45 @@ namespace Metadata {
     Containers::MultiSet<String> ImageMetadataExtractor::TallyExtensions (const std::filesystem::path& topDir, String outputDirectoryForSampleFiles)
     {
         Containers::MultiSet<String> extTally;
-        try {
-            for (recursive_directory_iterator end, dirEntry (topDir); dirEntry != end; ++dirEntry) {
-                const path& p    = dirEntry->path ();
-                String      name = p.filename ().wstring ();
-
-                if (not name.empty () and name[0] == '.') {
-                    if (is_directory (p)) {
-                        dirEntry.disable_recursion_pending ();
-                    }
-                    continue;
-                }
-                if (is_regular_file (p)) {
-                    String ext = String{p.extension ().wstring ()}.ToLowerCase ();
-                    extTally.Add (ext);
-                    if (extTally.OccurrencesOf (ext) == 1) {
-                        DbgTrace ("found '{}' at {}"_f, ext, p);
-                        if (outputDirectoryForSampleFiles.length () > 0) {
-                            ReadImageMetaData (p, outputDirectoryForSampleFiles);
-                        }
+        ForEachFile_ (
+            topDir,
+            [&] (const path& p) {
+                String ext = String{p.extension ().wstring ()}.ToLowerCase ();
+                extTally.Add (ext);
+                if (extTally.OccurrencesOf (ext) == 1) {
+                    DbgTrace ("found '{}' at {}"_f, ext, p);
+                    if (outputDirectoryForSampleFiles.length () > 0) {
+                        ReadImageMetaData (p, outputDirectoryForSampleFiles);
                     }
                 }
-            }
-        }
-        catch (...) {
-            DbgTrace ("got exception={}"_f, current_exception ());
-        }
-
+            },
+            [&] (const path& dir) { ReportUnreadableDirectory_ (fProblemSink_, dir); });
         return extTally;
     }
 
     Containers::Mapping<String, Metadata::Document> ImageMetadataExtractor::ExtractAll (const std::filesystem::path& topDir)
     {
         Containers::Mapping<String, Metadata::Document> imageMetaData;
-        try {
-            for (recursive_directory_iterator end, dirEntry (topDir); dirEntry != end; ++dirEntry) {
-                const path& p    = dirEntry->path ();
-                String      name = p.filename ().wstring ();
-
-                if (not name.empty () and name[0] == '.') {
-                    if (is_directory (p)) {
-                        dirEntry.disable_recursion_pending ();
-                    }
-                    continue;
+        ForEachFile_ (
+            topDir,
+            [&] (const path& p) {
+                try {
+                    Metadata::Document ms = Extract (p);
+                    // its directory relative to topDir, as digiKam's albums are to their album root: "" for topDir itself
+                    path albumDirectory = p.parent_path ().lexically_relative (topDir);
+                    ms.album            = albumDirectory == "." ? String{} : String{albumDirectory.generic_wstring ()};
+                    imageMetaData.Add (DocumentKey_ (p), ms);
                 }
-
-                if (is_regular_file (p)) {
-                    try {
-                        Metadata::Document ms = Extract (p);
-                        // its directory relative to topDir, as digiKam's albums are to their album root: "" for topDir itself
-                        path albumDirectory = p.parent_path ().lexically_relative (topDir);
-                        ms.album            = albumDirectory == "." ? String{} : String{albumDirectory.generic_wstring ()};
-                        imageMetaData.Add (DocumentKey_ (p), ms);
+                catch (...) {
+                    if (IsPhotoExtension_ (String{p.extension ().wstring ()}.ToLowerCase ())) {
+                        Report (fProblemSink_, Problem{.fFile = DocumentKey_ (p), .fReason = Characters::ToString (current_exception ())});
                     }
-                    catch (...) {
-                        if (IsPhotoExtension_ (String{p.extension ().wstring ()}.ToLowerCase ())) {
-                            Report (fProblemSink_, Problem{.fFile = DocumentKey_ (p), .fReason = Characters::ToString (current_exception ())});
-                        }
-                        else {
-                            DbgTrace ("not a photo Exiv2 reads: {} ({})"_f, p, current_exception ());
-                        }
+                    else {
+                        DbgTrace ("not a photo Exiv2 reads: {} ({})"_f, p, current_exception ());
                     }
                 }
-            }
-        }
-        catch (...) {
-            DbgTrace ("got exception={}"_f, current_exception ());
-        }
-
+            },
+            [&] (const path& dir) { ReportUnreadableDirectory_ (fProblemSink_, dir); });
         return imageMetaData;
     }
 

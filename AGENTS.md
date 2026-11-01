@@ -32,10 +32,11 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
   wins - it is what the user set - and tags are both sets; but a digiKam date that is its file's time is digiKam's guess
   (for a photo with no date of its own), so no date. A value that will not parse (from a file or digiKam), or is half
   there (a position with one coordinate), is left out of its photo's document, not the photo, and a photo Exiv2 cannot
-  read is left out: each goes to a callback (`Problem.h`), and ImportMetadata lists them all in `Problems.json`, and
-  counts them on stderr. A file Exiv2 cannot read with no photo's extension (a text file) is skipped quietly. A video
-  Exiv2 reads is listed, but with none of its own metadata (https://github.com/SophistSolutions/IPAM-Root/issues/11). A
-  digiKam database it cannot read is an error.
+  read is left out, as is a directory it cannot read: each goes to a callback (`Problem.h`), and ImportMetadata lists
+  them all in `Problems.json`, and counts them on stderr. A file Exiv2 cannot read with no photo's extension (a text
+  file) is skipped quietly. A video Exiv2 reads is listed, but with none of its own metadata
+  (https://github.com/SophistSolutions/IPAM-Root/issues/11). A source directory or digiKam database it cannot read is an
+  error.
 - `Tools/TagStats/` - reads ImportMetadata's `DocumentMetaData.json` and writes JSON: for each tag, its photos and how
   often each other tag is with it. Arguments: `-i FILE` (the `DocumentMetaData.json`), `-o FILE`; `--help` lists them.
 - `API-Server/` - a stub `main` that does nothing yet.

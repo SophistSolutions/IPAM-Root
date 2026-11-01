@@ -28,11 +28,12 @@ namespace Metadata {
         // extract relevant metadata from image file
         Metadata::Document Extract (const std::filesystem::path& pictFile);
 
-        // extract relevant metadata from all image files in the directory (and subdirectories)
+        // extract relevant metadata from all image files in the directory (and subdirectories). A subdirectory that cannot be
+        // read is left out, and given to problemSink; topDir that cannot be read throws.
         Containers::Mapping<String, Metadata::Document> ExtractAll (const std::filesystem::path& topDir);
 
         // find all the file extensions in a directory (and subdirectories) and optionally
-        // attempt to extract image metadata from first file of each extension found
+        // attempt to extract image metadata from first file of each extension found. Unreadable directories as ExtractAll.
         Containers::MultiSet<String> TallyExtensions (const std::filesystem::path& topDir, String outputDirectoryForSampleFiles);
 
     private:

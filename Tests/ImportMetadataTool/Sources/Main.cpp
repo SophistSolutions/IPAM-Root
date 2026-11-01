@@ -10,6 +10,12 @@
 #include <functional>
 #include <iostream>
 
+#if qStroika_Platform_POSIX
+#include <unistd.h>
+#elif qStroika_Platform_Windows
+#include <Windows.h>
+#endif
+
 #include "Stroika/Foundation/Characters/StringBuilder.h"
 #include "Stroika/Foundation/Characters/ToString.h"
 #include "Stroika/Foundation/Containers/SortedSet.h"
@@ -33,7 +39,9 @@ DISABLE_COMPILER_MSC_WARNING_START (4127)
 #include "exiv2/exiv2.hpp"
 DISABLE_COMPILER_MSC_WARNING_END (4127)
 
+using std::byte;
 using std::filesystem::path;
+using std::filesystem::perms;
 
 using namespace Stroika::Foundation;
 using namespace Stroika::Foundation::Characters;
@@ -504,6 +512,65 @@ namespace {
         return result;
     }
 
+    // Runs ImportMetadata with args, expecting it to fail: to end with an exit status other than 0
+    void ExpectFails_ (const Sequence<String>& args)
+    {
+        Sequence<String> commandLine{String{ImportMetadataEXE_ ()}};
+        commandLine.AppendAll (args);
+        // RunInBackground, not a timed Run: in a Debug build, that asserts when the program fails (Stroika 3.0d25) - once a
+        // Stroika upgrade brings https://github.com/SophistSolutions/Stroika/issues/1261's fix, EXPECT_ANY_THROW a timed Run
+        using Execution::ProcessRunner;
+        ProcessRunner                    runner{Execution::CommandLine{commandLine}};
+        ProcessRunner::BackgroundProcess bp = runner.RunInBackground ();
+        bp.Join (Time::DurationSeconds{5 * 60});
+        optional<ProcessRunner::ProcessResultType> result = bp.GetProcessResult ();
+        ASSERT_TRUE (result.has_value ()) << Characters::ToString (commandLine);
+        EXPECT_NE (result->fExitStatus.value_or (ProcessRunner::ExitStatusType{}), ProcessRunner::ExitStatusType{})
+            << Characters::ToString (commandLine);
+    }
+
+    // Makes dir unreadable - what is in it cannot be listed - while it lives. fWorks is false if it cannot: root reads any
+    // directory (as in a docker container, CI's).
+    struct ScopedUnreadableDirectory_ {
+        ScopedUnreadableDirectory_ (const path& dir)
+            : fDir{dir}
+        {
+#if qStroika_Platform_POSIX
+            if (::geteuid () != 0) {
+                permissions (dir, perms::none);
+                fWorks = true;
+            }
+#elif qStroika_Platform_Windows
+            // an access list with no entries: no one may do anything with it, but its owner restore it
+            DWORD size{};
+            ::GetFileSecurityW (dir.c_str (), DACL_SECURITY_INFORMATION, nullptr, 0, &size);
+            fSavedSecurity_.resize (size);
+            ACL                 noEntries;
+            SECURITY_DESCRIPTOR sd;
+            if (::GetFileSecurityW (dir.c_str (), DACL_SECURITY_INFORMATION, fSavedSecurity_.data (), size, &size) and
+                ::InitializeAcl (&noEntries, sizeof (noEntries), ACL_REVISION) and
+                ::InitializeSecurityDescriptor (&sd, SECURITY_DESCRIPTOR_REVISION) and ::SetSecurityDescriptorDacl (&sd, true, &noEntries, false)) {
+                fWorks = ::SetFileSecurityW (dir.c_str (), DACL_SECURITY_INFORMATION, &sd) != 0;
+            }
+#endif
+        }
+        ~ScopedUnreadableDirectory_ ()
+        {
+            if (fWorks) {
+#if qStroika_Platform_POSIX
+                permissions (fDir, perms::owner_all);
+#elif qStroika_Platform_Windows
+                ::SetFileSecurityW (fDir.c_str (), DACL_SECURITY_INFORMATION, fSavedSecurity_.data ());
+#endif
+            }
+        }
+        path fDir;
+        bool fWorks{false};
+#if qStroika_Platform_Windows
+        vector<byte> fSavedSecurity_;
+#endif
+    };
+
     // Document by document, so a failure names the one that differs (and EXPECT_EQ on whole Mappings has gtest print them as
     // raw bytes - they have no ToString () member - which aborts under ASan with MSVC)
     void ExpectSameDocuments_ (const Mapping<String, Document>& actual, const Mapping<String, Document>& expected)
@@ -547,21 +614,36 @@ namespace {
         ExpectSameDocuments_ (RunImportMetadata_ (c, images, c.root / "out", true), ExpectedDocuments_ (c, true));
     }
 
+    GTEST_TEST (ImportMetadata, UnreadableDirectoryIsReported_)
+    {
+        Collection_ c;
+        // an album it cannot read: left out, and reported - and the rest read, those it comes to after it (Scans) too
+        path locked = c.images / "1964 New York" / "Locked";
+        WriteJPEG_ (locked / "IMG_0200.jpg", [] (Exiv2::Image& image) { AddIPTCKeywords_ (image, {"Locked"}); });
+        ScopedUnreadableDirectory_ unreadable{locked};
+        if (not unreadable.fWorks) {
+            GTEST_SKIP () << "cannot make a directory unreadable here (as root)";
+        }
+        path out = c.root / "out";
+        ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, out, false), ExpectedDocuments_ (c, false));
+        String problems = ProblemsListing_ (out / "Problems.json", c.images);
+        EXPECT_TRUE (problems.Contains ("1964 New York/Locked\n"sv)) << problems;
+        EXPECT_EQ (problems.ReplaceAll ("1964 New York/Locked\n"sv, ""sv), kProblems_);
+    }
+
+    GTEST_TEST (ImportMetadata, MissingSourceDirectoryFails_)
+    {
+        Collection_ c;
+        // a source directory it cannot read is an error - not a run that finds no photos
+        ExpectFails_ ({"-s"sv, String{c.root / "missing"}, "-o"sv, String{c.root / "out"}});
+        ExpectFails_ ({"-s"sv, String{c.database}, "-o"sv, String{c.root / "out"}});
+    }
+
     GTEST_TEST (ImportMetadata, UnreadableDigikamDatabaseFails_)
     {
         Collection_ c;
         // a database it cannot read is an error - not a run that quietly lacks digiKam's data
-        Sequence<String> args{String{ImportMetadataEXE_ ()}, "-s"sv, String{c.images},      "-d"sv,
-                              String{c.root / "missing.db"}, "-o"sv, String{c.root / "out"}};
-        // RunInBackground, not a timed Run: in a Debug build, that asserts when the program fails (Stroika 3.0d25) - once a
-        // Stroika upgrade brings https://github.com/SophistSolutions/Stroika/issues/1261's fix, EXPECT_ANY_THROW a timed Run
-        using Execution::ProcessRunner;
-        ProcessRunner                    runner{Execution::CommandLine{args}};
-        ProcessRunner::BackgroundProcess bp = runner.RunInBackground ();
-        bp.Join (Time::DurationSeconds{5 * 60});
-        optional<ProcessRunner::ProcessResultType> result = bp.GetProcessResult ();
-        ASSERT_TRUE (result.has_value ());
-        EXPECT_NE (result->fExitStatus.value_or (ProcessRunner::ExitStatusType{}), ProcessRunner::ExitStatusType{});
+        ExpectFails_ ({"-s"sv, String{c.images}, "-d"sv, String{c.root / "missing.db"}, "-o"sv, String{c.root / "out"}});
     }
 }
 #endif
