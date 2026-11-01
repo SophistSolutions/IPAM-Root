@@ -7,6 +7,8 @@
 #include <iomanip>
 #include <iostream>
 
+#include "Stroika/Foundation/Characters/CodeCvt.h"
+#include "Stroika/Foundation/Characters/CodePage.h"
 #include "Stroika/Foundation/Characters/RegularExpression.h"
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Characters/ToString.h"
@@ -57,6 +59,20 @@ namespace Metadata {
                 ".psd"sv, ".heic"sv, ".heif"sv, ".avif"sv, ".jxl"sv,  ".dng"sv, ".cr2"sv,  ".cr3"sv, ".crw"sv, ".nef"sv,
                 ".nrw"sv, ".arw"sv,  ".sr2"sv,  ".srf"sv,  ".srw"sv,  ".orf"sv, ".pef"sv,  ".raf"sv, ".rw2"sv, ".mrw"sv};
             return kPhotoExtensions_.Contains (ext);
+        }
+
+        // Text in IPTC or EXIF: UTF-8 if it is valid UTF-8 (IPTC naming UTF-8 as its character set, as digiKam writes it;
+        // EXIF's, in practice), else Windows-1252 - as ExifTool reads IPTC that names no character set. Not the machine's
+        // code page: a photo's text does not depend on the machine reading it. (XMP's text is always UTF-8.)
+        String Text_ (const string& bytes)
+        {
+            try {
+                return String::FromUTF8 (bytes);
+            }
+            catch (const runtime_error&) {
+                static const CodeCvt<wchar_t> kWindows1252_{WellKnownCodePages::kANSI};
+                return String{kWindows1252_.Bytes2String<wstring> (as_bytes (span{bytes}))};
+            }
         }
 
         // EXIF's date taken ("1964:07:04 14:30:00"): with its offset from UTC ("-04:00") if the camera knows it, else in the
@@ -137,7 +153,8 @@ namespace Metadata {
      *  MicrosoftPhoto's lack: digiKam writes both, the same.
      *
      *  To read another key: add it to its source's block, read its value inside readValue (so a value that will not parse
-     *  is left out and reported, not the photo), and add it to this table. A value no field holds (EXIF's Artist, XMP's
+     *  is left out and reported, not the photo) - its text with String::FromUTF8 (XMP) or Text_ (IPTC, EXIF), never the
+     *  machine's code page - and add it to this table. A value no field holds (EXIF's Artist, XMP's
      *  dc.creator - the photographer) needs a field first: Document.h says how to add one. Not read yet, though a field
      *  holds it: XMP's other dates (photoshop.DateCreated, exif.DateTimeOriginal), hierarchical keywords
      *  (lr.hierarchicalSubject, digiKam.TagsList), and a video's (video.*, https://github.com/SophistSolutions/IPAM-Root/issues/11).
@@ -171,12 +188,12 @@ namespace Metadata {
                     for (Exiv2::IptcData::const_iterator md = iptcData.begin (); md != end; ++md) {
                         if (md->key () == kTagKeyword) {
                             if (md->value ().toString ().length () > 0 and (md->value ().toString () != kIgnoredValue)) {
-                                ms.tags.Add (String::FromNarrowSDKString (md->value ().toString ()));
+                                ms.tags.Add (Text_ (md->value ().toString ()));
                             }
                         }
                         else if (md->key () == kTitleKeyword) {
                             if (md->value ().toString ().length () > 0) {
-                                ms.title = String::FromNarrowSDKString (md->value ().toString ());
+                                ms.title = Text_ (md->value ().toString ());
                             }
                         }
                         else if (md->key () == kCaptionKeyword) {
@@ -184,17 +201,17 @@ namespace Metadata {
                                 // only one comment supported by metadata so don't need to check if already created
                                 ms.comment = Containers::Sequence<Metadata::Document::Comment> ();
                                 // comment author not supported by IPTC
-                                ms.comment.value ().Append (Metadata::Document::Comment (String::FromNarrowSDKString (md->value ().toString ())));
+                                ms.comment.value ().Append (Metadata::Document::Comment (Text_ (md->value ().toString ())));
                             }
                         }
                         else if (md->key () == kDateKeyword) {
                             if (md->value ().toString ().length () > 0) {
-                                foundDate = String::FromNarrowSDKString (md->value ().toString ());
+                                foundDate = Text_ (md->value ().toString ());
                             }
                         }
                         else if (md->key () == kTimeKeyword) {
                             if (md->value ().toString ().length () > 0) {
-                                foundTime = String::FromNarrowSDKString (md->value ().toString ());
+                                foundTime = Text_ (md->value ().toString ());
                             }
                         }
                     }
@@ -246,13 +263,13 @@ namespace Metadata {
                     optional<String> foundStandardComment;
                     optional<string> foundStandardRating;
                     for (Exiv2::XmpData::const_iterator md = xmpData.begin (); md != xmpData.end (); ++md) {
-                        String key = String::FromNarrowSDKString (md->key ());
+                        String key = String::FromUTF8 (md->key ());
                         if (key == kRatingKeyword) {
-                            String value = String::FromNarrowSDKString (md->value ().toString ());
+                            String value = String::FromUTF8 (md->value ().toString ());
                             readValue (key, value, [&] () { ms.rating = Document::RatingFromPercent (stoi (md->value ().toString ())); });
                         }
                         else if (key == kTitleKeyword) {
-                            ms.title   = String::FromNarrowSDKString (md->value ().toString ());
+                            ms.title   = String::FromUTF8 (md->value ().toString ());
                             foundTitle = true;
                         }
                         else if (key == kStandardTagsKeyword) {
@@ -273,29 +290,29 @@ namespace Metadata {
                             foundStandardRating = md->toString ();
                         }
                         else if (key == kCommentKeyword) {
-                            foundComment = String::FromNarrowSDKString (md->value ().toString ());
+                            foundComment = String::FromUTF8 (md->value ().toString ());
                         }
                         else if (key == kCommentAuthor) {
-                            foundAuthor = String::FromNarrowSDKString (md->value ().toString ());
+                            foundAuthor = String::FromUTF8 (md->value ().toString ());
                         }
                         else if (key == kAltitudeKeyword) {
-                            foundAltitude = String::FromNarrowSDKString (md->value ().toString ());
+                            foundAltitude = String::FromUTF8 (md->value ().toString ());
                         }
                         else if (key == kLatitudeKeyword) {
-                            foundLatitude = String::FromNarrowSDKString (md->value ().toString ());
+                            foundLatitude = String::FromUTF8 (md->value ().toString ());
                         }
                         else if (key == kLongitudeKeyword) {
-                            foundLongitude = String::FromNarrowSDKString (md->value ().toString ());
+                            foundLongitude = String::FromUTF8 (md->value ().toString ());
                         }
                         else if (key == kDateKeyword) {
-                            String value = String::FromNarrowSDKString (md->value ().toString ());
+                            String value = String::FromUTF8 (md->value ().toString ());
                             readValue (key, value, [&] () {
                                 ms.date = Document::FormatDate (Time::DateTime::Parse (value, Time::DateTime::kISO8601Format));
                             });
                         }
                         else {
                             if (key.Matches (tagEntry)) {
-                                ms.tags.Add (String::FromNarrowSDKString (md->value ().toString ()));
+                                ms.tags.Add (String::FromUTF8 (md->value ().toString ()));
                             }
                         }
                     }
@@ -337,17 +354,17 @@ namespace Metadata {
                     auto i = exifData.findKey (Exiv2::ExifKey{key});
                     return i == exifData.end () ? nullptr : &*i;
                 };
-                auto text = [] (const Exiv2::Exifdatum& d) { return String::FromNarrowSDKString (d.toString ()); };
+                auto text = [] (const Exiv2::Exifdatum& d) { return Text_ (d.toString ()); };
                 if (not ms.date) {
                     if (const Exiv2::Exifdatum* dateTime = find ("Exif.Photo.DateTimeOriginal")) {
                         // a camera whose clock was never set writes zeros, or spaces: no date, rather than a bad one
                         static const RegularExpression kUnset_{"^[0: ]*$"sv};
                         if (not text (*dateTime).Matches (kUnset_)) {
                             const Exiv2::Exifdatum* offset = find ("Exif.Photo.OffsetTimeOriginal");
-                            String                  key    = String::FromNarrowSDKString (dateTime->key ());
+                            String                  key    = String::FromUTF8 (dateTime->key ());
                             String                  value  = text (*dateTime);
                             if (offset != nullptr) {
-                                key   = "{}, {}"_f(key, String::FromNarrowSDKString (offset->key ()));
+                                key   = "{}, {}"_f(key, String::FromUTF8 (offset->key ()));
                                 value = "{} {}"_f(value, text (*offset));
                             }
                             readValue (key, value, [&] () {
@@ -363,9 +380,9 @@ namespace Metadata {
                     if (latitude != nullptr and longitude != nullptr) {
                         optional<double> lat;
                         optional<double> lon;
-                        readValue (String::FromNarrowSDKString (latitude->key ()), text (*latitude),
+                        readValue (String::FromUTF8 (latitude->key ()), text (*latitude),
                                    [&] () { lat = EXIFCoordinate_ (*latitude, find ("Exif.GPSInfo.GPSLatitudeRef"), "N", "S"); });
-                        readValue (String::FromNarrowSDKString (longitude->key ()), text (*longitude),
+                        readValue (String::FromUTF8 (longitude->key ()), text (*longitude),
                                    [&] () { lon = EXIFCoordinate_ (*longitude, find ("Exif.GPSInfo.GPSLongitudeRef"), "E", "W"); });
                         if (lat and lon) {
                             ms.location = Geolocation (lat.value (), lon.value ()).ToISOString ();
@@ -375,7 +392,7 @@ namespace Metadata {
                 if (not ms.rating) {
                     // Windows writes both, the same; a percentage says more than stars
                     auto readRating = [&] (const Exiv2::Exifdatum& d, const function<optional<double> (int)>& toRating) {
-                        readValue (String::FromNarrowSDKString (d.key ()), text (d), [&] () {
+                        readValue (String::FromUTF8 (d.key ()), text (d), [&] () {
                             if (d.count () != 1) {
                                 Execution::Throw (DataExchange::BadFormatException{"Invalid EXIF rating (not one number)"sv});
                             }
@@ -447,7 +464,7 @@ namespace Metadata {
                         << std::right << md->count () << "  " << std::dec << md->value () << std::endl;
                 if (md->key () == kTagKeyword) {
                     if (md->value ().toString ().length () > 0) {
-                        tags.Add (String::FromNarrowSDKString (md->value ().toString ()));
+                        tags.Add (Text_ (md->value ().toString ()));
                     }
                 }
             }
@@ -491,7 +508,7 @@ namespace Metadata {
                 outfile << "************** Found Tags *******************" << endl;
                 if (tags.length () > 0) {
                     for (const String& t : tags) {
-                        outfile << t.AsNarrowSDKString () << endl;
+                        outfile << t.AsUTF8<string> () << endl;
                     }
                 }
                 else {
@@ -503,7 +520,7 @@ namespace Metadata {
             }
         }
         catch (...) {
-            DbgTrace ("got exception={}, file={}"_f, current_exception (), String::FromNarrowSDKString (pictFile.string ()));
+            DbgTrace ("got exception={}, file={}"_f, current_exception (), pictFile);
         }
     }
 

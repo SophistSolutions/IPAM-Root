@@ -234,6 +234,25 @@ namespace {
                 image.xmpData ().add (Exiv2::XmpKey{"Xmp.dc.subject"}, &keywords);
                 image.xmpData ()["Xmp.xmp.Rating"] = "3";
             });
+            // text that is not ASCII (as UTF-8 bytes, or Windows-1252's): XMP's, always UTF-8
+            WriteJPEG_ (images / "Scans" / "IMG_0108.jpg", [] (Exiv2::Image& image) {
+                image.xmpData ()["Xmp.acdsee.caption"] = "Zo\xc3\xab's party";
+                image.xmpData ()["Xmp.acdsee.notes"]   = "Caf\xc3\xa9 au lait";
+                AddXMPRegionName_ (image, "Zo\xc3\xab");
+            });
+            // IPTC's naming UTF-8 as its character set, as digiKam writes it; and EXIF's in UTF-8
+            WriteJPEG_ (images / "Scans" / "IMG_0109.jpg", [] (Exiv2::Image& image) {
+                image.iptcData ()["Iptc.Envelope.CharacterSet"] = "\x1b%G";
+                AddIPTCKeywords_ (image, {"M\xc3\xbcller"});
+                image.iptcData ()["Iptc.Application2.ObjectName"] = "F\xc3\xaate";
+                image.exifData ()["Exif.Image.ImageDescription"]  = "Grand-m\xc3\xa8re";
+            });
+            // IPTC's naming no character set, and EXIF's, in Windows-1252, as older Windows programs wrote them
+            WriteJPEG_ (images / "Scans" / "IMG_0110.jpg", [] (Exiv2::Image& image) {
+                AddIPTCKeywords_ (image, {"Jos\xe9"});
+                image.iptcData ()["Iptc.Application2.ObjectName"] = "\x93Uncle\x94 Bob";
+                image.exifData ()["Exif.Image.ImageDescription"]  = "Caf\xe9";
+            });
             // a camera whose clock was never set
             WriteJPEG_ (images / "Scans" / "unknown.jpg", [] (Exiv2::Image& image) { AddEXIFDate_ (image, "0000:00:00 00:00:00"); });
             WriteJPEG_ (images / "loose.jpg", [] (Exiv2::Image&) {});
@@ -356,6 +375,33 @@ namespace {
             d.rating  = 0.50;
             d.album   = "Scans"sv;
             result.Add (key ("Scans/IMG_0107.jpg"), d);
+        }
+        {
+            // text that is not ASCII, read as its source writes it: XMP's as UTF-8
+            Document d;
+            d.tags    = Set<String>{u"Zo\u00eb"sv};
+            d.title   = u"Zo\u00eb's party"sv;
+            d.comment = Sequence<Document::Comment>{Document::Comment{u"Caf\u00e9 au lait"sv}};
+            d.album   = "Scans"sv;
+            result.Add (key ("Scans/IMG_0108.jpg"), d);
+        }
+        {
+            // IPTC's as the character set it names; EXIF's as UTF-8, if it is
+            Document d;
+            d.tags    = Set<String>{u"M\u00fcller"sv};
+            d.title   = u"F\u00eate"sv;
+            d.comment = Sequence<Document::Comment>{Document::Comment{u"Grand-m\u00e8re"sv}};
+            d.album   = "Scans"sv;
+            result.Add (key ("Scans/IMG_0109.jpg"), d);
+        }
+        {
+            // else as Windows-1252 (not Latin-1: 0x93 and 0x94 are curly quotes)
+            Document d;
+            d.tags    = Set<String>{u"Jos\u00e9"sv};
+            d.title   = u"\u201cUncle\u201d Bob"sv;
+            d.comment = Sequence<Document::Comment>{Document::Comment{u"Caf\u00e9"sv}};
+            d.album   = "Scans"sv;
+            result.Add (key ("Scans/IMG_0110.jpg"), d);
         }
         {
             Document d;
