@@ -172,6 +172,15 @@ ifeq ($(VERSION),3dd881fb122835605ba011413ec86c121101d131)
 		patch -p0 $@/src/futils.cpp Patches/BeCompatibleWithUNICODEAPIDefines.Patch >> $@/PATCHING.OUT;\
 	fi
 endif
+	@#0.28.x opens a file by its narrow name, which the C runtime reads in the code page - that cannot name every
+	@#file. Exiv2's main opens it by its wide name (https://github.com/Exiv2/exiv2/pull/3117), as this patch does - for
+	@#this version only: a newer one without it fails Tests/ImportMetadataTool (a photo named outside the code page),
+	@#so carry the patch forward then.
+ifeq ($(VERSION),0.28.9)
+	if [ "$@" != "ORIGs" ] ; then \
+		patch -p0 $@/src/basicio.cpp Patches/FileIoOpensUTF8NamesOnWindows.Patch >> $@/PATCHING.OUT;\
+	fi
+endif
 endif
 
 

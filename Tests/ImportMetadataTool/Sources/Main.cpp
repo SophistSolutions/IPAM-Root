@@ -53,11 +53,12 @@ namespace {
         return thisEXE.parent_path ().parent_path ().parent_path () / "Tools" / "ImportMetadata" / ("ImportMetadata" + thisEXE.extension ().string ());
     }
 
-    // A JPEG (Exiv2's blank one) with the metadata addMetadata gives it
+    // A JPEG (Exiv2's blank one) with the metadata addMetadata gives it - named, as ImportMetadata names a photo to Exiv2, in UTF-8
     void WriteJPEG_ (const path& p, const function<void (Exiv2::Image&)>& addMetadata)
     {
         create_directories (p.parent_path ());
-        Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::create (Exiv2::ImageType::jpeg, p.string ());
+        u8string                name  = p.u8string ();
+        Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::create (Exiv2::ImageType::jpeg, string{name.begin (), name.end ()});
         addMetadata (*image);
         image->writeMetadata ();
     }
@@ -253,6 +254,9 @@ namespace {
                 image.iptcData ()["Iptc.Application2.ObjectName"] = "\x93Uncle\x94 Bob";
                 image.exifData ()["Exif.Image.ImageDescription"]  = "Caf\xe9";
             });
+            // a name outside Windows' code page (Windows-1252 here), which Exiv2 0.28 opens only with ThirdPartyComponents/Exiv2's
+            // patch: a newer Exiv2 fails here if it has no fix of its own
+            WriteJPEG_ (images / "Scans" / u8"\u03a9mega.jpg", [] (Exiv2::Image& image) { AddIPTCKeywords_ (image, {"Omega"}); });
             // a camera whose clock was never set
             WriteJPEG_ (images / "Scans" / "unknown.jpg", [] (Exiv2::Image& image) { AddEXIFDate_ (image, "0000:00:00 00:00:00"); });
             WriteJPEG_ (images / "loose.jpg", [] (Exiv2::Image&) {});
@@ -402,6 +406,13 @@ namespace {
             d.comment = Sequence<Document::Comment>{Document::Comment{u"Caf\u00e9"sv}};
             d.album   = "Scans"sv;
             result.Add (key ("Scans/IMG_0110.jpg"), d);
+        }
+        {
+            // a photo named outside Windows' code page, read like any other
+            Document d;
+            d.tags  = Set<String>{"Omega"sv};
+            d.album = "Scans"sv;
+            result.Add (key (u8"Scans/\u03a9mega.jpg"), d);
         }
         {
             Document d;

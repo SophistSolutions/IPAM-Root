@@ -48,6 +48,14 @@ namespace Metadata {
             return String{p}.ReplaceAll ("\\"sv, "/"sv);
         }
 
+        // p as Exiv2 opens it: in UTF-8 (on Windows, with ThirdPartyComponents/Exiv2's patch: Exiv2 0.28 otherwise reads a
+        // name in the code page, which cannot name every file); elsewhere, the name's own bytes
+        string Exiv2Path_ (const path& p)
+        {
+            u8string s = p.u8string ();
+            return string{s.begin (), s.end ()};
+        }
+
         // ext (lower case) is that of a photo format Exiv2 reads (its ImageType): a file with one that Exiv2 cannot read is a
         // damaged photo, and one with another is some other kind of file (a video, a text file). Exiv2's own guess at the
         // type cannot tell them apart: it takes a text file for some format, and then fails to read it ("corrupted image
@@ -168,7 +176,7 @@ namespace Metadata {
             ReadOrReport (fProblemSink_, DocumentKey_ (pictFile), key, value, read);
         };
 
-        Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (pictFile.string ());
+        Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (Exiv2Path_ (pictFile));
         if (image != nullptr) {
             image->readMetadata ();
 
@@ -495,12 +503,12 @@ namespace Metadata {
     void ReadImageMetaData (const path& pictFile, String outputDirectoryForSampleFiles)
     {
         try {
-            Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (pictFile.string ());
+            Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (Exiv2Path_ (pictFile));
             if (image != nullptr) {
-                std::ofstream outfile (outputDirectoryForSampleFiles.As<path> () / (pictFile.extension ().string ().substr (1) + ".txt"));
+                std::ofstream outfile (outputDirectoryForSampleFiles.As<path> () / (pictFile.extension ().wstring ().substr (1) + L".txt"));
 
                 image->readMetadata ();
-                outfile << "metadata of " << pictFile.string () << endl;
+                outfile << "metadata of " << String{pictFile}.AsUTF8<string> () << endl;
                 Containers::Set<String> tags;
                 tags += DumpEXIF (image, outfile);
                 tags += DumpIPTC (image, outfile);
