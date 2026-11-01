@@ -92,7 +92,7 @@ int Geolocation::Coordinate::degrees () const
 {
     double intPart;
     modf (_value, &intPart);
-    return int (intPart);
+    return static_cast<int> (intPart);
 }
 
 int Geolocation::Coordinate::minutes () const
@@ -100,7 +100,7 @@ int Geolocation::Coordinate::minutes () const
     double intPart;
     double fractional = modf (_value, &intPart);
     modf (fractional * _kBase, &intPart);
-    return int (intPart);
+    return static_cast<int> (intPart);
 }
 
 double Geolocation::Coordinate::seconds () const
@@ -183,7 +183,8 @@ Geolocation::Geolocation (const String& isoString)
         }
     }
     else {
-        Execution::Throw (DataExchange::BadFormatException{"Invalid Geolocation specification"sv});
+        static const auto kExcept_= DataExchange::BadFormatException{"Invalid Geolocation specification"sv};
+        Execution::Throw (kExcept_);
     }
 }
 
