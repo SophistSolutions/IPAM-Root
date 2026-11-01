@@ -16,7 +16,7 @@ endif
 #
 #		NOTE - main not a real release number - so this isn't safe. Floating version
 #		But they dont appear to have done a release since fixing the auto_ptr stuff
-VERSION=0.28.8
+VERSION=0.28.9
 # VERSION=main
 # VERSION=3dd881fb122835605ba011413ec86c121101d131
 # VERSION=0.27.5
