@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include "Stroika/Foundation/Characters/ToString.h"
+#include "Stroika/Foundation/DataExchange/BadFormatException.h"
 #include "Stroika/Foundation/Debug/Trace.h"
 #include "Stroika/Foundation/Execution/CommandLine.h"
 #include "Stroika/Foundation/IO/FileSystem/TemporaryFile.h"
@@ -125,6 +126,25 @@ namespace {
         EXPECT_EQ (formatISO ("1964-07-04T18:30:00Z"sv), "1964-07-04T18:30:00Z"sv);
         // none: the local time as given, with none - not taken for UTC
         EXPECT_EQ (formatISO ("1964-07-04T14:30:00"sv), "1964-07-04T14:30:00"sv);
+    }
+
+    GTEST_TEST (Metadata, Document_Ratings_)
+    {
+        // digiKam's mapping of stars; unrated is no rating
+        EXPECT_EQ (Document::RatingFromStars (-1), nullopt);
+        EXPECT_EQ (Document::RatingFromStars (0), nullopt);
+        EXPECT_EQ (Document::RatingFromStars (1), 0.01);
+        EXPECT_EQ (Document::RatingFromStars (3), 0.50);
+        EXPECT_EQ (Document::RatingFromStars (5), 1.0);
+        EXPECT_THROW (Document::RatingFromStars (6), DataExchange::BadFormatException);
+        EXPECT_THROW (Document::RatingFromStars (-2), DataExchange::BadFormatException);
+        // percentages: 99 is 5 stars
+        EXPECT_EQ (Document::RatingFromPercent (0), nullopt);
+        EXPECT_EQ (Document::RatingFromPercent (25), 0.25);
+        EXPECT_EQ (Document::RatingFromPercent (99), 1.0);
+        EXPECT_EQ (Document::RatingFromPercent (100), 1.0);
+        EXPECT_THROW (Document::RatingFromPercent (101), DataExchange::BadFormatException);
+        EXPECT_THROW (Document::RatingFromPercent (-1), DataExchange::BadFormatException);
     }
 }
 #endif

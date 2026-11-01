@@ -18,6 +18,7 @@
 #include "Stroika/Foundation/Time/Date.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
+#include "Boilerplate.h"
 #include "ImageMetadataExtraction.h"
 #include "LibIPAM/Common/Geolocation.h"
 
@@ -101,6 +102,25 @@ namespace Metadata {
     {
     }
 
+    /*
+     *  Extract reads a photo's metadata into a Document from three sources in turn - IPTC, XMP, then EXIF - each its own
+     *  block below, reading these keys (Exiv2's, less their source's prefix) into these fields:
+     *
+     *      field       IPTC (Iptc.)                     XMP (Xmp.)                          EXIF (Exif.)
+     *      tags        Application2.Keywords            mwg-rs face region names            -
+     *      title       Application2.ObjectName          acdsee.caption                      -
+     *      comment     Application2.Caption             acdsee.notes (+ acdsee.author)      Image.ImageDescription
+     *      date        Application2.DateCreated         xmp.CreateDate                      Photo.DateTimeOriginal
+     *                      (+ TimeCreated)                                                      (+ OffsetTimeOriginal)
+     *      location    -                                exif.GPSLatitude, GPSLongitude      GPSInfo.GPSLatitude, GPSLongitude
+     *                                                                                           (+ their Refs)
+     *      rating      -                                MicrosoftPhoto.Rating               Image.RatingPercent, else Rating
+     *
+     *  XMP's value replaces IPTC's (tags add to them); EXIF's - what the camera recorded - only fills in what IPTC and XMP
+     *  lack, as they are what someone set since. To read another key: add it to its source's block, read its value inside
+     *  readValue (so a value that will not parse is left out and reported, not the photo), and add it to this table. A
+     *  value no field holds (EXIF's Artist, the photographer) needs a field first: Document.h says how to add one.
+     */
     Metadata::Document ImageMetadataExtractor::Extract (const path& pictFile)
     {
         Metadata::Document ms;
@@ -189,8 +209,6 @@ namespace Metadata {
                     static const String kLatitudeKeyword  = "Xmp.exif.GPSLatitude"sv;
                     static const String kLongitudeKeyword = "Xmp.exif.GPSLongitude"sv;
 
-                    static const String kRatingNearOne = "99"sv;
-
                     static const Characters::RegularExpression tagEntry{"^Xmp\\.mwg-rs\\.Regions\\/mwg-rs:RegionList\\[(?:[0-9]*)?\\]\\/mwg-rs:Name"sv};
                     optional<String> foundLongitude;
                     optional<String> foundLatitude;
@@ -201,14 +219,7 @@ namespace Metadata {
                         String key = String::FromNarrowSDKString (md->key ());
                         if (key == kRatingKeyword) {
                             String value = String::FromNarrowSDKString (md->value ().toString ());
-                            readValue (key, value, [&] () {
-                                if (value == kRatingNearOne) {
-                                    ms.rating = 1.0; // metadata apparently only allows 2 digits
-                                }
-                                else {
-                                    ms.rating = std::round ((stoi (md->value ().toString ()) / 100.0) * 100.0) / 100.0;
-                                }
-                            });
+                            readValue (key, value, [&] () { ms.rating = Document::RatingFromPercent (stoi (md->value ().toString ())); });
                         }
                         else if (key == kTitleKeyword) {
                             ms.title = String::FromNarrowSDKString (md->value ().toString ());
@@ -299,6 +310,34 @@ namespace Metadata {
                                    [&] () { lon = EXIFCoordinate_ (*longitude, find ("Exif.GPSInfo.GPSLongitudeRef"), "E", "W"); });
                         if (lat and lon) {
                             ms.location = Geolocation (lat.value (), lon.value ()).ToISOString ();
+                        }
+                    }
+                }
+                if (not ms.rating) {
+                    // Windows writes both, the same; a percentage says more than stars
+                    auto readRating = [&] (const Exiv2::Exifdatum& d, const function<optional<double> (int)>& toRating) {
+                        readValue (String::FromNarrowSDKString (d.key ()), text (d), [&] () {
+                            if (d.count () != 1) {
+                                Execution::Throw (DataExchange::BadFormatException{"Invalid EXIF rating (not one number)"sv});
+                            }
+                            ms.rating = toRating (static_cast<int> (d.toInt64 ()));
+                        });
+                    };
+                    if (const Exiv2::Exifdatum* percent = find ("Exif.Image.RatingPercent")) {
+                        readRating (*percent, Document::RatingFromPercent);
+                    }
+                    else if (const Exiv2::Exifdatum* stars = find ("Exif.Image.Rating")) {
+                        readRating (*stars, Document::RatingFromStars);
+                    }
+                }
+                if (not ms.comment) {
+                    // the description: a person's, or the camera's boilerplate
+                    if (const Exiv2::Exifdatum* description = find ("Exif.Image.ImageDescription")) {
+                        const Exiv2::Exifdatum* make  = find ("Exif.Image.Make");
+                        const Exiv2::Exifdatum* model = find ("Exif.Image.Model");
+                        if (not IsBoilerplateComment (text (*description), make == nullptr ? String{} : text (*make),
+                                                      model == nullptr ? String{} : text (*model))) {
+                            ms.comment = Containers::Sequence<Document::Comment>{Document::Comment{text (*description).Trim ()}};
                         }
                     }
                 }

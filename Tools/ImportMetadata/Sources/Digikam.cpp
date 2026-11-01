@@ -42,6 +42,7 @@
 #include "LibIPAM/Common/Geolocation.h"
 #include "LibIPAM/Metadata/Document.h"
 
+#include "Boilerplate.h"
 #include "Digikam.h"
 
 using namespace Stroika::Foundation;
@@ -194,11 +195,10 @@ namespace digikam {
 
             // comments
             for (const auto& ii : conn.mkStatement ("Select imageid,comment,author from ImageComments;").GetAllRows (0, 1, 2)) {
-                int               id              = std::get<0> (ii).As<int> ();
-                String            comment         = std::get<1> (ii).As<String> ();
-                String            author          = std::get<2> (ii).As<String> ();
-                static const auto kIgnoreComment_ = "^(\\n*|Screenshot|AppleMark|Maker.*E-ve|CREATOR:.*)"_RegEx;
-                if (comment.length () > 0 and not comment.Matches (kIgnoreComment_)) {
+                int    id      = std::get<0> (ii).As<int> ();
+                String comment = std::get<1> (ii).As<String> ();
+                String author  = std::get<2> (ii).As<String> ();
+                if (not Metadata::IsBoilerplateComment (comment)) {
                     String path;
                     if (imageIDToImagePath.Lookup (id, &path)) {
                         Document ms;
@@ -257,30 +257,9 @@ namespace digikam {
                     Document ms;
                     scrapedMetadata.Lookup (path, &ms);
 
-                    // digikam does an unusual mapping of its user selected stars to percentile value (as shown in stored metadata in files)
-                    // I choose to respect their mapping, rather than the most obvious, where 1 star would be 20% instead of 1%
-                    switch (rating) {
-                        case -1:
-                        case 0: // for me at least, these are the same (visually same, probably no way back to -1 if accidentally set)
-                            break;
-                        case 1:
-                            ms.rating = 0.01;
-                            break;
-                        case 2:
-                            ms.rating = 0.25;
-                            break;
-                        case 3:
-                            ms.rating = 0.50;
-                            break;
-                        case 4:
-                            ms.rating = 0.75;
-                            break;
-                        case 5:
-                            ms.rating = 1.0;
-                            break;
-                        default:
-                            DbgTrace ("rating, unknown value = : {} for {}"_f, id, path);
-                    }
+                    // stars; one it does not know is left out (and reported)
+                    Metadata::ReadOrReport (problemSink, path, "ImageInformation.rating"sv, "{}"_f(rating),
+                                            [&] () { ms.rating = Document::RatingFromStars (rating); });
                     // a date that will not parse is left out (and reported), not the rest of the row; none (NULL) is no date, and
                     // nor is digiKam's guess, its file's time
                     if (not date.empty ()) {

@@ -126,7 +126,7 @@ namespace {
                    "    (3, 3, NULL, 'Screenshot');"
                    "INSERT INTO ImagePositions VALUES (1, 40.7484, -73.9857), (2, 40.6894, -74.0447), (3, 40.7, NULL), (4, NULL, NULL);"
                    "INSERT INTO ImageInformation VALUES (1, 5, '1964-07-04T14:30:00.000'), (2, 1, '1964-07-05T10:00:00.000'),"
-                   "    (3, 5, '1964-07-06T09:00:00.000'), (4, 3, '1964-07-07T08:00:00.000'), (5, 2, 'yesterday'), (6, 0, NULL);"
+                   "    (3, 5, '1964-07-06T09:00:00.000'), (4, 3, '1964-07-07T08:00:00.000'), (5, 2, 'yesterday'), (6, 7, NULL);"
                    "INSERT INTO Tags VALUES (1, 'Fred'), (2, 'Statue of Liberty'), (3, 'Uncle Bob'), (4, 'Color Label Red');"
                    "INSERT INTO TagProperties VALUES (1, 'person', 'Fred'), (3, 'faceEngineId', '7'), (4, 'internalTag', NULL);"
                    "INSERT INTO ImageTags VALUES (1, 1), (1, 2), (1, 3), (1, 4), (2, 1), (3, 1), (4, 3), (5, 1), (6, 1);"sv);
@@ -190,6 +190,7 @@ namespace {
                 image.xmpData ()["Xmp.MicrosoftPhoto.Rating"] = "five";
                 AddEXIFDate_ (image, "someday");
                 AddEXIFGPS_ (image, "48/1 51/1 2960/100", "", "2/1 17/1 402/10", "E");
+                image.exifData ()["Exif.Image.Rating"] = uint16_t{9};
             });
             // only EXIF: a date with no zone (the camera's local time), and one with its zone
             WriteJPEG_ (images / "Scans" / "IMG_0102.jpg", [] (Exiv2::Image& image) {
@@ -198,6 +199,25 @@ namespace {
             });
             WriteJPEG_ (images / "Scans" / "IMG_0103.jpg",
                         [] (Exiv2::Image& image) { AddEXIFDate_ (image, "2019:06:01 18:45:30", "+02:00"); });
+            // only EXIF: a rating in stars, and a description
+            WriteJPEG_ (images / "Scans" / "IMG_0104.jpg", [] (Exiv2::Image& image) {
+                image.exifData ()["Exif.Image.Rating"]           = uint16_t{4};
+                image.exifData ()["Exif.Image.ImageDescription"] = "Grandpa's farm";
+            });
+            // as a camera and Windows write them: a rating as both a percentage and stars, and a description that is the
+            // camera's boilerplate
+            WriteJPEG_ (images / "Scans" / "IMG_0105.jpg", [] (Exiv2::Image& image) {
+                image.exifData ()["Exif.Image.Make"]             = "OLYMPUS IMAGING CORP.";
+                image.exifData ()["Exif.Image.ImageDescription"] = "OLYMPUS DIGITAL CAMERA         ";
+                image.exifData ()["Exif.Image.RatingPercent"]    = uint16_t{50};
+                image.exifData ()["Exif.Image.Rating"]           = uint16_t{1};
+            });
+            // a rating of 0 - unrated - and a description that is the camera's model
+            WriteJPEG_ (images / "Scans" / "IMG_0106.jpg", [] (Exiv2::Image& image) {
+                image.xmpData ()["Xmp.MicrosoftPhoto.Rating"]    = "0";
+                image.exifData ()["Exif.Image.Model"]            = "Canon EOS 5D";
+                image.exifData ()["Exif.Image.ImageDescription"] = "Canon EOS 5D";
+            });
             // a camera whose clock was never set
             WriteJPEG_ (images / "Scans" / "unknown.jpg", [] (Exiv2::Image& image) { AddEXIFDate_ (image, "0000:00:00 00:00:00"); });
             WriteJPEG_ (images / "loose.jpg", [] (Exiv2::Image&) {});
@@ -241,7 +261,8 @@ namespace {
             result.Add (key ("1964 New York/IMG_0002.jpg"), d);
         }
         {
-            // digiKam's tags, though the photo is a HEIC (and its date, none - NULL - is no date)
+            // digiKam's tags, though the photo is a HEIC (and its date, none - NULL - is no date; its rating, 7 stars, is left
+            // out - kProblems_)
             Document d;
             d.tags  = Set<String>{"Fred"sv};
             d.album = "1964 New York"sv;
@@ -289,6 +310,27 @@ namespace {
             result.Add (key ("Scans/IMG_0103.jpg"), d);
         }
         {
+            // EXIF's rating in stars (digiKam's mapping: 4 is 0.75), and its description as the comment
+            Document d;
+            d.rating  = 0.75;
+            d.comment = Sequence<Document::Comment>{Document::Comment{"Grandpa's farm"sv}};
+            d.album   = "Scans"sv;
+            result.Add (key ("Scans/IMG_0104.jpg"), d);
+        }
+        {
+            // the percentage, over the stars; and no comment from boilerplate
+            Document d;
+            d.rating = 0.50;
+            d.album  = "Scans"sv;
+            result.Add (key ("Scans/IMG_0105.jpg"), d);
+        }
+        {
+            // unrated is no rating; and no comment from the camera's model
+            Document d;
+            d.album = "Scans"sv;
+            result.Add (key ("Scans/IMG_0106.jpg"), d);
+        }
+        {
             Document d;
             d.album = "Scans"sv;
             result.Add (key ("Scans/unknown.jpg"), d);
@@ -329,8 +371,10 @@ namespace {
     // documents, from files and from digiKam, and whole photos
     constexpr string_view kProblems_ =
         "1964 New York/IMG_0003.jpg ImagePositions.latitudeNumber, ImagePositions.longitudeNumber: 40.7, NULL\n"
+        "1964 New York/IMG_0005.heic ImageInformation.rating: 7\n"
         "IMG_0004.jpg ImageInformation.creationDate: yesterday\n"
         "Scans/IMG_0101.jpg Exif.GPSInfo.GPSLatitude: 48/1 51/1 2960/100\n"
+        "Scans/IMG_0101.jpg Exif.Image.Rating: 9\n"
         "Scans/IMG_0101.jpg Exif.Photo.DateTimeOriginal: someday\n"
         "Scans/IMG_0101.jpg Xmp.MicrosoftPhoto.Rating: five\n"
         "Scans/IMG_0101.jpg Xmp.exif.GPSLatitude: somewhere\n"

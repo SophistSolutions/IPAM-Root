@@ -27,7 +27,8 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
 - `Tools/ImportMetadata/` - reads every image under a directory with Exiv2, and a digiKam SQLite database, merges them,
   and writes JSON (`FileScrape.json`, `DigikamScrape.json`, `ExtenstionTally.json`, `DocumentMetaData.json`) to an
   output directory. Arguments: `-s DIR` (the images), `-d FILE` (the digiKam database - without it, no merge),
-  `--include-digikam-only`, `-o DIR`; `--help` lists them. Where a photo's file and digiKam differ, digiKam's value
+  `--include-digikam-only`, `-o DIR`; `--help` lists them. Which IPTC, XMP and EXIF keys it reads into which field is
+  tabled above `ImageMetadataExtractor::Extract`, with how to read another. Where a photo's file and digiKam differ, digiKam's value
   wins - it is what the user set - and tags are both sets; but a digiKam date that is its file's time is digiKam's guess
   (for a photo with no date of its own), so no date. A value that will not parse (from a file or digiKam), or is half
   there (a position with one coordinate), is left out of its photo's document, not the photo, and a photo Exiv2 cannot

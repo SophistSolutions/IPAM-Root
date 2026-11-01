@@ -26,6 +26,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Sources\Boilerplate.h">
+      <Filter>Sources</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Sources\Digikam.h">
       <Filter>Sources</Filter>
     </ClInclude>

@@ -68,6 +68,7 @@
     <ClCompile Include="..\..\Sources\Problem.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Sources\Boilerplate.h" />
     <ClInclude Include="..\..\Sources\Digikam.h" />
     <ClInclude Include="..\..\Sources\ImageMetadataExtraction.h" />
     <ClInclude Include="..\..\Sources\Problem.h" />

@@ -43,7 +43,8 @@ using Characters::String;
     a geolocation stored in ISO 6709 format. 
 
     rating:
-    some kind of numeric ranking of image importance/quality. We use a number between zero and one, which is mapped from the systems supported by various UIs.
+    some kind of numeric ranking of image importance/quality. We use a number between zero and one, which is mapped from the systems supported by various UIs:
+    stars and percentages as digiKam maps them (Document::RatingFromStars, RatingFromPercent). Unrated is no rating, not zero.
 
     album:
     a path in a heirarchically organized set of semantic categories. An example might be "1964/Summer/Trip to New York". Sometimes these are created in a UI, at other
@@ -60,8 +61,13 @@ using Characters::String;
     a set of strings associated with the document. Traditionally most tags in image metadata have a recording rectangle within the image. We do not save that here, to
     support that you will want to make sure that the image metadata saves this information. A feature of IPAM is that image viewers can specify preference mappings from a 
     particular owner's tag names to their own, so that "Frederick Barbarossa" can be transformed to "Uncle Fred" without changing any of the saved information.
-    A useful feature of most image management software is the ability to support a small 'thumbnail' image with tags for UI display purposes. We will probably want to 
+    A useful feature of most image management software is the ability to support a small 'thumbnail' image with tags for UI display purposes. We will probably want to
     support that, but it would be in a separate data stream.
+
+    Adding a field (the photographer, say - EXIF's Artist, XMP's dc:creator): describe it here, add it to Document, and map it in
+    SupportVariantMapping (Document.cpp) - optional, so files written before it still read. Then ImportMetadata: read it from the
+    files (ImageMetadataExtraction.cpp's table of keys says where), from digiKam if it keeps it (Digikam.cpp), and say which wins
+    in the merge (Main.cpp).
 */
 
 /*
@@ -116,6 +122,25 @@ namespace IPAM::LibIPAM::Metadata {
          *  \brief d as date holds it: its local time, with its offset from UTC if d's time zone is known, else with none
          */
         static String FormatDate (const Time::DateTime& d);
+
+    public:
+        /**
+         *  \brief A rating in stars (digiKam's, EXIF's Rating, XMP's xmp:Rating) as rating holds it: digiKam's mapping, as in
+         *  the percentages it writes to files - 1 star 0.01, 2 0.25, 3 0.50, 4 0.75, 5 1.0 (not the obvious 0.20 a star)
+         *
+         *  nullopt for unrated: 0, or -1 (digiKam's and xmp:Rating's "rejected"). Anything else throws
+         *  DataExchange::BadFormatException.
+         */
+        static optional<double> RatingFromStars (int stars);
+
+    public:
+        /**
+         *  \brief A rating as a percentage (EXIF's RatingPercent, XMP's MicrosoftPhoto:Rating) as rating holds it: Windows and
+         *  digiKam write 5 stars as 99, so 99 is 1.0
+         *
+         *  nullopt for unrated: 0. Anything outside 0 to 100 throws DataExchange::BadFormatException.
+         */
+        static optional<double> RatingFromPercent (int percent);
 
     public:
         static void SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper);

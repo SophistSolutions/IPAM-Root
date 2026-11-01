@@ -8,8 +8,10 @@
 #include "Stroika/Foundation/Containers/Mapping.h"
 #include "Stroika/Foundation/Containers/MultiSet.h"
 #include "Stroika/Foundation/Containers/Set.h"
+#include "Stroika/Foundation/DataExchange/BadFormatException.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Reader.h"
 #include "Stroika/Foundation/DataExchange/Variant/JSON/Writer.h"
+#include "Stroika/Foundation/Execution/Throw.h"
 #include "Stroika/Foundation/IO/FileSystem/FileInputStream.h"
 #include "Stroika/Foundation/IO/FileSystem/FileOutputStream.h"
 
@@ -71,6 +73,37 @@ String Document::FormatDate (const Time::DateTime& d)
 {
     // not d.AsUTC (): that takes an unknown zone for UTC, and a known one loses the local time of day
     return d.Format (Time::DateTime::kISO8601Format);
+}
+
+optional<double> Document::RatingFromStars (int stars)
+{
+    switch (stars) {
+        case -1:
+        case 0:
+            return nullopt;
+        case 1:
+            return 0.01;
+        case 2:
+            return 0.25;
+        case 3:
+            return 0.50;
+        case 4:
+            return 0.75;
+        case 5:
+            return 1.0;
+    }
+    Execution::Throw (BadFormatException{"Invalid rating (not -1 to 5 stars)"sv});
+}
+
+optional<double> Document::RatingFromPercent (int percent)
+{
+    if (percent < 0 or percent > 100) {
+        Execution::Throw (BadFormatException{"Invalid rating (not 0 to 100 percent)"sv});
+    }
+    if (percent == 0) {
+        return nullopt;
+    }
+    return percent == 99 ? 1.0 : percent / 100.0;
 }
 
 void Document::SupportVariantMapping (DataExchange::ObjectVariantMapper& mapper)
