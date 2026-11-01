@@ -237,7 +237,22 @@ static void Import_ (const CommandLine& commandLine)
         mapper.AddCommonType<Sequence<Metadata::Problem>> ();
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (problems), IO::FileSystem::FileOutputStream::New (problemsFilePath));
         if (not problems.empty ()) {
-            cerr << "{} values could not be read, and were left out - see {}"_f(problems.size (), problemsFilePath) << endl;
+            // counted by kind: a directory may be many photos
+            auto             count       = [] (size_t n, string_view one, string_view many) { return "{} {}"_f(n, n == 1 ? one : many); };
+            size_t           values      = problems.Count ([] (const Metadata::Problem& p) { return not p.fKey.empty (); });
+            size_t           directories = problems.Count ([] (const Metadata::Problem& p) { return p.fDirectory; });
+            size_t           photos      = problems.size () - values - directories;
+            Sequence<String> counts;
+            if (values != 0) {
+                counts.Append (count (values, "value"sv, "values"sv));
+            }
+            if (photos != 0) {
+                counts.Append (count (photos, "photo"sv, "photos"sv));
+            }
+            if (directories != 0) {
+                counts.Append (count (directories, "directory"sv, "directories"sv));
+            }
+            cerr << "Left out (could not read): {} - see {}"_f(String::Join (counts), problemsFilePath) << endl;
         }
     }
 }

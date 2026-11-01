@@ -21,6 +21,7 @@ namespace Metadata {
         Stroika::Foundation::Characters::String fKey;    ///< where it was: Exiv2's key, or digiKam's table.column; empty: the whole photo
         Stroika::Foundation::Characters::String fValue;  ///< the value, as text; empty for a whole photo
         Stroika::Foundation::Characters::String fReason; ///< why it would not do: what reading it threw, or what it lacks
+        bool                                    fDirectory{false}; ///< fFile is a directory: its photos, all or some, left out
     };
 
     /**

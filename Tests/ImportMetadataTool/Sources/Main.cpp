@@ -498,15 +498,20 @@ namespace {
         return sb;
     }
 
-    // Runs ImportMetadata on the collection (-s naming its images, as given); returns the DocumentMetaData.json it wrote
-    Mapping<String, Document> RunImportMetadata_ (const Collection_& c, const String& images, const path& outputDirectory, bool includeDigikamOnly)
+    // Runs ImportMetadata on the collection (-s naming its images, as given); returns the DocumentMetaData.json it wrote (and,
+    // if stdErr, what it wrote to stderr)
+    Mapping<String, Document> RunImportMetadata_ (const Collection_& c, const String& images, const path& outputDirectory,
+                                                  bool includeDigikamOnly, String* stdErr = nullptr)
     {
         Sequence<String> args{String{ImportMetadataEXE_ ()}, "-s"sv, images, "-d"sv, String{c.database}, "-o"sv, String{outputDirectory}};
         if (includeDigikamOnly) {
             args.Append ("--include-digikam-only"sv);
         }
         // with a time limit, as a Windows Debug build that aborts shows a dialog, and waits for someone to click it
-        Execution::ProcessRunner{Execution::CommandLine{args}}.Run (""sv, {}, Time::DurationSeconds{5 * 60});
+        String err = get<1> (Execution::ProcessRunner{Execution::CommandLine{args}}.Run (""sv, {}, Time::DurationSeconds{5 * 60}));
+        if (stdErr != nullptr) {
+            *stdErr = err;
+        }
         Mapping<String, Document> result;
         Document::ReadFromJSONFile (&result, outputDirectory / "DocumentMetaData.json");
         return result;
@@ -599,8 +604,11 @@ namespace {
     {
         Collection_ c;
         path        out = c.root / "out";
-        ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, out, false), ExpectedDocuments_ (c, false));
+        String      stdErr;
+        ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, out, false, &stdErr), ExpectedDocuments_ (c, false));
         EXPECT_EQ (ProblemsListing_ (out / "Problems.json", c.images), kProblems_);
+        // and counts them, by kind, on stderr
+        EXPECT_TRUE (stdErr.Contains ("Left out (could not read): 10 values, 2 photos - see "sv)) << stdErr;
         // it writes only into its output directory
         EXPECT_EQ (Listing_ (c.root), "Images digikam4.db out"sv);
         EXPECT_EQ (Listing_ (out), "DigikamScrape.json DocumentMetaData.json ExtenstionTally.json FileScrape.json Problems.json heic.txt jpg.txt"sv);
@@ -624,11 +632,13 @@ namespace {
         if (not unreadable.fWorks) {
             GTEST_SKIP () << "cannot make a directory unreadable here (as root)";
         }
-        path out = c.root / "out";
-        ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, out, false), ExpectedDocuments_ (c, false));
+        path   out = c.root / "out";
+        String stdErr;
+        ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, out, false, &stdErr), ExpectedDocuments_ (c, false));
         String problems = ProblemsListing_ (out / "Problems.json", c.images);
         EXPECT_TRUE (problems.Contains ("1964 New York/Locked\n"sv)) << problems;
         EXPECT_EQ (problems.ReplaceAll ("1964 New York/Locked\n"sv, ""sv), kProblems_);
+        EXPECT_TRUE (stdErr.Contains ("Left out (could not read): 10 values, 2 photos, 1 directory - see "sv)) << stdErr;
     }
 
     GTEST_TEST (ImportMetadata, MissingSourceDirectoryFails_)

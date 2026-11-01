@@ -110,7 +110,7 @@ namespace Metadata {
         // For ForEachFile_'s onUnreadable: a directory whose photos were left out (its contents unknown) - why is current_exception ()
         void ReportUnreadableDirectory_ (const ProblemSink& problemSink, const path& dir)
         {
-            Report (problemSink, Problem{.fFile = DocumentKey_ (dir), .fReason = Characters::ToString (current_exception ())});
+            Report (problemSink, Problem{.fFile = DocumentKey_ (dir), .fReason = Characters::ToString (current_exception ()), .fDirectory = true});
         }
 
         // Text in IPTC or EXIF: UTF-8 if it is valid UTF-8 (IPTC naming UTF-8 as its character set, as digiKam writes it;
