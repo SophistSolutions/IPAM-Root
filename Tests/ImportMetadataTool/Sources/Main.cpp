@@ -124,7 +124,7 @@ namespace {
                    "    (5, 2, 'IMG_0004.jpg'), (6, 1, 'IMG_0005.heic'), (7, 1, 'IMG_0006.jpg');"
                    "INSERT INTO ImageComments VALUES (1, 1, NULL, 'Fred took this one'), (2, 2, 'Sterling', 'Fred took this one'),"
                    "    (3, 3, NULL, 'Screenshot');"
-                   "INSERT INTO ImagePositions VALUES (1, 40.7484, -73.9857), (2, 40.6894, -74.0447);"
+                   "INSERT INTO ImagePositions VALUES (1, 40.7484, -73.9857), (2, 40.6894, -74.0447), (3, 40.7, NULL), (4, NULL, NULL);"
                    "INSERT INTO ImageInformation VALUES (1, 5, '1964-07-04T14:30:00.000'), (2, 1, '1964-07-05T10:00:00.000'),"
                    "    (3, 5, '1964-07-06T09:00:00.000'), (4, 3, '1964-07-07T08:00:00.000'), (5, 2, 'yesterday'), (6, 0, NULL);"
                    "INSERT INTO Tags VALUES (1, 'Fred'), (2, 'Statue of Liberty'), (3, 'Uncle Bob'), (4, 'Color Label Red');"
@@ -294,7 +294,7 @@ namespace {
             result.Add (key ("Scans/unknown.jpg"), d);
         }
         {
-            // in both, in digiKam's root album
+            // in both, in digiKam's root album (its position in digiKam all NULL: no location)
             Document d;
             d.tags   = Set<String>{"Uncle Bob"sv};
             d.date   = "1964-07-07T08:00:00"sv;
@@ -304,7 +304,8 @@ namespace {
         }
         if (includeDigikamOnly) {
             {
-                // digiKam alone (and its comment is one ImportMetadata ignores)
+                // digiKam alone (and its comment is one ImportMetadata ignores, and its position, half NULL, is left out -
+                // kProblems_)
                 Document d;
                 d.tags   = Set<String>{"Fred"sv};
                 d.date   = "1964-07-06T09:00:00"sv;
@@ -326,14 +327,16 @@ namespace {
 
     // What ImportMetadata should leave out for Collection_, and report, as ProblemsListing_ lists them: values of photos'
     // documents, from files and from digiKam, and whole photos
-    constexpr string_view kProblems_ = "IMG_0004.jpg ImageInformation.creationDate: yesterday\n"
-                                       "Scans/IMG_0101.jpg Exif.GPSInfo.GPSLatitude: 48/1 51/1 2960/100\n"
-                                       "Scans/IMG_0101.jpg Exif.Photo.DateTimeOriginal: someday\n"
-                                       "Scans/IMG_0101.jpg Xmp.MicrosoftPhoto.Rating: five\n"
-                                       "Scans/IMG_0101.jpg Xmp.exif.GPSLatitude: somewhere\n"
-                                       "Scans/IMG_0101.jpg Xmp.xmp.CreateDate: last summer\n"
-                                       "Scans/broken.jpg\n"
-                                       "Scans/zeros.nef";
+    constexpr string_view kProblems_ =
+        "1964 New York/IMG_0003.jpg ImagePositions.latitudeNumber, ImagePositions.longitudeNumber: 40.7, NULL\n"
+        "IMG_0004.jpg ImageInformation.creationDate: yesterday\n"
+        "Scans/IMG_0101.jpg Exif.GPSInfo.GPSLatitude: 48/1 51/1 2960/100\n"
+        "Scans/IMG_0101.jpg Exif.Photo.DateTimeOriginal: someday\n"
+        "Scans/IMG_0101.jpg Xmp.MicrosoftPhoto.Rating: five\n"
+        "Scans/IMG_0101.jpg Xmp.exif.GPSLatitude: somewhere\n"
+        "Scans/IMG_0101.jpg Xmp.xmp.CreateDate: last summer\n"
+        "Scans/broken.jpg\n"
+        "Scans/zeros.nef";
 
     // The problems in a Problems.json, sorted, one per line: the photo (relative to images), and the key and the value (or
     // neither, for a whole photo). Each must give a reason too.

@@ -29,8 +29,9 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
   output directory. Arguments: `-s DIR` (the images), `-d FILE` (the digiKam database - without it, no merge),
   `--include-digikam-only`, `-o DIR`; `--help` lists them. Where a photo's file and digiKam differ, digiKam's value
   wins - it is what the user set - and tags are both sets; but a digiKam date that is its file's time is digiKam's guess
-  (for a photo with no date of its own), so no date. A value that will not parse (from a file or digiKam) is left
-  out of its photo's document, not the photo, and a photo Exiv2 cannot read is left out: each goes to a callback
+  (for a photo with no date of its own), so no date. A value that will not parse (from a file or digiKam), or is half
+  there (a position with one coordinate), is left out of its photo's document, not the photo, and a photo Exiv2 cannot
+  read is left out: each goes to a callback
   (`Problem.h`), and ImportMetadata lists them all in `Problems.json`, and counts them on stderr. A file that is not a
   photo Exiv2 reads (a video, a text file) is skipped quietly; a digiKam database it cannot read is an error.
 - `Tools/TagStats/` - reads ImportMetadata's `DocumentMetaData.json` and writes JSON: for each tag, its photos and how

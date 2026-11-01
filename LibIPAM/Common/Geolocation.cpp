@@ -12,6 +12,7 @@
 #include "Stroika/Foundation/Characters/String2Int.h"
 #include "Stroika/Foundation/Characters/StringBuilder.h"
 #include "Stroika/Foundation/DataExchange/BadFormatException.h"
+#include "Stroika/Foundation/Debug/Assertions.h"
 #include "Stroika/Foundation/Debug/Trace.h"
 
 #include "Geolocation.h"
@@ -28,6 +29,7 @@ using namespace IPAM::LibIPAM::Common;
  */
 Geolocation::Coordinate::Coordinate (double d)
 {
+    Require (not std::isnan (d));
     _value = std::fmod (d, 360);
 }
 

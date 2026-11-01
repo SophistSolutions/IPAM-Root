@@ -70,8 +70,13 @@ namespace IPAM::LibIPAM::Common {
          */
         class Latitude : public Coordinate {
         public:
+            /**
+             *  \brief In degrees, south negative
+             *
+             *  \pre not std::isnan (d): a location not known is no Geolocation, not one with a NaN coordinate
+             */
             Latitude (double d = 0);
-            Latitude (const String& s);
+            Latitude (const String& s); ///< \brief ISO 6709's latitude: +DD, +DDMM or +DDMMSS, then any decimal fraction
             Latitude (const Latitude& rhs) = default;
 
             nonvirtual Latitude& operator= (const Latitude& rhs) = default;
@@ -89,8 +94,13 @@ namespace IPAM::LibIPAM::Common {
          */
         class Longitude : public Coordinate {
         public:
+            /**
+             *  \brief In degrees, west negative
+             *
+             *  \pre not std::isnan (d): a location not known is no Geolocation, not one with a NaN coordinate
+             */
             Longitude (double d = 0);
-            Longitude (const String& s);
+            Longitude (const String& s); ///< \brief ISO 6709's longitude: +DDD, +DDDMM or +DDDMMSS, then any decimal fraction
             Longitude (const Longitude& rhs) = default;
 
             nonvirtual Longitude& operator= (const Longitude& rhs) = default;

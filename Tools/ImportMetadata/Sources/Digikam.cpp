@@ -1,5 +1,7 @@
 #include "Stroika/Frameworks/StroikaPreComp.h"
 
+#include <cmath>
+
 #include "Stroika/Foundation/Common/StroikaVersion.h"
 
 // Stroika's IO::FileSystem::Ptr::GetCreationTime, from its 3.0d26 release (https://github.com/SophistSolutions/Stroika/issues/1264
@@ -217,7 +219,8 @@ namespace digikam {
 
             // not sure how to get titles -- perhaps in metadata?
 
-            // location
+            // location: a NULL coordinate reads as NaN, VariantValue's no value - none is no position, and half of one cannot be
+            // used, so is left out (and reported)
             for (const auto& ii :
                  conn.mkStatement ("Select imageid,latitudeNumber,longitudeNumber/*,altitude*/ from ImagePositions;"sv).GetAllRows (0, 1, 2)) {
                 int    id    = std::get<0> (ii).As<int> ();
@@ -226,6 +229,16 @@ namespace digikam {
                 //  double  alt     = std::get<3> (ii).As<double> ();
                 String path;
                 if (imageIDToImagePath.Lookup (id, &path)) {
+                    if (std::isnan (lat) or std::isnan (longi)) {
+                        if (not(std::isnan (lat) and std::isnan (longi))) {
+                            auto text = [] (double d) { return std::isnan (d) ? "NULL"_k : "{}"_f(d); };
+                            Metadata::Report (problemSink, Metadata::Problem{.fFile = path,
+                                                                             .fKey = "ImagePositions.latitudeNumber, ImagePositions.longitudeNumber"sv,
+                                                                             .fValue = "{}, {}"_f(text (lat), text (longi)),
+                                                                             .fReason = std::isnan (lat) ? "no latitude"sv : "no longitude"sv});
+                        }
+                        continue;
+                    }
                     Document ms;
                     scrapedMetadata.Lookup (path, &ms);
                     ms.location = Geolocation{lat, longi /*, alt*/}.ToISOString ();
