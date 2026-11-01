@@ -181,6 +181,10 @@ namespace {
                 image.xmpData ()["Xmp.exif.GPSLatitude"]      = "48,51,29.6N";
                 image.xmpData ()["Xmp.exif.GPSLongitude"]     = "2,17,40.2E";
                 AddXMPRegionName_ (image, "Grandma");
+                // the standard fields, which ACDSee's and MicrosoftPhoto's above win over
+                image.xmpData ()["Xmp.dc.title"]       = "lang=\"x-default\" Wedding";
+                image.xmpData ()["Xmp.dc.description"] = "lang=\"x-default\" Attic find";
+                image.xmpData ()["Xmp.xmp.Rating"]     = "2";
             });
             WriteJPEG_ (images / "Scans" / "IMG_0101.jpg", [] (Exiv2::Image& image) {
                 AddIPTCKeywords_ (image, {"Grandma"});
@@ -188,6 +192,7 @@ namespace {
                 image.xmpData ()["Xmp.exif.GPSLongitude"]     = "2,17,40.2E";
                 image.xmpData ()["Xmp.xmp.CreateDate"]        = "last summer";
                 image.xmpData ()["Xmp.MicrosoftPhoto.Rating"] = "five";
+                image.xmpData ()["Xmp.xmp.Rating"]            = "lots";
                 AddEXIFDate_ (image, "someday");
                 AddEXIFGPS_ (image, "48/1 51/1 2960/100", "", "2/1 17/1 402/10", "E");
                 image.exifData ()["Exif.Image.Rating"] = uint16_t{9};
@@ -217,6 +222,17 @@ namespace {
                 image.xmpData ()["Xmp.MicrosoftPhoto.Rating"]    = "0";
                 image.exifData ()["Exif.Image.Model"]            = "Canon EOS 5D";
                 image.exifData ()["Exif.Image.ImageDescription"] = "Canon EOS 5D";
+            });
+            // only XMP's standard fields, as Lightroom writes them: a title and description in the default language, keywords,
+            // and a rating in stars
+            WriteJPEG_ (images / "Scans" / "IMG_0107.jpg", [] (Exiv2::Image& image) {
+                image.xmpData ()["Xmp.dc.title"]       = "lang=\"x-default\" Grandpa's farm";
+                image.xmpData ()["Xmp.dc.description"] = "lang=\"x-default\" From the hayloft";
+                Exiv2::XmpArrayValue keywords{Exiv2::TypeId::xmpBag};
+                keywords.read ("Grandpa");
+                keywords.read ("Farm");
+                image.xmpData ().add (Exiv2::XmpKey{"Xmp.dc.subject"}, &keywords);
+                image.xmpData ()["Xmp.xmp.Rating"] = "3";
             });
             // a camera whose clock was never set
             WriteJPEG_ (images / "Scans" / "unknown.jpg", [] (Exiv2::Image& image) { AddEXIFDate_ (image, "0000:00:00 00:00:00"); });
@@ -276,7 +292,8 @@ namespace {
             result.Add (key ("1964 New York/IMG_0006.jpg"), d);
         }
         {
-            // the file alone (its location in XMP's other form, DDD,MM,SSk)
+            // the file alone (its location in XMP's other form, DDD,MM,SSk; ACDSee's title and comment, and MicrosoftPhoto's
+            // rating, over the standard fields')
             Document d;
             d.tags     = Set<String>{"Grandma"sv};
             d.date     = "1931-05-01T12:00:00+01:00"sv;
@@ -331,6 +348,16 @@ namespace {
             result.Add (key ("Scans/IMG_0106.jpg"), d);
         }
         {
+            // XMP's standard fields: dc:title, dc:description, dc:subject's keywords, and xmp:Rating in stars (3 is 0.50)
+            Document d;
+            d.tags    = Set<String>{"Grandpa"sv, "Farm"sv};
+            d.title   = "Grandpa's farm"sv;
+            d.comment = Sequence<Document::Comment>{Document::Comment{"From the hayloft"sv}};
+            d.rating  = 0.50;
+            d.album   = "Scans"sv;
+            result.Add (key ("Scans/IMG_0107.jpg"), d);
+        }
+        {
             Document d;
             d.album = "Scans"sv;
             result.Add (key ("Scans/unknown.jpg"), d);
@@ -379,6 +406,7 @@ namespace {
         "Scans/IMG_0101.jpg Xmp.MicrosoftPhoto.Rating: five\n"
         "Scans/IMG_0101.jpg Xmp.exif.GPSLatitude: somewhere\n"
         "Scans/IMG_0101.jpg Xmp.xmp.CreateDate: last summer\n"
+        "Scans/IMG_0101.jpg Xmp.xmp.Rating: lots\n"
         "Scans/broken.jpg\n"
         "Scans/zeros.nef";
 

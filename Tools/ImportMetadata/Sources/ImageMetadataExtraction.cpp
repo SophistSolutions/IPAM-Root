@@ -72,6 +72,19 @@ namespace Metadata {
             return Time::DateTime::Parse ("{}-{}-{}T{}{}"_f(m[0], m[1], m[2], m[3], offset.value_or (String{})), Time::DateTime::kISO8601Format);
         }
 
+        // An XMP language alternative's text (dc:title's, dc:description's): in the default language, else the first it has
+        String LangAltText_ (const Exiv2::Xmpdatum& d)
+        {
+            if (const auto* langAlt = dynamic_cast<const Exiv2::LangAltValue*> (&d.value ())) {
+                auto i = langAlt->value_.find ("x-default");
+                if (i == langAlt->value_.end ()) {
+                    i = langAlt->value_.begin ();
+                }
+                return i == langAlt->value_.end () ? String{} : String::FromUTF8 (i->second);
+            }
+            return String::FromUTF8 (d.toString ());
+        }
+
         // EXIF's GPS coordinate - degrees, minutes and seconds, each a rational - signed by ref: positive or negative
         double EXIFCoordinate_ (const Exiv2::Exifdatum& dms, const Exiv2::Exifdatum* ref, string_view positive, string_view negative)
         {
@@ -107,19 +120,27 @@ namespace Metadata {
      *  block below, reading these keys (Exiv2's, less their source's prefix) into these fields:
      *
      *      field       IPTC (Iptc.)                     XMP (Xmp.)                          EXIF (Exif.)
-     *      tags        Application2.Keywords            mwg-rs face region names            -
-     *      title       Application2.ObjectName          acdsee.caption                      -
-     *      comment     Application2.Caption             acdsee.notes (+ acdsee.author)      Image.ImageDescription
+     *      tags        Application2.Keywords            dc.subject, and mwg-rs face         -
+     *                                                       region names
+     *      title       Application2.ObjectName          acdsee.caption, else dc.title       -
+     *      comment     Application2.Caption             acdsee.notes (+ acdsee.author),     Image.ImageDescription
+     *                                                       else dc.description
      *      date        Application2.DateCreated         xmp.CreateDate                      Photo.DateTimeOriginal
      *                      (+ TimeCreated)                                                      (+ OffsetTimeOriginal)
      *      location    -                                exif.GPSLatitude, GPSLongitude      GPSInfo.GPSLatitude, GPSLongitude
      *                                                                                           (+ their Refs)
-     *      rating      -                                MicrosoftPhoto.Rating               Image.RatingPercent, else Rating
+     *      rating      -                                MicrosoftPhoto.Rating,              Image.RatingPercent, else Rating
+     *                                                       else xmp.Rating
      *
      *  XMP's value replaces IPTC's (tags add to them); EXIF's - what the camera recorded - only fills in what IPTC and XMP
-     *  lack, as they are what someone set since. To read another key: add it to its source's block, read its value inside
-     *  readValue (so a value that will not parse is left out and reported, not the photo), and add it to this table. A
-     *  value no field holds (EXIF's Artist, the photographer) needs a field first: Document.h says how to add one.
+     *  lack, as they are what someone set since. Within XMP, the standard fields (dc, xmp) fill in what ACDSee's and
+     *  MicrosoftPhoto's lack: digiKam writes both, the same.
+     *
+     *  To read another key: add it to its source's block, read its value inside readValue (so a value that will not parse
+     *  is left out and reported, not the photo), and add it to this table. A value no field holds (EXIF's Artist, XMP's
+     *  dc.creator - the photographer) needs a field first: Document.h says how to add one. Not read yet, though a field
+     *  holds it: XMP's other dates (photoshop.DateCreated, exif.DateTimeOriginal), hierarchical keywords
+     *  (lr.hierarchicalSubject, digiKam.TagsList), and a video's (video.*, https://github.com/SophistSolutions/IPAM-Root/issues/11).
      */
     Metadata::Document ImageMetadataExtractor::Extract (const path& pictFile)
     {
@@ -208,6 +229,11 @@ namespace Metadata {
                     static const String kAltitudeKeyword  = "Xmp.exif.GPSAltitude"sv;
                     static const String kLatitudeKeyword  = "Xmp.exif.GPSLatitude"sv;
                     static const String kLongitudeKeyword = "Xmp.exif.GPSLongitude"sv;
+                    // the standard fields
+                    static const String kStandardTagsKeyword    = "Xmp.dc.subject"sv;
+                    static const String kStandardTitleKeyword   = "Xmp.dc.title"sv;
+                    static const String kStandardCommentKeyword = "Xmp.dc.description"sv;
+                    static const String kStandardRatingKeyword  = "Xmp.xmp.Rating"sv;
 
                     static const Characters::RegularExpression tagEntry{"^Xmp\\.mwg-rs\\.Regions\\/mwg-rs:RegionList\\[(?:[0-9]*)?\\]\\/mwg-rs:Name"sv};
                     optional<String> foundLongitude;
@@ -215,6 +241,10 @@ namespace Metadata {
                     optional<String> foundAltitude;
                     optional<String> foundComment;
                     optional<String> foundAuthor;
+                    bool             foundTitle{false};
+                    optional<String> foundStandardTitle;
+                    optional<String> foundStandardComment;
+                    optional<string> foundStandardRating;
                     for (Exiv2::XmpData::const_iterator md = xmpData.begin (); md != xmpData.end (); ++md) {
                         String key = String::FromNarrowSDKString (md->key ());
                         if (key == kRatingKeyword) {
@@ -222,7 +252,25 @@ namespace Metadata {
                             readValue (key, value, [&] () { ms.rating = Document::RatingFromPercent (stoi (md->value ().toString ())); });
                         }
                         else if (key == kTitleKeyword) {
-                            ms.title = String::FromNarrowSDKString (md->value ().toString ());
+                            ms.title   = String::FromNarrowSDKString (md->value ().toString ());
+                            foundTitle = true;
+                        }
+                        else if (key == kStandardTagsKeyword) {
+                            for (size_t i = 0; i < md->count (); ++i) {
+                                String tag = String::FromUTF8 (md->toString (i));
+                                if (not tag.empty () and tag != "Ignored") {
+                                    ms.tags.Add (tag);
+                                }
+                            }
+                        }
+                        else if (key == kStandardTitleKeyword) {
+                            foundStandardTitle = LangAltText_ (*md);
+                        }
+                        else if (key == kStandardCommentKeyword) {
+                            foundStandardComment = LangAltText_ (*md);
+                        }
+                        else if (key == kStandardRatingKeyword) {
+                            foundStandardRating = md->toString ();
                         }
                         else if (key == kCommentKeyword) {
                             foundComment = String::FromNarrowSDKString (md->value ().toString ());
@@ -267,6 +315,17 @@ namespace Metadata {
                         // only one comment supported by metadata so don't need to check if already created
                         ms.comment = Containers::Sequence<Metadata::Document::Comment> ();
                         ms.comment.value ().Append (Metadata::Document::Comment{foundComment.value (), foundAuthor});
+                    }
+                    else if (foundStandardComment and not foundStandardComment->empty () and *foundStandardComment != "Ignored") {
+                        ms.comment = Containers::Sequence<Metadata::Document::Comment>{Metadata::Document::Comment{*foundStandardComment}};
+                    }
+                    // the standard fields fill in what ACDSee's and MicrosoftPhoto's lack
+                    if (not foundTitle and foundStandardTitle and not foundStandardTitle->empty ()) {
+                        ms.title = *foundStandardTitle;
+                    }
+                    if (not ms.rating and foundStandardRating) {
+                        readValue (kStandardRatingKeyword, String::FromUTF8 (*foundStandardRating),
+                                   [&] () { ms.rating = Document::RatingFromStars (stoi (*foundStandardRating)); });
                     }
                 }
             }
