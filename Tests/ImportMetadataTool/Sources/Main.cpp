@@ -20,6 +20,7 @@
 #include "Stroika/Foundation/Execution/Module.h"
 #include "Stroika/Foundation/Execution/ProcessRunner.h"
 #include "Stroika/Foundation/IO/FileSystem/FileInputStream.h"
+#include "Stroika/Foundation/IO/FileSystem/FileSystem.h"
 #include "Stroika/Foundation/IO/FileSystem/TemporaryFile.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
@@ -120,7 +121,7 @@ namespace {
         conn.Exec ("INSERT INTO AlbumRoots VALUES (1, 'volumeid:?path={}', '/');"_f(String{albumRoot.generic_wstring ()}.ReplaceAll ("'"sv, "''"sv)));
         conn.Exec ("INSERT INTO Albums VALUES (1, 1, '/1964 New York'), (2, 1, '/');"
                    "INSERT INTO Images VALUES (1, 1, 'IMG_0001.jpg'), (2, 1, 'IMG_0002.jpg'), (3, 1, 'IMG_0003.jpg'), (4, 2, 'loose.jpg'),"
-                   "    (5, 2, 'IMG_0004.jpg'), (6, 1, 'IMG_0005.heic');"
+                   "    (5, 2, 'IMG_0004.jpg'), (6, 1, 'IMG_0005.heic'), (7, 1, 'IMG_0006.jpg');"
                    "INSERT INTO ImageComments VALUES (1, 1, NULL, 'Fred took this one'), (2, 2, 'Sterling', 'Fred took this one'),"
                    "    (3, 3, NULL, 'Screenshot');"
                    "INSERT INTO ImagePositions VALUES (1, 40.7484, -73.9857), (2, 40.6894, -74.0447);"
@@ -129,10 +130,16 @@ namespace {
                    "INSERT INTO Tags VALUES (1, 'Fred'), (2, 'Statue of Liberty'), (3, 'Uncle Bob'), (4, 'Color Label Red');"
                    "INSERT INTO TagProperties VALUES (1, 'person', 'Fred'), (3, 'faceEngineId', '7'), (4, 'internalTag', NULL);"
                    "INSERT INTO ImageTags VALUES (1, 1), (1, 2), (1, 3), (1, 4), (2, 1), (3, 1), (4, 3), (5, 1), (6, 1);"sv);
+        // digiKam's guess for IMG_0006, which has no date of its own: its file's time, as local time with no zone (digiKam
+        // takes the earlier of when it was created and last modified - here last modified, which ImportMetadata knows too)
+        using Time::DateTime;
+        DateTime fileTime = IO::FileSystem::Default ().GetFileLastModificationDate (albumRoot / "1964 New York" / "IMG_0006.jpg").AsLocalTime ();
+        conn.Exec ("INSERT INTO ImageInformation VALUES (7, 3, '{}');"_f(
+            DateTime{fileTime.GetDate (), fileTime.GetTimeOfDay ()}.Format (DateTime::kISO8601Format)));
     }
 
-    // A small digiKam collection - photos, and its database - in a temporary directory. Its database knows IMG_0001 to 0003
-    // and IMG_0005.heic in its album 1964 New York, and loose.jpg and IMG_0004 in its root album (0003 and 0004 have no file);
+    // A small digiKam collection - photos, and its database - in a temporary directory. Its database knows IMG_0001 to 0003,
+    // IMG_0005.heic and IMG_0006 in its album 1964 New York, and loose.jpg and IMG_0004 in its root album (0003 and 0004 have no file);
     // Scans is not in it, and nor is anything ImportMetadata skips (a hidden directory, a text file) or cannot read (damaged
     // photos).
     struct Collection_ {
@@ -163,6 +170,8 @@ namespace {
             });
             // a phone's HEIC photo (a JPEG by that name: the merge goes by the name), whose tags digiKam keeps in a sidecar
             WriteJPEG_ (images / "1964 New York" / "IMG_0005.heic", [] (Exiv2::Image&) {});
+            // no date of its own, so digiKam's is a guess (WriteDigikamDB_)
+            WriteJPEG_ (images / "1964 New York" / "IMG_0006.jpg", [] (Exiv2::Image&) {});
             WriteJPEG_ (images / "Scans" / "IMG_0100.jpg", [] (Exiv2::Image& image) {
                 image.xmpData ()["Xmp.xmp.CreateDate"]        = "1931-05-01T12:00:00+01:00";
                 image.xmpData ()["Xmp.acdsee.caption"]        = "Grandma's wedding";
@@ -237,6 +246,13 @@ namespace {
             d.tags  = Set<String>{"Fred"sv};
             d.album = "1964 New York"sv;
             result.Add (key ("1964 New York/IMG_0005.heic"), d);
+        }
+        {
+            // digiKam's date is its guess - the file's time - not one the user set, so none; the rest of digiKam's stays
+            Document d;
+            d.rating = 0.50;
+            d.album  = "1964 New York"sv;
+            result.Add (key ("1964 New York/IMG_0006.jpg"), d);
         }
         {
             // the file alone (its location in XMP's other form, DDD,MM,SSk)

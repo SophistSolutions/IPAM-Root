@@ -1,5 +1,23 @@
 #include "Stroika/Frameworks/StroikaPreComp.h"
 
+#include "Stroika/Foundation/Common/StroikaVersion.h"
+
+// Stroika's IO::FileSystem::Ptr::GetCreationTime, from its 3.0d26 release (https://github.com/SophistSolutions/Stroika/issues/1264
+// - not the 3.0d26x builds before it, which may lack it); before it, GetCreationTime_'s own
+#define qIPAM_StroikaHasGetCreationTime_                                                                                                   \
+    (qStroika_Version_FullVersion >= Stroika_Make_FULL_VERSION (3, 0, qStroika_Version_Stage_Dev, 26, 1))
+
+#if not qIPAM_StroikaHasGetCreationTime_
+#if qStroika_Platform_Linux
+#include <fcntl.h>
+#include <sys/stat.h>
+#elif qStroika_Platform_MacOS
+#include <sys/stat.h>
+#elif qStroika_Platform_Windows
+#include <Windows.h>
+#endif
+#endif
+
 #include "Stroika/Foundation/Characters/RegularExpression.h"
 #include "Stroika/Foundation/Characters/String.h"
 #include "Stroika/Foundation/Characters/ToString.h"
@@ -14,6 +32,7 @@
 #include "Stroika/Foundation/Database/SQL/Statement.h"
 #include "Stroika/Foundation/Debug/Trace.h"
 #include "Stroika/Foundation/Execution/Activity.h"
+#include "Stroika/Foundation/IO/FileSystem/FileSystem.h"
 #include "Stroika/Foundation/IO/FileSystem/PathName.h"
 #include "Stroika/Foundation/Streams/iostream/OutputStreamFromStdOStream.h"
 #include "Stroika/Foundation/Time/DateTime.h"
@@ -28,6 +47,7 @@ using namespace Stroika::Foundation::Characters;
 using namespace Stroika::Foundation::Containers;
 using namespace Stroika::Foundation::Database;
 using namespace Stroika::Foundation::Database::SQL;
+using Stroika::Foundation::Time::DateTime;
 
 using namespace IPAM;
 
@@ -46,6 +66,65 @@ using LibIPAM::Metadata::Document;
     to find images need Images.id, Images.name, Images.album, Albums.relativePath
     to find useful tags: TagProperties.property (== persion|faceEngineId and has non-null value)
 */
+
+namespace {
+    // When file was created, if its file system records that (on Linux, only some do); nullopt too if it cannot be read
+    optional<DateTime> GetCreationTime_ (const filesystem::path& file)
+    {
+#if qIPAM_StroikaHasGetCreationTime_
+        return IO::FileSystem::Default ().GetCreationTime (file);
+#elif qStroika_Platform_Linux
+        struct statx s{};
+        if (::statx (AT_FDCWD, file.c_str (), 0, STATX_BTIME, &s) == 0 and (s.stx_mask & STATX_BTIME)) {
+            return DateTime{static_cast<time_t> (s.stx_btime.tv_sec)};
+        }
+        return nullopt;
+#elif qStroika_Platform_MacOS
+        struct stat s{};
+        if (::stat (file.c_str (), &s) == 0) {
+            return DateTime{static_cast<time_t> (s.st_birthtimespec.tv_sec)};
+        }
+        return nullopt;
+#elif qStroika_Platform_Windows
+        WIN32_FILE_ATTRIBUTE_DATA attributes{};
+        if (::GetFileAttributesExW (file.c_str (), GetFileExInfoStandard, &attributes)) {
+            return DateTime{attributes.ftCreationTime};
+        }
+        return nullopt;
+#else
+        return nullopt;
+#endif
+    }
+
+    // Whether a digiKam date is one of its file's times - when created or last modified - to the second: digiKam's scanner,
+    // finding no date in a photo's metadata, takes the earlier of the two (ItemScanner::creationDateFromFilesystem) - a guess,
+    // not a date the user set. Which digiKam keeps, with no zone - the file's local time or UTC - is not known, so either
+    // matches. False if the file cannot be read (digiKam's path names another machine's disk, say).
+    // A date set with digiKam's Adjust Time & Date, its "File last modified" box checked, matches too: the file then has it
+    // in its metadata as well - except a RAW or HEIC file, whose metadata goes to a sidecar.
+    bool IsFileTime_ (const DateTime& digikamDate, const filesystem::path& file)
+    {
+        Sequence<DateTime> fileTimes;
+        try {
+            fileTimes.Append (IO::FileSystem::Default ().GetFileLastModificationDate (file).AsUTC ());
+            if (optional<DateTime> created = GetCreationTime_ (file)) {
+                fileTimes.Append (created->AsUTC ());
+            }
+        }
+        catch (...) {
+            return false;
+        }
+        Sequence<DateTime> asUTC;
+        if (digikamDate.GetTimezone ()) {
+            asUTC.Append (digikamDate.AsUTC ());
+        }
+        else {
+            asUTC.Append (DateTime{digikamDate.GetDate (), digikamDate.GetTimeOfDay (), Time::Timezone::kLocalTime}.AsUTC ());
+            asUTC.Append (DateTime{digikamDate.GetDate (), digikamDate.GetTimeOfDay (), Time::Timezone::kUTC});
+        }
+        return fileTimes.Any ([&] (const DateTime& t) { return asUTC.Contains (t); });
+    }
+}
 
 namespace digikam {
 
@@ -189,10 +268,17 @@ namespace digikam {
                         default:
                             DbgTrace ("rating, unknown value = : {} for {}"_f, id, path);
                     }
-                    // a date that will not parse is left out (and reported), not the rest of the row; none (NULL) is no date
+                    // a date that will not parse is left out (and reported), not the rest of the row; none (NULL) is no date, and
+                    // nor is digiKam's guess, its file's time
                     if (not date.empty ()) {
                         Metadata::ReadOrReport (problemSink, path, "ImageInformation.creationDate"sv, date, [&] () {
-                            ms.date = Document::FormatDate (Time::DateTime::Parse (date, Time::DateTime::kISO8601Format));
+                            DateTime d = DateTime::Parse (date, DateTime::kISO8601Format);
+                            if (IsFileTime_ (d, path.As<filesystem::path> ())) {
+                                DbgTrace ("digiKam's date for {} is its file's time, not a date the user set: {}"_f, path, date);
+                            }
+                            else {
+                                ms.date = Document::FormatDate (d);
+                            }
                         });
                     }
                     //   DbgTrace (L"date: %d, %s", id, ms.date.value ().c_str ());

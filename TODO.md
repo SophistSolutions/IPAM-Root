@@ -23,3 +23,8 @@ as they are done.
   ["${workspaceFolder}"]` - which also puts `VERSION` ahead of the system `<version>` (the compile is fine: there the
   system directories come first). Once a Stroika upgrade brings #1252's fix, set IPAM up as its upgrade note says, and
   check IntelliSense opens a `Tools/ImportMetadata` source with no errors.
+
+- **A file's creation time - waits on Stroika [#1264](https://github.com/SophistSolutions/Stroika/issues/1264)**
+  (`IO::FileSystem::Ptr::GetCreationTime`, in its 3.0d26 milestone). `Tools/ImportMetadata/Sources/Digikam.cpp`'s
+  `GetCreationTime_` calls Stroika's from its 3.0d26 release, and carries its own code until then. Once a Stroika upgrade
+  brings it, delete that code, its `#include`s and `qIPAM_StroikaHasGetCreationTime_`.
