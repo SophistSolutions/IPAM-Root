@@ -505,7 +505,7 @@ namespace Metadata {
         try {
             Exiv2::Image::UniquePtr image = Exiv2::ImageFactory::open (Exiv2Path_ (pictFile));
             if (image != nullptr) {
-                std::ofstream outfile (outputDirectoryForSampleFiles.As<path> () / (pictFile.extension ().wstring ().substr (1) + L".txt"));
+                std::ofstream outfile{outputDirectoryForSampleFiles.As<path> () / (pictFile.extension ().wstring ().substr (1) + L".txt")};
 
                 image->readMetadata ();
                 outfile << "metadata of " << String{pictFile}.AsUTF8<string> () << endl;
