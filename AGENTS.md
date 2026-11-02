@@ -34,10 +34,11 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
   there (a position with one coordinate), is left out of its photo's document, not the photo, and a photo Exiv2 cannot
   read is left out, as is a directory it cannot read: each goes to a callback (`Problem.h`), and ImportMetadata lists
   them all in `Problems.json`, and counts them on stderr. A directory Windows keeps for itself (hidden and system, as
-  `$RECYCLE.BIN` at a drive's root) is skipped, and listed there as a warning, not counted. A file Exiv2 cannot read with no photo's extension (a text
-  file) is skipped quietly. A video Exiv2 reads is listed, but with none of its own metadata
-  (https://github.com/SophistSolutions/IPAM-Root/issues/11). A source directory or digiKam database it cannot read is an
-  error.
+  `$RECYCLE.BIN` at a drive's root) is skipped, and listed there as a warning, not counted. A file Exiv2 cannot read
+  with no photo's extension (a text file) is skipped quietly. A video Exiv2 reads is listed, but with none of its own
+  metadata (https://github.com/SophistSolutions/IPAM-Root/issues/11). A digiKam album root on a volume digiKam knows
+  only by its UUID or label cannot be found - `AlbumRootPath_` in `Digikam.cpp` reads the forms that can - so is
+  reported, its photos not merged. A source directory or digiKam database it cannot read is an error.
 - `Tools/TagStats/` - reads ImportMetadata's `DocumentMetaData.json` and writes JSON: for each tag, its photos and how
   often each other tag is with it. Arguments: `-i FILE` (the `DocumentMetaData.json`), `-o FILE`; `--help` lists them.
 - `API-Server/` - a stub `main` that does nothing yet.

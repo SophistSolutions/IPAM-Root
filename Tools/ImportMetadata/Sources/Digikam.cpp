@@ -36,6 +36,7 @@
 #include "Stroika/Foundation/Execution/Activity.h"
 #include "Stroika/Foundation/IO/FileSystem/FileSystem.h"
 #include "Stroika/Foundation/IO/FileSystem/PathName.h"
+#include "Stroika/Foundation/IO/Network/UniformResourceIdentification.h"
 #include "Stroika/Foundation/Streams/iostream/OutputStreamFromStdOStream.h"
 #include "Stroika/Foundation/Time/DateTime.h"
 
@@ -71,6 +72,53 @@ using LibIPAM::Metadata::Document;
 */
 
 namespace {
+    /*
+     *  An album root's directory, found as digiKam's CollectionManager finds it, from AlbumRoots.identifier - a URL, its
+     *  values URL-encoded - and AlbumRoots.specificPath, the root's path on the volume the identifier names:
+     *      volumeid:?path=P                        P
+     *      volumeid:?mountpath=M                   the volume mounted at M: M + specificPath
+     *      networkshareid:?mountpath=M&...         a network share: the first M that exists
+     *      volumeid:?uuid=U, or ?label=L           a volume digiKam finds by its UUID or label (with KDE's Solid), which
+     *                                              cannot be found from here: nullopt
+     */
+    optional<String> AlbumRootPath_ (const String& identifier, const String& specificPath)
+    {
+        static const RegularExpression kIdentifier_{"^(volumeid|networkshareid):\\?(.*)$"sv};
+        Sequence<String>               m;
+        if (not identifier.Matches (kIdentifier_, &m)) {
+            return nullopt;
+        }
+        // the query's values named name, decoded (networkshareid repeats mountpath). digiKam leaves characters that are not
+        // ASCII as they are, so a value is decoded as UTF-8, not ASCII.
+        auto values = [&] (const String& name) {
+            Sequence<String> result;
+            for (const String& item : m[1].Tokenize (Set<Character>{'&'})) {
+                if (item.StartsWith (name + "="sv)) {
+                    result.Append (IO::Network::UniformResourceIdentification::PCTDecode2String (item.SubString (name.length () + 1).AsUTF8<u8string> ()));
+                }
+            }
+            return result;
+        };
+        // a directory's path, with no "/" at its end (but a file system's root, "/") - as "/" + a name follows it
+        auto directory = [] (const String& p) { return p.length () > 1 and p.EndsWith ("/"sv) ? p.SubString (0, p.length () - 1) : p; };
+        if (m[0] == "volumeid"sv) {
+            if (Sequence<String> paths = values ("path"sv); not paths.empty ()) {
+                return directory (paths[0]);
+            }
+            if (Sequence<String> mountPaths = values ("mountpath"sv); not mountPaths.empty ()) {
+                return directory (directory (mountPaths[0]) + specificPath);
+            }
+            return nullopt;
+        }
+        Sequence<String> mountPaths = values ("mountpath"sv);
+        for (const String& mountPath : mountPaths) {
+            if (filesystem::exists (mountPath.As<filesystem::path> ())) {
+                return directory (mountPath);
+            }
+        }
+        return mountPaths.empty () ? nullopt : optional<String>{directory (mountPaths[0])};
+    }
+
     // When file was created, if its file system records that (on Linux, only some do); nullopt too if it cannot be read
     optional<DateTime> GetCreationTime_ (const filesystem::path& file)
     {
@@ -146,20 +194,21 @@ namespace digikam {
 
             // step one: build imageID map to image path (so can access in masterListOfTags and because is our primary key)
             // album paths are done by reference so first need to build map of those
+            // an album root that cannot be found is left out - with its albums and their photos - and reported
             Mapping<int, String> albumRoots;
-            for (const auto& ari : conn.mkStatement ("Select id,identifier from AlbumRoots;"sv).GetAllRows (0, 1)) {
-                // example identier: volumeid:?path=P:
-                // from internet example: volumeid:?path=%/home/user1/Photo
-                int    id   = std::get<0> (ari).As<int> ();
-                String path = std::get<1> (ari).As<String> ();
-
-                static const auto albumLocation{"^(?:volumeid:\\?path=)(.*)"_RegEx};
-                Sequence<String>  matches;
-                if (path.Matches (albumLocation, &matches)) {
-                    path = matches[0];
+            for (const auto& ari : conn.mkStatement ("Select id,identifier,specificPath from AlbumRoots;"sv).GetAllRows (0, 1, 2)) {
+                int    id           = std::get<0> (ari).As<int> ();
+                String identifier   = std::get<1> (ari).As<String> ();
+                String specificPath = std::get<2> (ari).As<String> ();
+                if (optional<String> path = AlbumRootPath_ (identifier, specificPath)) {
+                    albumRoots.Add (id, *path);
                 }
-                //DbgTrace (L"root: %d, %s", id, path.c_str ());
-                albumRoots.Add (id, path);
+                else {
+                    Metadata::Report (problemSink, Metadata::Problem{.fFile = identifier,
+                                                                     .fReason = "digiKam's album root {} on a volume it finds by its UUID or label, which ImportMetadata cannot: its photos are not merged"_f(
+                                                                         specificPath),
+                                                                     .fDirectory = true});
+                }
             }
 
             // An album's relativePath is its directory relative to its album root, after a "/" - and "/" for the album root
@@ -171,10 +220,10 @@ namespace digikam {
                 int    albumRoot    = std::get<1> (ai).As<int> ();
                 String relativePath = std::get<2> (ai).As<String> ();
                 String name         = relativePath.StartsWith ("/"sv) ? relativePath.SubString (1) : relativePath;
-
-                // DbgTrace (L"albumPaths: %d, %s", id,name.c_str ());
-                albumPaths.Add (id, name.empty () ? albumRoots[albumRoot] : albumRoots[albumRoot] + "/" + name);
-                albumNames.Add (id, name);
+                if (optional<String> rootPath = albumRoots.Lookup (albumRoot)) {
+                    albumPaths.Add (id, name.empty () ? *rootPath : *rootPath + "/" + name);
+                    albumNames.Add (id, name);
+                }
             }
             Mapping<int, String> imageIDToImagePath;
 
@@ -183,8 +232,8 @@ namespace digikam {
                 int    album = std::get<1> (ii).As<int> ();
                 String name  = std::get<2> (ii).As<String> ();
 
-                if (album != 0) {
-                    String imagePath = albumPaths[album] + "/" + name;
+                if (optional<String> albumPath = albumPaths.Lookup (album)) {
+                    String imagePath = *albumPath + "/" + name;
                     //DbgTrace (L"got: %d, %d, %s, %s", id, album, name.c_str (), imagePath.c_str ());
                     imageIDToImagePath.Add (id, imagePath);
                     Document ms;

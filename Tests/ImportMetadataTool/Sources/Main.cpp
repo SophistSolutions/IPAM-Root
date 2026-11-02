@@ -145,6 +145,16 @@ namespace {
             DateTime{fileTime.GetDate (), fileTime.GetTimeOfDay ()}.Format (DateTime::kISO8601Format)));
     }
 
+    // Names the digiKam database's album root as digiKam can: identifier (a URL, its values URL-encoded) and specificPath (the
+    // root's path on the volume identifier names)
+    void SetDigikamAlbumRoot_ (const path& dbFile, const String& identifier, const String& specificPath)
+    {
+        using namespace Database::SQL;
+        auto conn = SQLite::Connection::New (SQLite::Connection::Options{.fDBPath = dbFile});
+        conn.Exec ("UPDATE AlbumRoots SET identifier = '{}', specificPath = '{}' WHERE id = 1;"_f(identifier.ReplaceAll ("'"sv, "''"sv),
+                                                                                                  specificPath.ReplaceAll ("'"sv, "''"sv)));
+    }
+
     // A small digiKam collection - photos, and its database - in a temporary directory. Its database knows IMG_0001 to 0003,
     // IMG_0005.heic and IMG_0006 in its album 1964 New York, and loose.jpg and IMG_0004 in its root album (0003 and 0004 have no file);
     // Scans is not in it, and nor is anything ImportMetadata skips (a hidden directory - and, on Windows, Windows' own - and a
@@ -485,8 +495,8 @@ namespace {
         "Scans/broken.jpg\n"
         "Scans/zeros.nef";
 
-    // The problems in a Problems.json, sorted, one per line: the photo (relative to images), and the key and the value (or
-    // neither, for a whole photo) - or "(warning)", for one. Each must give a reason too.
+    // The problems in a Problems.json, sorted, one per line: the photo (relative to images; or whatever else, as it is), and
+    // the key and the value (or neither, for a whole photo) - or "(warning)", for one. Each must give a reason too.
     String ProblemsListing_ (const path& problemsFile, const path& images)
     {
         String            prefix = String{images.generic_wstring ()} + "/"sv;
@@ -495,7 +505,6 @@ namespace {
         for (const VariantValue& vp : problems.As<Sequence<VariantValue>> ()) {
             Mapping<String, VariantValue> p    = vp.As<Mapping<String, VariantValue>> ();
             String                        file = p.LookupValue ("file"sv).As<String> ();
-            EXPECT_TRUE (file.StartsWith (prefix)) << file;
             EXPECT_FALSE (p.LookupValue ("reason"sv).As<String> ().empty ()) << file;
             String photo = file.StartsWith (prefix) ? file.SubString (prefix.length ()) : file;
             String key   = p.LookupValue ("key"sv).As<String> ();
@@ -640,6 +649,50 @@ namespace {
         // and -s with a trailing separator makes no difference
         String images = String{c.images / ""};
         ExpectSameDocuments_ (RunImportMetadata_ (c, images, c.root / "out", true), ExpectedDocuments_ (c, true));
+    }
+
+    GTEST_TEST (ImportMetadata, DigikamAlbumRootForms_)
+    {
+        // each other form digiKam names an album root in that says where it is: by the volume's mount path, and the root's
+        // path on it; by a network share's mount paths - the first that exists
+        {
+            Collection_ c;
+            SetDigikamAlbumRoot_ (c.database, "volumeid:?mountpath={}/"_f(String{c.root.generic_wstring ()}), "/Images"sv);
+            ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, c.root / "out", false), ExpectedDocuments_ (c, false));
+        }
+        {
+            Collection_ c;
+            SetDigikamAlbumRoot_ (c.database,
+                                  "networkshareid:?mountpath={}&mountpath={}"_f(String{(c.root / "offline").generic_wstring ()},
+                                                                                String{c.images.generic_wstring ()}),
+                                  "/"sv);
+            ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, c.root / "out", false), ExpectedDocuments_ (c, false));
+        }
+        // ... its values URL-encoded
+        {
+            Collection_ c{"Tom & Jerry"};
+            SetDigikamAlbumRoot_ (c.database, "volumeid:?path={}"_f(String{c.images.generic_wstring ()}.ReplaceAll ("&"sv, "%26"sv)), "/"sv);
+            ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, c.root / "out", false), ExpectedDocuments_ (c, false));
+        }
+    }
+
+    GTEST_TEST (ImportMetadata, DigikamAlbumRootOnAnUnknownVolumeIsReported_)
+    {
+        // a volume digiKam knows by its UUID (or label), which ImportMetadata cannot find: none of the root's photos merge - nor
+        // are listed, with --include-digikam-only - and the root is reported
+        Collection_           c;
+        constexpr string_view kIdentifier_ = "volumeid:?uuid=4a3f11b2-6d1e-4c3a-9f0b-2c7d8e9a1b3c";
+        SetDigikamAlbumRoot_ (c.database, kIdentifier_, "/Images"sv);
+        path                      out = c.root / "out";
+        String                    stdErr;
+        Mapping<String, Document> documents = RunImportMetadata_ (c, String{c.images}, out, true, &stdErr);
+        // just the files' own metadata
+        Mapping<String, Document> fileScrape;
+        Document::ReadFromJSONFile (&fileScrape, out / "FileScrape.json");
+        ExpectSameDocuments_ (documents, fileScrape);
+        String problems = ProblemsListing_ (out / "Problems.json", c.images);
+        EXPECT_TRUE (problems.Contains (kIdentifier_)) << problems;
+        EXPECT_TRUE (stdErr.Contains (", 1 directory - see "sv)) << stdErr;
     }
 
 #if qStroika_Platform_Windows
