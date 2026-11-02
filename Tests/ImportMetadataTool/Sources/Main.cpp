@@ -154,10 +154,12 @@ namespace {
     struct Collection_ {
         IO::FileSystem::ScopedTmpDir tmpDir{"ImportMetadataTest"};
         path                         root{static_cast<path> (tmpDir)};
-        path                         images{root / "Images"};
+        path                         images;
         path                         database{root / "digikam4.db"};
 
-        Collection_ ()
+        // its photos in root / imagesName
+        Collection_ (const path& imagesName = "Images")
+            : images{root / imagesName}
         {
             WriteJPEG_ (images / "1964 New York" / "IMG_0001.jpg", [] (Exiv2::Image& image) {
                 AddIPTCKeywords_ (image, {"Fred", "Statue of Liberty", "Brooklyn Bridge", "Ignored"});
@@ -621,6 +623,20 @@ namespace {
         String images = String{c.images / ""};
         ExpectSameDocuments_ (RunImportMetadata_ (c, images, c.root / "out", true), ExpectedDocuments_ (c, true));
     }
+
+#if qStroika_Platform_Windows
+    // Windows only: elsewhere Stroika's CommandLine decodes a narrow argument in the C++ global locale - "C", ASCII, unless
+    // the program sets it
+    GTEST_TEST (ImportMetadata, ArgumentsOutsideTheCodePage_)
+    {
+        // its photos and the output directory named outside Windows' code page (Windows-1252 here), so -s's and -o's
+        // arguments are too; not the database: Stroika 3.0d25's SQLite opens a database by its name in the code page
+        Collection_ c{u8"\u03a9Images"};
+        path        out = c.root / u8"\u03a9out";
+        ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, out, false), ExpectedDocuments_ (c, false));
+        EXPECT_EQ (ProblemsListing_ (out / "Problems.json", c.images), kProblems_);
+    }
+#endif
 
     GTEST_TEST (ImportMetadata, UnreadableDirectoryIsReported_)
     {

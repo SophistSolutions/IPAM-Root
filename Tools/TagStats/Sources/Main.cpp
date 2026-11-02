@@ -155,7 +155,12 @@ namespace {
     }
 }
 
+// wmain on Windows, so each argument - a path - comes whole, not in the code page, which cannot name every file
+#if qStroika_Platform_Windows
+int wmain (int argc, const wchar_t* argv[])
+#else
 int main (int argc, const char* argv[])
+#endif
 {
     CommandLine               commandLine{argc, argv};
     Debug::TraceContextBumper ctx{"main", "argv={}"_f, commandLine};
