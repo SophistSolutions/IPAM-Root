@@ -64,7 +64,9 @@ namespace {
                                                      kIncludeDigikamOnlyO_, kOutputDirectoryO_};
 
     // The same date and time of day, whatever zone either says: digiKam keeps a date as its local time, with no zone, so a
-    // file's date that says its zone is digiKam's when its clock time is. A date that will not parse matches only itself.
+    // file's date that says its zone is digiKam's when its clock time is. (digiKam's MetaEngine::getItemDateTime drops the
+    // zone - its asDateTimeUTC relabels it, not converts - and never reads EXIF's OffsetTimeOriginal.) A date that will
+    // not parse matches only itself.
     bool SameClockTime_ (const String& a, const String& b)
     {
         using Time::DateTime;
