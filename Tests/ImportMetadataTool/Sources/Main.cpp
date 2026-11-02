@@ -629,11 +629,12 @@ namespace {
 
 #if qStroika_Platform_Windows
     // Windows only: elsewhere Stroika's CommandLine decodes a narrow argument in the C++ global locale - "C", ASCII, unless
-    // the program sets it
+    // the program sets it (https://github.com/SophistSolutions/Stroika/issues/1266)
     GTEST_TEST (ImportMetadata, ArgumentsOutsideTheCodePage_)
     {
         // its photos and the output directory named outside Windows' code page (Windows-1252 here), so -s's and -o's
         // arguments are too; not the database: Stroika 3.0d25's SQLite opens a database by its name in the code page
+        // (https://github.com/SophistSolutions/Stroika/issues/1265)
         Collection_ c{u8"\u03a9Images"};
         path        out = c.root / u8"\u03a9out";
         ExpectSameDocuments_ (RunImportMetadata_ (c, String{c.images}, out, false), ExpectedDocuments_ (c, false));

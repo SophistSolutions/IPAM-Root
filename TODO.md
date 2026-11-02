@@ -33,3 +33,14 @@ as they are done.
   (`IO::FileSystem::Ptr::GetCreationTime`, in its 3.0d26 milestone). `Tools/ImportMetadata/Sources/Digikam.cpp`'s
   `GetCreationTime_` calls Stroika's from its 3.0d26 release, and carries its own code until then. Once a Stroika upgrade
   brings it, delete that code, its `#include`s and `qIPAM_StroikaHasGetCreationTime_`.
+
+- **ImportMetadata's `-d` naming a path that is not ASCII, on Windows - waits on Stroika
+  [#1265](https://github.com/SophistSolutions/Stroika/issues/1265)** (in its 3.0d26 milestone). Stroika's SQLite opens
+  a database by its name in the code page, not UTF-8, so it cannot open one there. Once a Stroika upgrade brings the fix,
+  `Tests/ImportMetadataTool`'s `ArgumentsOutsideTheCodePage_` puts its database under the `Ω` directory too.
+
+- **Arguments that are not ASCII, on Linux - waits on Stroika
+  [#1266](https://github.com/SophistSolutions/Stroika/issues/1266)** (in its 3.0d26 milestone). Stroika's `CommandLine`
+  decodes a narrow argument in the C++ locale - `"C"`, which cannot decode UTF-8 - so ImportMetadata and TagStats
+  probably terminate on one there. Once a Stroika upgrade brings the fix, `ArgumentsOutsideTheCodePage_` runs on Linux
+  too (it is Windows-only).
