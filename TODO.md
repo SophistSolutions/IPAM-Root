@@ -7,6 +7,11 @@ as they are done.
 
 ## Open
 
+- **Exiv2's Windows file-name patch - waits on Exiv2 [#9558](https://github.com/Exiv2/exiv2/pull/9558)** (or main's
+  #3117, in a release). `ThirdPartyComponents/Exiv2` patches 0.28.9 so that `FileIo` opens a UTF-8 name by its wide
+  name; #9558 proposes the same for 0.28.x. Once a release has a fix, move to it - the patch is applied to 0.28.9
+  only, and `Tests/ImportMetadataTool` fails on a version without a fix.
+
 - **Windows CI's `SHLVL=1` - waits on Stroika [#1258](https://github.com/SophistSolutions/Stroika/issues/1258)**.
   `build-N-test.yml` starts the Windows build container with `--env SHLVL=1`, or Stroika's OpenSSL download fails there
   (its Makefile sends `WebGet` to `$HOME`). Once a Stroika upgrade brings #1258's fix, drop it, and check Windows CI
