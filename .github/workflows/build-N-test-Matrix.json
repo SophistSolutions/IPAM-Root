@@ -1,6 +1,6 @@
 [
     {
-        "#": "Linux - ubuntu 26.04; Debug carries Stroika's default sanitizers (address, undefined)"
+        "#": "Linux - ubuntu 26.04; Debug carries Stroika's default sanitizers (address, undefined); Release on v1-Release (or with run_all)"
     },
     {
         "build_job": "Linux",
@@ -12,7 +12,16 @@
         "run_on_branch": "always"
     },
     {
-        "#": "Windows - Visual Studio 2026; configured as the top Makefile's Windows Debug"
+        "build_job": "Linux",
+        "displayTargetName": "ubuntu-26.04 (Release)",
+        "runs_on": "ubuntu-latest",
+        "container_image": "sophistsolutionsinc/ipam-ubuntu-2604:v1",
+        "config_name": "Release",
+        "extra_config_args": "--apply-default-release-flags",
+        "run_on_branch": "v1-Release"
+    },
+    {
+        "#": "Windows - Visual Studio 2026; configured as the top Makefile's Windows Debug, and Release on v1-Release (or with run_all)"
     },
     {
         "build_job": "Windows",
@@ -22,5 +31,14 @@
         "config_name": "Debug",
         "extra_config_args": "--arch x86_64 --ATLMFC no --apply-default-debug-flags",
         "run_on_branch": "always"
+    },
+    {
+        "build_job": "Windows",
+        "displayTargetName": "windows-vs2k26 (Release)",
+        "runs_on": "windows-2025",
+        "container_image": "sophistsolutionsinc/ipam-windows-vs2k26:v1",
+        "config_name": "Release",
+        "extra_config_args": "--arch x86_64 --ATLMFC no --apply-default-release-flags",
+        "run_on_branch": "v1-Release"
     }
 ]

@@ -55,7 +55,8 @@ What works today is scraping photo metadata. Version in `VERSION`; one branch, `
   Stroika's go in their Dockerfiles. The `build-Dev-Docker-Containers` workflow (run by hand) publishes them, from its
   `-Matrix.json`.
 - `.github/workflows/build-N-test.yml` - CI on every push, one job per entry of `build-N-test-Matrix.json` that the branch
-  selects (`run_on_branch`, as in Stroika's): today Linux Debug and Windows Debug, each in IPAM's image, building
+  selects (`run_on_branch`, as in Stroika's): today Linux Debug and Windows Debug - and Release on each, on a push to
+  `v1-Release` (or when the workflow is run by hand with `run_all`) - each in IPAM's image, building
   everything and running the tests. No macOS. Results: https://github.com/SophistSolutions/IPAM-Root/actions (public, so
   readable with no token, as Stroika's are).
 
