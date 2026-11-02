@@ -44,3 +44,13 @@ as they are done.
   decodes a narrow argument in the C++ locale - `"C"`, which cannot decode UTF-8 - so ImportMetadata and TagStats
   probably terminate on one there. Once a Stroika upgrade brings the fix, `ArgumentsOutsideTheCodePage_` runs on Linux
   too (it is Windows-only).
+
+## Watching
+
+Not work items: checks an agent runs (how often), raising with LGP only what one finds.
+
+- **WATCH: Exiv2 [#9558](https://github.com/Exiv2/exiv2/pull/9558), our Windows file-name PR - check once a day** (LGP
+  2026-11-01): `gh pr view 9558 --repo Exiv2/exiv2 --json state,reviews,comments,statusCheckRollup`. Raise a review, a
+  question, a failed check, or its merge. Last checked 2026-11-01: open, no reviews; only its Mergify, GitGuardian and
+  Summary checks have run - its build workflows wait on a maintainer. Once a release has it, the "Exiv2's Windows
+  file-name patch" entry above says what to do; then drop this.
