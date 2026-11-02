@@ -8,15 +8,17 @@ IPAM is an application built on Stroika (scaffolded with Stroika's `Skel`, in 20
 above, applies here - agents that do not follow `@` imports: read `ThirdPartyComponents/Stroika/StroikaRoot/AGENTS.md`
 first. Its build system, C++ conventions, Commits, Issues and "Working with LGP" sections are IPAM's too. These parts of
 it do not apply: its regression-test layout (`Tests/NN`, renumbering), its CI matrix and supported-platforms tables (IPAM's
-CI is one job - see Layout), its release milestones and `Release-Notes.md`, `UPGRADE NOTE:`s in commit messages (nothing is built on
-IPAM), and its "Downstream projects" list (IPAM is on it). Where the two files disagree, this one wins.
+CI is one job - see Layout), its release milestones and release process (IPAM's: "Releasing", below), `UPGRADE NOTE:`s
+in commit messages (nothing is built on IPAM), and its "Downstream projects" list (IPAM is on it). Where the two files
+disagree, this one wins.
 
 ## What this is
 
 IPAM, the "Interplanetary Album Manager": tools to organize photo albums (and other documents) and share them over IPFS
 without handing control to a third party. It is early-stage. `Documentation/ReadMe.md` is the design (documents,
 versions, sections, tags, an API-Server that talks to IPFS), and most of it is not written yet: there is no IPFS code.
-What works today is scraping photo metadata. Version in `VERSION`; one branch, `v1-Dev`; no release notes.
+What works today is scraping photo metadata. Version in `VERSION`; work on `v1-Dev`, each release on `v1-Release`;
+release notes in `Release-Notes.md`.
 
 ## Layout
 
@@ -133,3 +135,14 @@ The submodule follows Stroika's releases (`v3-Release`), or `v3-Dev` between the
 9. Report every change IPAM needed that the upgrade notes do not mention, and every note that was wrong or unclear, so
    Stroika's Release-Notes can be fixed.
 10. The commit's headline names the Stroika version ("Stroika 3.0d25").
+
+## Releasing
+
+LGP decides when. A release is:
+1. Its section at the top of `Release-Notes.md`, laid out as Stroika's (TLDR, Upgrade Notes, Change Details,
+   Release-Validation), from the commits since the last release's tag.
+2. `VERSION` without its `x` (`1.0d1x` becomes `1.0d1`), committed with the notes, on `v1-Dev`.
+3. That commit pushed to `v1-Release` (`git push origin HEAD:v1-Release`), where CI builds Release as well as Debug.
+4. Once CI passes, that commit tagged with the version - no `v`, as Stroika's tags (`1.0d1`) - and the tag pushed
+   (`git push origin 1.0d1`).
+5. `VERSION` set to the next version, with its `x` (`1.0d2x`), on `v1-Dev`.
