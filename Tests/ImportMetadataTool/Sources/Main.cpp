@@ -10,9 +10,7 @@
 #include <functional>
 #include <iostream>
 
-#if qStroika_Platform_POSIX
-#include <unistd.h>
-#elif qStroika_Platform_Windows
+#if qStroika_Platform_Windows
 #include <Windows.h>
 #endif
 
@@ -536,17 +534,15 @@ namespace {
             << Characters::ToString (commandLine);
     }
 
-    // Makes dir unreadable - what is in it cannot be listed - while it lives. fWorks is false if it cannot: root reads any
-    // directory (as in a docker container, CI's).
+    // Makes dir unreadable - what is in it cannot be listed - while it lives. fWorks is false if it is not: root reads any
+    // directory, and so, in a Windows container, does ContainerAdministrator (CI's, both).
     struct ScopedUnreadableDirectory_ {
         ScopedUnreadableDirectory_ (const path& dir)
             : fDir{dir}
         {
 #if qStroika_Platform_POSIX
-            if (::geteuid () != 0) {
-                permissions (dir, perms::none);
-                fWorks = true;
-            }
+            permissions (dir, perms::none);
+            fRestricted_ = true;
 #elif qStroika_Platform_Windows
             // an access list with no entries: no one may do anything with it, but its owner restore it
             DWORD size{};
@@ -557,13 +553,17 @@ namespace {
             if (::GetFileSecurityW (dir.c_str (), DACL_SECURITY_INFORMATION, fSavedSecurity_.data (), size, &size) and
                 ::InitializeAcl (&noEntries, sizeof (noEntries), ACL_REVISION) and
                 ::InitializeSecurityDescriptor (&sd, SECURITY_DESCRIPTOR_REVISION) and ::SetSecurityDescriptorDacl (&sd, true, &noEntries, false)) {
-                fWorks = ::SetFileSecurityW (dir.c_str (), DACL_SECURITY_INFORMATION, &sd) != 0;
+                fRestricted_ = ::SetFileSecurityW (dir.c_str (), DACL_SECURITY_INFORMATION, &sd) != 0;
             }
 #endif
+            // whether it worked is whether it can still be listed - by this program, and so by the one it runs
+            error_code                                           ec;
+            [[maybe_unused]] std::filesystem::directory_iterator listing{dir, ec};
+            fWorks = fRestricted_ and ec;
         }
         ~ScopedUnreadableDirectory_ ()
         {
-            if (fWorks) {
+            if (fRestricted_) {
 #if qStroika_Platform_POSIX
                 permissions (fDir, perms::owner_all);
 #elif qStroika_Platform_Windows
@@ -573,6 +573,9 @@ namespace {
         }
         path fDir;
         bool fWorks{false};
+
+    private:
+        bool fRestricted_{false};
 #if qStroika_Platform_Windows
         vector<byte> fSavedSecurity_;
 #endif
@@ -646,7 +649,7 @@ namespace {
         WriteJPEG_ (locked / "IMG_0200.jpg", [] (Exiv2::Image& image) { AddIPTCKeywords_ (image, {"Locked"}); });
         ScopedUnreadableDirectory_ unreadable{locked};
         if (not unreadable.fWorks) {
-            GTEST_SKIP () << "cannot make a directory unreadable here (as root)";
+            GTEST_SKIP () << "cannot make a directory unreadable here (root, or ContainerAdministrator, reads any)";
         }
         path   out = c.root / "out";
         String stdErr;
