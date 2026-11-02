@@ -147,8 +147,8 @@ namespace {
 
     // A small digiKam collection - photos, and its database - in a temporary directory. Its database knows IMG_0001 to 0003,
     // IMG_0005.heic and IMG_0006 in its album 1964 New York, and loose.jpg and IMG_0004 in its root album (0003 and 0004 have no file);
-    // Scans is not in it, and nor is anything ImportMetadata skips (a hidden directory, a text file) or cannot read (damaged
-    // photos).
+    // Scans is not in it, and nor is anything ImportMetadata skips (a hidden directory - and, on Windows, Windows' own - and a
+    // text file) or cannot read (damaged photos).
     struct Collection_ {
         IO::FileSystem::ScopedTmpDir tmpDir{"ImportMetadataTest"};
         path                         root{static_cast<path> (tmpDir)};
@@ -269,6 +269,13 @@ namespace {
             WriteJPEG_ (images / "Scans" / "unknown.jpg", [] (Exiv2::Image& image) { AddEXIFDate_ (image, "0000:00:00 00:00:00"); });
             WriteJPEG_ (images / "loose.jpg", [] (Exiv2::Image&) {});
             WriteJPEG_ (images / ".hidden" / "IMG_9999.jpg", [] (Exiv2::Image& image) { AddIPTCKeywords_ (image, {"Hidden"}); });
+#if qStroika_Platform_Windows
+            // Windows' own directories, hidden and system: as its recycle bin at a drive's root, holding a deleted photo (and
+            // its record, not a photo, by a photo's name)
+            WriteJPEG_ (images / "$RECYCLE.BIN" / "$R1A2B3C.jpg", [] (Exiv2::Image& image) { AddIPTCKeywords_ (image, {"Deleted"}); });
+            std::ofstream{images / "$RECYCLE.BIN" / "$I1A2B3C.jpg", ios::binary} << "not a JPEG"sv;
+            ::SetFileAttributesW ((images / "$RECYCLE.BIN").c_str (), FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM);
+#endif
             std::ofstream{images / "Scans" / "notes.txt"} << "not a photo" << endl;
             // damaged photos: a JPEG's first bytes, then no JPEG; and a raw photo's name on nothing Exiv2 recognizes
             std::ofstream{images / "Scans" / "broken.jpg", ios::binary} << "\xFF\xD8"sv << "then not a JPEG"sv;
@@ -460,8 +467,11 @@ namespace {
     }
 
     // What ImportMetadata should leave out for Collection_, and report, as ProblemsListing_ lists them: values of photos'
-    // documents, from files and from digiKam, and whole photos
+    // documents, from files and from digiKam, and whole photos - and, on Windows, Windows' own directory, as a warning
     constexpr string_view kProblems_ =
+#if qStroika_Platform_Windows
+        "$RECYCLE.BIN (warning)\n"
+#endif
         "1964 New York/IMG_0003.jpg ImagePositions.latitudeNumber, ImagePositions.longitudeNumber: 40.7, NULL\n"
         "1964 New York/IMG_0005.heic ImageInformation.rating: 7\n"
         "IMG_0004.jpg ImageInformation.creationDate: yesterday\n"
@@ -476,7 +486,7 @@ namespace {
         "Scans/zeros.nef";
 
     // The problems in a Problems.json, sorted, one per line: the photo (relative to images), and the key and the value (or
-    // neither, for a whole photo). Each must give a reason too.
+    // neither, for a whole photo) - or "(warning)", for one. Each must give a reason too.
     String ProblemsListing_ (const path& problemsFile, const path& images)
     {
         String            prefix = String{images.generic_wstring ()} + "/"sv;
@@ -489,7 +499,12 @@ namespace {
             EXPECT_FALSE (p.LookupValue ("reason"sv).As<String> ().empty ()) << file;
             String photo = file.StartsWith (prefix) ? file.SubString (prefix.length ()) : file;
             String key   = p.LookupValue ("key"sv).As<String> ();
-            lines.Add (key.empty () ? photo : "{} {}: {}"_f(photo, key, p.LookupValue ("value"sv).As<String> ()));
+            if (p.LookupValue ("warning"sv).As<bool> ()) {
+                lines.Add ("{} (warning)"_f(photo));
+            }
+            else {
+                lines.Add (key.empty () ? photo : "{} {}: {}"_f(photo, key, p.LookupValue ("value"sv).As<String> ()));
+            }
         }
         StringBuilder sb;
         for (const String& l : lines) {

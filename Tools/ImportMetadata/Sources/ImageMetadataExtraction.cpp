@@ -7,6 +7,10 @@
 #include <iomanip>
 #include <iostream>
 
+#if qStroika_Platform_Windows
+#include <Windows.h>
+#endif
+
 #include "Stroika/Foundation/Characters/CodeCvt.h"
 #include "Stroika/Foundation/Characters/CodePage.h"
 #include "Stroika/Foundation/Characters/RegularExpression.h"
@@ -69,21 +73,40 @@ namespace Metadata {
             return kPhotoExtensions_.Contains (ext);
         }
 
+#if qStroika_Platform_Windows
+        // A directory Windows keeps for itself, marked both hidden and system - as Explorer's "protected operating system files"
+        // are ($RECYCLE.BIN, System Volume Information): a folder a user customized can be system, but not hidden too
+        bool IsWindowsOwnDirectory_ (const path& dir)
+        {
+            DWORD attributes = ::GetFileAttributesW (dir.c_str ());
+            return attributes != INVALID_FILE_ATTRIBUTES and (attributes & FILE_ATTRIBUTE_HIDDEN) != 0 and (attributes & FILE_ATTRIBUTE_SYSTEM) != 0;
+        }
+#endif
+
         // Calls onFile for each file under topDir (a symbolic link to one too) but hidden ones - a name starting with '.' -
-        // and those in a hidden directory: a directory's files, then its subdirectories'. A directory under topDir that cannot
-        // be read, or not to its end, is left out (what of it was not listed), and given to onUnreadable inside the catch, so
+        // and those in a hidden directory: a directory's files, then its subdirectories'. A directory Windows keeps for itself
+        // (its recycle bin, at a drive's root) is skipped too, and given to onSkipped. A directory under topDir that cannot be
+        // read, or not to its end, is left out (what of it was not listed), and given to onUnreadable inside the catch, so
         // current_exception () says why; topDir itself throws.
-        void ForEachFile_ (const path& topDir, const function<void (const path&)>& onFile, const function<void (const path&)>& onUnreadable)
+        void ForEachFile_ (const path& topDir, const function<void (const path&)>& onFile, const function<void (const path&)>& onSkipped,
+                           const function<void (const path&)>& onUnreadable)
         {
             function<void (const path&)> walk = [&] (const path& dir) {
                 vector<path> files;
                 vector<path> subdirectories;
+                vector<path> skipped;
                 try {
                     for (const directory_entry& e : directory_iterator{dir}) {
                         if (e.path ().filename ().native ().starts_with (path::value_type{'.'})) {
                             continue;
                         }
                         if (e.is_directory () and not e.is_symlink ()) {
+#if qStroika_Platform_Windows
+                            if (IsWindowsOwnDirectory_ (e.path ())) {
+                                skipped.push_back (e.path ());
+                                continue;
+                            }
+#endif
                             subdirectories.push_back (e.path ());
                         }
                         else if (e.is_regular_file ()) {
@@ -96,6 +119,9 @@ namespace Metadata {
                         throw;
                     }
                     onUnreadable (dir);
+                }
+                for (const path& d : skipped) {
+                    onSkipped (d);
                 }
                 for (const path& f : files) {
                     onFile (f);
@@ -111,6 +137,15 @@ namespace Metadata {
         void ReportUnreadableDirectory_ (const ProblemSink& problemSink, const path& dir)
         {
             Report (problemSink, Problem{.fFile = DocumentKey_ (dir), .fReason = Characters::ToString (current_exception ()), .fDirectory = true});
+        }
+
+        // For ForEachFile_'s onSkipped: a directory left out on purpose - a warning, not a failure
+        void ReportSkippedDirectory_ (const ProblemSink& problemSink, const path& dir)
+        {
+            Report (problemSink, Problem{.fFile      = DocumentKey_ (dir),
+                                         .fReason    = "skipped: one of Windows' own directories (hidden and system)"sv,
+                                         .fDirectory = true,
+                                         .fWarning   = true});
         }
 
         // Text in IPTC or EXIF: UTF-8 if it is valid UTF-8 (IPTC naming UTF-8 as its character set, as digiKam writes it;
@@ -591,6 +626,7 @@ namespace Metadata {
                     }
                 }
             },
+            [&] (const path& dir) { ReportSkippedDirectory_ (fProblemSink_, dir); },
             [&] (const path& dir) { ReportUnreadableDirectory_ (fProblemSink_, dir); });
         return extTally;
     }
@@ -617,6 +653,7 @@ namespace Metadata {
                     }
                 }
             },
+            [&] (const path& dir) { ReportSkippedDirectory_ (fProblemSink_, dir); },
             [&] (const path& dir) { ReportUnreadableDirectory_ (fProblemSink_, dir); });
         return imageMetaData;
     }

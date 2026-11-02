@@ -14,7 +14,8 @@ namespace Metadata {
 
     /**
      *  A value an importer could not read, and so left out of its photo's Document - or a whole photo, or a directory it
-     *  could not read (what photos it holds), left out - for whoever cares (ImportMetadata lists them in Problems.json).
+     *  could not read (what photos it holds), left out - for whoever cares (ImportMetadata lists them in Problems.json). Or,
+     *  as a warning, something left out on purpose: a directory Windows keeps for itself.
      */
     struct Problem {
         Stroika::Foundation::Characters::String fFile;   ///< the photo, as its Document is keyed (or a directory)
@@ -22,6 +23,7 @@ namespace Metadata {
         Stroika::Foundation::Characters::String fValue;  ///< the value, as text; empty for a whole photo
         Stroika::Foundation::Characters::String fReason; ///< why it would not do: what reading it threw, or what it lacks
         bool                                    fDirectory{false}; ///< fFile is a directory: its photos, all or some, left out
+        bool                                    fWarning{false};   ///< left out on purpose (fReason says why) - not a failure
     };
 
     /**

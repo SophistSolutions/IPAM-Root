@@ -233,15 +233,17 @@ static void Import_ (const CommandLine& commandLine)
             {"key"sv, &Metadata::Problem::fKey},
             {"value"sv, &Metadata::Problem::fValue},
             {"reason"sv, &Metadata::Problem::fReason},
+            {"warning"sv, &Metadata::Problem::fWarning},
         });
         mapper.AddCommonType<Sequence<Metadata::Problem>> ();
         DataExchange::Variant::JSON::Writer{}.Write (mapper.FromObject (problems), IO::FileSystem::FileOutputStream::New (problemsFilePath));
-        if (not problems.empty ()) {
-            // counted by kind: a directory may be many photos
-            auto             count       = [] (size_t n, string_view one, string_view many) { return "{} {}"_f(n, n == 1 ? one : many); };
-            size_t           values      = problems.Count ([] (const Metadata::Problem& p) { return not p.fKey.empty (); });
-            size_t           directories = problems.Count ([] (const Metadata::Problem& p) { return p.fDirectory; });
-            size_t           photos      = problems.size () - values - directories;
+        // counted by kind (a directory may be many photos) - but not a warning: left out on purpose, it is no failure
+        size_t failures = problems.Count ([] (const Metadata::Problem& p) { return not p.fWarning; });
+        if (failures != 0) {
+            auto             count  = [] (size_t n, string_view one, string_view many) { return "{} {}"_f(n, n == 1 ? one : many); };
+            size_t           values = problems.Count ([] (const Metadata::Problem& p) { return not p.fWarning and not p.fKey.empty (); });
+            size_t           directories = problems.Count ([] (const Metadata::Problem& p) { return not p.fWarning and p.fDirectory; });
+            size_t           photos      = failures - values - directories;
             Sequence<String> counts;
             if (values != 0) {
                 counts.Append (count (values, "value"sv, "values"sv));
