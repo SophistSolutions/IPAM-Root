@@ -37,7 +37,7 @@ namespace IPAM::LibIPAM::Common {
     inline String Geolocation::Latitude::ToISOString ()
     {
         using namespace Characters::Literals;
-        return ToISOString_ ("{:02d}"_f);
+        return _ToISOString ("{:02d}"_f);
     }
 
     /*
@@ -56,7 +56,7 @@ namespace IPAM::LibIPAM::Common {
     inline String Geolocation::Longitude::ToISOString ()
     {
         using namespace Characters::Literals;
-        return ToISOString_ ("{:03}"_f);
+        return _ToISOString ("{:03}"_f);
     }
 
     /*

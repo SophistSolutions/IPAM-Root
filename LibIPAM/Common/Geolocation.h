@@ -49,7 +49,7 @@ namespace IPAM::LibIPAM::Common {
             static constexpr double _kPrecision = 1000000.0;
             double                  _value;
 
-            nonvirtual String ToISOString_ (const Characters::FormatString<char> degreeSpecification);
+            nonvirtual String _ToISOString (const Characters::FormatString<char> degreeSpecification);
 
         private:
             /*

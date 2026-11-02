@@ -111,7 +111,7 @@ double Geolocation::Coordinate::seconds () const
     return std::round (result * _kBase * _kPrecision) / _kPrecision;
 }
 
-String Geolocation::Coordinate::ToISOString_ (const Characters::FormatString<char> degreeSpecification)
+String Geolocation::Coordinate::_ToISOString (const Characters::FormatString<char> degreeSpecification)
 {
     // Count the whole value in its last unit, rounded to the digits printed, and split that: splitting the double unit by
     // unit truncates 42.99999 seconds to 42
@@ -183,7 +183,7 @@ Geolocation::Geolocation (const String& isoString)
         }
     }
     else {
-        static const auto kExcept_= DataExchange::BadFormatException{"Invalid Geolocation specification"sv};
+        static const auto kExcept_ = DataExchange::BadFormatException{"Invalid Geolocation specification"sv};
         Execution::Throw (kExcept_);
     }
 }
